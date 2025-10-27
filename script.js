@@ -24,20 +24,25 @@
                 setTimeout(initializeApp, 100);
                 return;
             }
-            
+
             checkSession();
             loadCards();
             setupEventListeners();
             setupDefaultDesign();
             updateCardsTable();
             updateCardPreview();
+
+            // Procesar ruta después de un breve delay para asegurar que todo esté cargado
+            setTimeout(() => {
+                handleRoute();
+            }, 100);
         }
 
         // CORREGIDO: Manejar rutas basadas en hash
         function handleRoute() {
             const hash = window.location.hash.substring(1); // Eliminar el #
             console.log('Hash detectado:', hash);
-            
+
             // Si hay un hash y es una tarjeta existente, mostrar solo la tarjeta
             if (hash && hash !== 'home' && hash !== 'my-cards') {
                 const card = findCardByUrl(hash);
@@ -47,6 +52,9 @@
                     return;
                 } else {
                     console.log('Tarjeta no encontrada, hash:', hash);
+                    // Si no se encuentra la tarjeta, mostrar mensaje de error
+                    showNotFound();
+                    return;
                 }
             }
 
@@ -76,19 +84,25 @@
         // CORREGIDO: Mostrar tarjeta cuando se accede por URL
         function displayCard(card) {
             console.log('Mostrando tarjeta individual:', card.name);
-            
+
             // Ocultar completamente la aplicación principal
             const app = document.getElementById('app');
             if (app) {
                 app.style.display = 'none';
             }
-            
+
             // Ocultar login si está visible
             const loginScreen = document.getElementById('loginScreen');
             if (loginScreen) {
                 loginScreen.style.display = 'none';
             }
-            
+
+            // Ocultar vista de error si existe
+            const errorView = document.getElementById('errorView');
+            if (errorView) {
+                errorView.style.display = 'none';
+            }
+
             // Crear contenedor para la vista individual si no existe
             let individualView = document.getElementById('individualCardView');
             if (!individualView) {
@@ -99,10 +113,10 @@
                 individualView.style.padding = '20px';
                 document.body.appendChild(individualView);
             }
-            
+
             // Mostrar solo el contenedor individual
             individualView.style.display = 'block';
-            
+
             // Renderizar la tarjeta en vista individual
             renderCardForIndividualView(card, individualView);
         }
@@ -181,10 +195,16 @@
             if (individualView) {
                 individualView.style.display = 'none';
             }
-            
+
+            // Ocultar vista de error
+            const errorView = document.getElementById('errorView');
+            if (errorView) {
+                errorView.style.display = 'none';
+            }
+
             // Cambiar hash a home
             window.location.hash = 'home';
-            
+
             // Mostrar aplicación principal si el usuario está logueado
             if (currentUser && currentUser.loggedIn) {
                 showApp();
@@ -314,12 +334,42 @@
         }
 
         function showNotFound() {
-            if (currentUser && currentUser.loggedIn) {
-                showHomeSection();
-            } else {
-                showLogin();
+            // Ocultar todas las vistas
+            const app = document.getElementById('app');
+            const loginScreen = document.getElementById('loginScreen');
+            const individualView = document.getElementById('individualCardView');
+
+            if (app) app.style.display = 'none';
+            if (loginScreen) loginScreen.style.display = 'none';
+            if (individualView) individualView.style.display = 'none';
+
+            // Crear vista de error si no existe
+            let errorView = document.getElementById('errorView');
+            if (!errorView) {
+                errorView = document.createElement('div');
+                errorView.id = 'errorView';
+                errorView.style.minHeight = '100vh';
+                errorView.style.display = 'flex';
+                errorView.style.alignItems = 'center';
+                errorView.style.justifyContent = 'center';
+                errorView.style.backgroundColor = '#f8f9fa';
+                errorView.style.padding = '20px';
+                document.body.appendChild(errorView);
             }
-            alert('Tarjeta no encontrada');
+
+            errorView.style.display = 'flex';
+            errorView.innerHTML = `
+                <div style="text-align: center; max-width: 400px; background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <h2 style="color: #e74c3c; margin-bottom: 1rem;">Tarjeta No Encontrada</h2>
+                    <p style="color: #7f8c8d; margin-bottom: 2rem;">La tarjeta que buscas no existe o ha sido eliminada.</p>
+                    <button onclick="showFullApp()" class="btn btn-primary" style="margin-right: 1rem;">
+                        Ir al Inicio
+                    </button>
+                    <button onclick="window.location.href='${window.location.origin}${window.location.pathname}'" class="btn btn-secondary">
+                        Crear Tarjetas
+                    </button>
+                </div>
+            `;
         }
 
         function setupDefaultDesign() {
@@ -376,28 +426,40 @@
         function showLogin() {
             const loginScreen = document.getElementById('loginScreen');
             const app = document.getElementById('app');
-            
+
             if (loginScreen) loginScreen.style.display = 'flex';
             if (app) app.style.display = 'none';
-            
+
             // Ocultar vista individual si existe
             const individualView = document.getElementById('individualCardView');
             if (individualView) {
                 individualView.style.display = 'none';
+            }
+
+            // Ocultar vista de error si existe
+            const errorView = document.getElementById('errorView');
+            if (errorView) {
+                errorView.style.display = 'none';
             }
         }
 
         function showApp() {
             const loginScreen = document.getElementById('loginScreen');
             const app = document.getElementById('app');
-            
+
             if (loginScreen) loginScreen.style.display = 'none';
             if (app) app.style.display = 'block';
-            
+
             // Ocultar vista individual si existe
             const individualView = document.getElementById('individualCardView');
             if (individualView) {
                 individualView.style.display = 'none';
+            }
+
+            // Ocultar vista de error si existe
+            const errorView = document.getElementById('errorView');
+            if (errorView) {
+                errorView.style.display = 'none';
             }
         }
 
