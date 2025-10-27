@@ -1071,7 +1071,6 @@
     </div>
 
     <script>
-        // JAVASCRIPT COMPLETO CON CORRECCIONES
         const CONFIG = {
             PASSWORD: 'admin123',
             SESSION_KEY: 'evaunt_session',
@@ -1107,98 +1106,114 @@
             updateCardPreview();
         }
 
-        // Manejar rutas basadas en hash
+        // CORREGIDO: Manejar rutas basadas en hash
         function handleRoute() {
             const hash = window.location.hash.substring(1); // Eliminar el #
+            console.log('Hash detectado:', hash);
             
-            if (!hash || hash === 'home') {
-                // Si no hay hash o es 'home', mostrar la sección por defecto
-                if (currentUser && currentUser.loggedIn) {
-                    showHomeSection();
+            // Si hay un hash y es una tarjeta existente, mostrar solo la tarjeta
+            if (hash && hash !== 'home' && hash !== 'my-cards') {
+                const card = findCardByUrl(hash);
+                if (card) {
+                    console.log('Tarjeta encontrada, mostrando vista individual');
+                    displayCard(card);
+                    return;
                 } else {
-                    showLogin();
+                    console.log('Tarjeta no encontrada, hash:', hash);
                 }
-                return;
             }
 
-            if (hash === 'my-cards') {
-                if (currentUser && currentUser.loggedIn) {
+            // Si el usuario está logueado, mostrar la aplicación normal
+            if (currentUser && currentUser.loggedIn) {
+                if (!hash || hash === 'home') {
+                    showHomeSection();
+                } else if (hash === 'my-cards') {
                     showMyCardsSection();
                 } else {
-                    showLogin();
+                    // Si no es una ruta conocida pero está logueado, mostrar home
+                    showHomeSection();
                 }
-                return;
-            }
-
-            // Verificar si es una URL de tarjeta
-            const card = findCardByUrl(hash);
-            if (card) {
-                displayCard(card);
-                return;
-            }
-
-            // Si no es una ruta conocida, mostrar página no encontrada
-            showNotFound();
-        }
-
-        // Encontrar tarjeta por URL
-        function findCardByUrl(url) {
-            return cards.find(card => {
-                const cardUrl = card.url;
-                return cardUrl === url;
-            });
-        }
-
-        // Mostrar tarjeta cuando se accede por URL
-        function displayCard(card) {
-            if (currentUser && currentUser.loggedIn) {
-                showApp();
             } else {
+                // Usuario no logueado
+                if (hash && hash !== 'home' && hash !== 'my-cards') {
+                    const card = findCardByUrl(hash);
+                    if (card) {
+                        // Guardar la tarjeta para mostrar después del login
+                        sessionStorage.setItem('pendingCardView', JSON.stringify(card));
+                    }
+                }
                 showLogin();
-                // Guardar la tarjeta para mostrar después del login
-                sessionStorage.setItem('pendingCardView', JSON.stringify(card));
-                return;
-            }
-
-            // Ocultar todas las secciones
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            
-            // Mostrar sección de visualización de tarjeta
-            const cardViewSection = document.getElementById('card-view');
-            if (cardViewSection) {
-                cardViewSection.classList.add('active');
-                
-                // Actualizar navegación
-                document.querySelectorAll('.nav-link').forEach(link => {
-                    link.classList.remove('active');
-                });
-                
-                // Renderizar la tarjeta
-                renderCardForDisplay(card);
             }
         }
 
-        // Renderizar tarjeta para visualización pública
-        function renderCardForDisplay(card) {
-            const container = document.getElementById('cardDisplayContainer');
-            if (!container) return;
+        // CORREGIDO: Mostrar tarjeta cuando se accede por URL
+        function displayCard(card) {
+            console.log('Mostrando tarjeta individual:', card.name);
+            
+            // Ocultar completamente la aplicación principal
+            const app = document.getElementById('app');
+            if (app) {
+                app.style.display = 'none';
+            }
+            
+            // Ocultar login si está visible
+            const loginScreen = document.getElementById('loginScreen');
+            if (loginScreen) {
+                loginScreen.style.display = 'none';
+            }
+            
+            // Crear contenedor para la vista individual si no existe
+            let individualView = document.getElementById('individualCardView');
+            if (!individualView) {
+                individualView = document.createElement('div');
+                individualView.id = 'individualCardView';
+                individualView.style.minHeight = '100vh';
+                individualView.style.backgroundColor = '#f8f9fa';
+                individualView.style.padding = '20px';
+                document.body.appendChild(individualView);
+            }
+            
+            // Mostrar solo el contenedor individual
+            individualView.style.display = 'block';
+            
+            // Renderizar la tarjeta en vista individual
+            renderCardForIndividualView(card, individualView);
+        }
 
+        // NUEVA FUNCIÓN: Renderizar tarjeta para vista individual
+        function renderCardForIndividualView(card, container) {
             // Cargar fuente personalizada si existe
             if (card.design?.customFont) {
                 loadCustomFontFromUrl(card.design.customFont, card.design.fontFamily);
             }
 
             container.innerHTML = `
-                <div class="card-display-wrapper">
-                    <div class="card-preview" style="background: ${card.design?.cardBackground || '#ffffff'}; color: ${card.design?.textPrimary || '#2c3e50'}; font-family: ${card.design?.fontFamily || 'Arial, sans-serif'};">
+                <div style="max-width: 400px; margin: 0 auto; padding: 20px 0;">
+                    <!-- Botón para volver a crear tarjeta -->
+                    <div style="text-align: center; margin-bottom: 2rem;">
+                        <button onclick="showFullApp()" class="btn btn-primary" style="margin-bottom: 1rem;">
+                            ← Crear tu propia tarjeta
+                        </button>
+                        <p style="color: #7f8c8d; font-size: 0.9rem;">Tarjeta digital de ${card.name || 'contacto'}</p>
+                    </div>
+                    
+                    <!-- Tarjeta -->
+                    <div class="card-preview" style="background: ${card.design?.cardBackground || '#ffffff'}; color: ${card.design?.textPrimary || '#2c3e50'}; font-family: ${card.design?.fontFamily || 'Arial, sans-serif'}; margin: 0 auto;">
                         <div class="card-header">
                             <div class="card-profile-section">
-                                ${card.profileImage ? `<img src="${card.profileImage}" class="avatar img-rounded media-size-avatar" style="width: 150px; height: 150px; border-radius: ${card.design?.profileShape === 'circular' ? '50%' : '10px'}; border: 3px solid ${card.design?.accentColor || '#3498db'}; object-fit: cover;">` : '<div style="width: 150px; height: 150px; background: #ecf0f1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #7f8c8d;">Sin foto</div>'}
+                                ${card.profileImage ? 
+                                    `<img src="${card.profileImage}" class="avatar img-rounded media-size-avatar" 
+                                          style="width: 150px; height: 150px; border-radius: ${card.design?.profileShape === 'circular' ? '50%' : '10px'}; 
+                                                 border: 3px solid ${card.design?.accentColor || '#3498db'}; object-fit: cover;">` : 
+                                    '<div style="width: 150px; height: 150px; background: #ecf0f1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #7f8c8d;">Sin foto</div>'
+                                }
                             </div>
                             <div class="card-logo-section">
-                                ${card.logo ? `<img src="${card.logo}" class="card-logo" style="max-width: 80px; max-height: 80px; object-fit: contain;">` : ''}
+                                ${card.logo ? 
+                                    `<img src="${card.logo}" class="card-logo" 
+                                          style="max-width: 80px; max-height: 80px; object-fit: contain;">` : 
+                                    ''
+                                }
                             </div>
                         </div>
                         
@@ -1220,18 +1235,52 @@
                         </div>
                         
                         <div class="card-url">
-                            <p>Comparte esta tarjeta: <span style="font-weight: bold; color: ${card.design?.accentColor || '#3498db'};">${window.location.href}</span></p>
+                            <p>Comparte esta tarjeta: 
+                                <span style="font-weight: bold; color: ${card.design?.accentColor || '#3498db'};">
+                                    ${window.location.href}
+                                </span>
+                            </p>
                         </div>
                     </div>
                     
-                    <div style="text-align: center; margin-top: 2rem;">
-                        <button onclick="showHomeSection()" class="btn btn-primary">Crear tu propia tarjeta</button>
+                    <!-- Información adicional -->
+                    <div style="text-align: center; margin-top: 2rem; padding: 1rem; background: white; border-radius: 10px;">
+                        <h3 style="color: #2c3e50; margin-bottom: 1rem;">¿Te gustaría tener tu propia tarjeta digital?</h3>
+                        <button onclick="showFullApp()" class="btn btn-primary">
+                            Crear Tarjeta Gratis
+                        </button>
                     </div>
                 </div>
             `;
         }
 
-        // Generar botones de contacto para visualización
+        // NUEVA FUNCIÓN: Mostrar aplicación completa
+        function showFullApp() {
+            // Ocultar vista individual
+            const individualView = document.getElementById('individualCardView');
+            if (individualView) {
+                individualView.style.display = 'none';
+            }
+            
+            // Cambiar hash a home
+            window.location.hash = 'home';
+            
+            // Mostrar aplicación principal si el usuario está logueado
+            if (currentUser && currentUser.loggedIn) {
+                showApp();
+                showHomeSection();
+            } else {
+                showLogin();
+            }
+        }
+
+        function findCardByUrl(url) {
+            return cards.find(card => {
+                const cardUrl = card.url;
+                return cardUrl === url;
+            });
+        }
+
         function generateContactButtons(card) {
             const contacts = [];
             const accentColor = card.design?.accentColor || '#3498db';
@@ -1279,7 +1328,6 @@
             return contacts.length > 0 ? contacts.join('') : '<p style="text-align: center; color: #7f8c8d;">No hay información de contacto</p>';
         }
 
-        // Generar iconos de redes sociales para visualización
         function generateSocialMediaIcons(card) {
             const socialIcons = [];
             const accentColor = card.design?.accentColor || '#3498db';
@@ -1329,19 +1377,16 @@
             return socialIcons.length > 0 ? socialIcons.join('') : '<p style="text-align: center; color: #7f8c8d; width: 100%;">No hay redes sociales</p>';
         }
 
-        // Mostrar sección de inicio
         function showHomeSection() {
             window.location.hash = 'home';
             switchSection('home');
         }
 
-        // Mostrar sección de mis tarjetas
         function showMyCardsSection() {
             window.location.hash = 'my-cards';
             switchSection('my-cards');
         }
 
-        // Mostrar página no encontrada
         function showNotFound() {
             if (currentUser && currentUser.loggedIn) {
                 showHomeSection();
@@ -1408,6 +1453,12 @@
             
             if (loginScreen) loginScreen.style.display = 'flex';
             if (app) app.style.display = 'none';
+            
+            // Ocultar vista individual si existe
+            const individualView = document.getElementById('individualCardView');
+            if (individualView) {
+                individualView.style.display = 'none';
+            }
         }
 
         function showApp() {
@@ -1416,6 +1467,12 @@
             
             if (loginScreen) loginScreen.style.display = 'none';
             if (app) app.style.display = 'block';
+            
+            // Ocultar vista individual si existe
+            const individualView = document.getElementById('individualCardView');
+            if (individualView) {
+                individualView.style.display = 'none';
+            }
         }
 
         function setupEventListeners() {
@@ -2214,7 +2271,7 @@
         // Hacer funciones globales para los onclick
         window.editCard = editCard;
         window.deleteCard = deleteCard;
-        window.showCreationForm = showCreationForm;
+        window.showFullApp = showFullApp;
         window.showHomeSection = showHomeSection;
     </script>
 </body>
