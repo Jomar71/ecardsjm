@@ -1,4 +1,4 @@
-# eVaunt - Tarjetas de Presentación Digital
+# ecards JM - Tarjetas de Presentación Digital
 
 Aplicación web completa para crear y gestionar tarjetas de presentación digital optimizadas para dispositivos móviles.
 
