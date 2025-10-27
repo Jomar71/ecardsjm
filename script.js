@@ -98,17 +98,9 @@
         function displayCard(card) {
             console.log('Mostrando tarjeta individual:', card.name);
 
-            // Ocultar completamente la aplicación principal
-            const app = document.getElementById('app');
-            if (app) {
-                app.style.display = 'none';
-            }
-
-            // Ocultar login si está visible
-            const loginScreen = document.getElementById('loginScreen');
-            if (loginScreen) {
-                loginScreen.style.display = 'none';
-            }
+            // Forzar la ocultación de todas las vistas previas
+            document.getElementById('loginScreen').style.display = 'none';
+            document.getElementById('app').style.display = 'none';
 
             // Ocultar vista de error si existe
             const errorView = document.getElementById('errorView');
@@ -127,7 +119,7 @@
                 document.body.appendChild(individualView);
             }
 
-            // Mostrar solo el contenedor individual
+            // Asegurar que sea visible
             individualView.style.display = 'block';
 
             // Renderizar la tarjeta en vista individual
