@@ -32,26 +32,36 @@
             updateCardsTable();
             updateCardPreview();
 
-            // Procesar ruta después de un breve delay para asegurar que todo esté cargado
+            // Procesar ruta después de un delay más largo para móviles
             setTimeout(() => {
+                console.log('Procesando ruta inicial...');
                 handleRoute();
-            }, 100);
+            }, 500);
+
+            // Agregar listener adicional para cambios de hash en móviles
+            window.addEventListener('load', () => {
+                console.log('Página completamente cargada, verificando hash...');
+                setTimeout(() => {
+                    handleRoute();
+                }, 200);
+            });
         }
 
         // CORREGIDO: Manejar rutas basadas en hash
         function handleRoute() {
             const hash = window.location.hash.substring(1); // Eliminar el #
-            console.log('Hash detectado:', hash);
+            console.log('Procesando hash:', hash, 'Usuario logueado:', currentUser?.loggedIn);
 
             // Si hay un hash y es una tarjeta existente, mostrar solo la tarjeta
             if (hash && hash !== 'home' && hash !== 'my-cards') {
+                console.log('Buscando tarjeta con URL:', hash);
                 const card = findCardByUrl(hash);
                 if (card) {
-                    console.log('Tarjeta encontrada, mostrando vista individual');
+                    console.log('Tarjeta encontrada:', card.name, 'Mostrando vista individual');
                     displayCard(card);
                     return;
                 } else {
-                    console.log('Tarjeta no encontrada, hash:', hash);
+                    console.log('Tarjeta NO encontrada para hash:', hash);
                     // Si no se encuentra la tarjeta, mostrar mensaje de error
                     showNotFound();
                     return;
@@ -60,6 +70,7 @@
 
             // Si el usuario está logueado, mostrar la aplicación normal
             if (currentUser && currentUser.loggedIn) {
+                console.log('Usuario logueado, mostrando aplicación normal');
                 if (!hash || hash === 'home') {
                     showHomeSection();
                 } else if (hash === 'my-cards') {
@@ -69,10 +80,12 @@
                     showHomeSection();
                 }
             } else {
+                console.log('Usuario no logueado');
                 // Usuario no logueado
                 if (hash && hash !== 'home' && hash !== 'my-cards') {
                     const card = findCardByUrl(hash);
                     if (card) {
+                        console.log('Tarjeta encontrada pero usuario no logueado, guardando para después del login');
                         // Guardar la tarjeta para mostrar después del login
                         sessionStorage.setItem('pendingCardView', JSON.stringify(card));
                     }
@@ -215,10 +228,22 @@
         }
 
         function findCardByUrl(url) {
-            return cards.find(card => {
-                const cardUrl = card.url;
-                return cardUrl === url;
+            console.log('Buscando tarjeta con URL:', url);
+            console.log('Tarjetas disponibles:', cards.length);
+
+            // Normalizar la URL para comparación
+            const normalizedUrl = url.toLowerCase().trim();
+            console.log('URL normalizada:', normalizedUrl);
+
+            const found = cards.find(card => {
+                const cardUrl = (card.url || '').toLowerCase().trim();
+                const match = cardUrl === normalizedUrl;
+                console.log('Comparando:', cardUrl, 'con', normalizedUrl, '->', match);
+                return match;
             });
+
+            console.log('Resultado de búsqueda:', found ? 'ENCONTRADA' : 'NO ENCONTRADA');
+            return found;
         }
 
         function generateContactButtons(card) {
@@ -1146,11 +1171,16 @@
             if (storedCards) {
                 try {
                     cards = JSON.parse(storedCards);
+                    console.log('Tarjetas cargadas del localStorage:', cards.length);
+                    cards.forEach((card, index) => {
+                        console.log(`Tarjeta ${index + 1}: ${card.name} - URL: ${card.url}`);
+                    });
                 } catch (e) {
                     console.error('Error parsing stored cards:', e);
                     cards = [];
                 }
             } else {
+                console.log('No hay tarjetas guardadas en localStorage');
                 cards = [];
             }
         }
