@@ -221,14 +221,27 @@
 
         function findCardByUrl(url) {
             console.log('Buscando tarjeta con URL:', url);
-            console.log('Tarjetas disponibles:', cards.length);
 
-            if (!url || !cards.length) {
-                console.log('URL vacía o no hay tarjetas');
+            if (!url) {
+                console.log('URL vacía');
                 return null;
             }
 
-            // Normalizar la URL para comparación
+            // Check if it's an encoded card URL
+            if (url.startsWith('card-')) {
+                try {
+                    const encoded = url.substring(5); // Remove 'card-' prefix
+                    const decoded = JSON.parse(atob(encoded));
+                    console.log('Tarjeta decodificada desde URL:', decoded.name);
+                    return decoded;
+                } catch (e) {
+                    console.error('Error decoding card from URL:', e);
+                    return null;
+                }
+            }
+
+            // Fallback to local storage search for backward compatibility
+            console.log('Tarjetas disponibles:', cards.length);
             const normalizedUrl = url.toLowerCase().trim();
             console.log('URL normalizada:', normalizedUrl);
 
@@ -1026,16 +1039,15 @@
         function updateCustomURL() {
             const nameInput = document.getElementById('name');
             const previewUrl = document.getElementById('previewUrl');
-            
+
             if (nameInput && previewUrl) {
                 const name = nameInput.value.trim();
-                
+
                 if (name) {
-                    const urlName = generateUrlName(name);
-                    // Mostrar URL completa que funcionará
-                    previewUrl.textContent = `${window.location.origin}${window.location.pathname}#${urlName}`;
+                    // Show placeholder for encoded URL
+                    previewUrl.textContent = `${window.location.origin}${window.location.pathname}#card-[encoded-data]`;
                 } else {
-                    previewUrl.textContent = `${window.location.origin}${window.location.pathname}#tu-nombre`;
+                    previewUrl.textContent = `${window.location.origin}${window.location.pathname}#card-[encoded-data]`;
                 }
             }
         }
@@ -1056,15 +1068,11 @@
 
         function handleCardSubmit(e) {
             e.preventDefault();
-            
-            // Generar URL personalizada basada en el nombre
-            const name = document.getElementById('name').value.trim();
-            const urlName = name ? generateUrlName(name) : 'tarjeta-' + Date.now();
-            
+
             // Obtener datos del formulario
             const cardData = {
                 id: editingCardId || Date.now().toString(),
-                name: name,
+                name: document.getElementById('name').value.trim(),
                 title: document.getElementById('title').value,
                 company: document.getElementById('company').value,
                 description: document.getElementById('description').value,
@@ -1093,8 +1101,8 @@
                     customFont: document.getElementById('customFont').value,
                     customFontData: null // Para almacenar la fuente subida como base64
                 },
-                // La URL ahora es solo el nombre para el hash
-                url: urlName,
+                // URL will be set in saveCard function
+                url: '',
                 createdAt: editingCardId ? getCardById(editingCardId).createdAt : new Date().toISOString(),
                 updatedAt: new Date().toISOString()
             };
@@ -1166,6 +1174,12 @@
         }
 
         function saveCard(cardData) {
+            // Encode card data into URL for cross-device sharing
+            const cardForUrl = { ...cardData };
+            delete cardForUrl.url;
+            const encoded = btoa(JSON.stringify(cardForUrl));
+            cardData.url = 'card-' + encoded;
+
             if (editingCardId) {
                 // Actualizar tarjeta existente
                 const index = cards.findIndex(card => card.id === editingCardId);
@@ -1176,12 +1190,12 @@
                 // Agregar nueva tarjeta
                 cards.push(cardData);
             }
-            
+
             localStorage.setItem(CONFIG.CARDS_KEY, JSON.stringify(cards));
             updateCardsTable();
             resetForm();
             alert(editingCardId ? 'Tarjeta actualizada correctamente' : 'Tarjeta creada correctamente');
-            
+
             // Cambiar a la sección de Mis Tarjetas
             switchSection('my-cards');
         }
@@ -1212,9 +1226,9 @@
         function updateCardsTable() {
             const tableBody = document.getElementById('cardsTableBody');
             if (!tableBody) return;
-            
+
             tableBody.innerHTML = '';
-            
+
             if (cards.length === 0) {
                 tableBody.innerHTML = `
                     <tr>
@@ -1225,13 +1239,13 @@
                 `;
                 return;
             }
-            
+
             cards.forEach(card => {
                 const row = document.createElement('tr');
-                
+
                 // URL completa que funcionará
                 const fullUrl = `${window.location.origin}${window.location.pathname}#${card.url}`;
-                
+
                 row.innerHTML = `
                     <td>${card.name || 'Sin nombre'}</td>
                     <td><a href="${fullUrl}" target="_blank">${fullUrl}</a></td>
@@ -1244,7 +1258,7 @@
                         </div>
                     </td>
                 `;
-                
+
                 tableBody.appendChild(row);
             });
         }
