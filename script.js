@@ -365,18 +365,26 @@
                 return null;
             }
 
-            // Validación robusta para URLs codificadas
+            // Manejar URLs comprimidas con formato: card-nombre-compressedData
             if (url.startsWith('card-')) {
                 try {
-                    const encoded = url.substring(5); // Remove 'card-' prefix
-
-                    // Validar que el encoded string no esté vacío
-                    if (!encoded || encoded.trim() === '') {
-                        console.error('URL codificada vacía');
+                    // Extraer datos comprimidos (todo después del primer guion después de 'card-')
+                    const parts = url.split('-');
+                    if (parts.length < 3) {
+                        console.error('Formato de URL inválido');
                         return null;
                     }
 
-                    const decompressed = LZString.decompressFromEncodedURIComponent(encoded);
+                    // El nombre está entre 'card-' y los datos comprimidos
+                    const compressedData = parts.slice(2).join('-'); // Unir todo después del nombre
+
+                    if (!compressedData) {
+                        console.error('Datos comprimidos no encontrados en URL');
+                        return null;
+                    }
+
+                    // Descomprimir datos
+                    const decompressed = LZString.decompressFromEncodedURIComponent(compressedData);
                     if (!decompressed) {
                         console.error('Error al descomprimir datos');
                         return null;
@@ -384,7 +392,7 @@
 
                     const decoded = JSON.parse(decompressed);
 
-                    // Validar estructura básica de la tarjeta
+                    // Validar estructura básica
                     if (!decoded || typeof decoded !== 'object') {
                         console.error('Datos decodificados no válidos');
                         return null;
@@ -401,49 +409,11 @@
                         decoded.company = decoded.company.trim();
                     }
 
-                    console.log('Tarjeta decodificada desde URL:', decoded.name);
+                    console.log('Tarjeta cargada desde URL comprimida:', decoded.name);
                     return decoded;
+
                 } catch (e) {
-                    console.error('Error decoding card from URL:', e);
-                    return null;
-                }
-            }
-
-            // Check if it's a localStorage card URL
-            if (url.startsWith('card-storage-')) {
-                try {
-                    const storageId = url.substring(13); // Remove 'card-storage-' prefix
-
-                    // Validar ID de storage
-                    if (!storageId || !storageId.match(/^[a-zA-Z0-9_-]+$/)) {
-                        console.error('ID de storage no válido:', storageId);
-                        return null;
-                    }
-
-                    const compressedData = localStorage.getItem(storageId);
-                    if (compressedData) {
-                        const decompressed = LZString.decompressFromEncodedURIComponent(compressedData);
-                        if (!decompressed) {
-                            console.error('Error al descomprimir datos de localStorage');
-                            return null;
-                        }
-
-                        const decoded = JSON.parse(decompressed);
-
-                        // Validar estructura básica
-                        if (!decoded || typeof decoded !== 'object') {
-                            console.error('Datos de localStorage no válidos');
-                            return null;
-                        }
-
-                        console.log('Tarjeta cargada desde localStorage:', decoded.name);
-                        return decoded;
-                    } else {
-                        console.error('Datos de tarjeta no encontrados en localStorage:', storageId);
-                        return null;
-                    }
-                } catch (e) {
-                    console.error('Error loading card from localStorage:', e);
+                    console.error('Error loading card from compressed URL:', e);
                     return null;
                 }
             }
@@ -1522,10 +1492,11 @@
                 const name = nameInput.value.trim();
 
                 if (name) {
-                    // Show placeholder for encoded URL
-                    previewUrl.textContent = `${window.location.origin}${window.location.pathname}#card-[encoded-data]`;
+                    // Generar URL real con nombre
+                    const urlName = generateUrlName(name);
+                    previewUrl.textContent = `${window.location.origin}${window.location.pathname}#card-${urlName}-[datos-comprimidos]`;
                 } else {
-                    previewUrl.textContent = `${window.location.origin}${window.location.pathname}#card-[encoded-data]`;
+                    previewUrl.textContent = `${window.location.origin}${window.location.pathname}#card-tarjeta-[datos-comprimidos]`;
                 }
             }
         }
@@ -1652,31 +1623,14 @@
         }
 
         function saveCard(cardData) {
-            // Sistema híbrido: usar localStorage para tarjetas grandes, URLs cortas para pequeñas
+            // Generar URL compartible con datos comprimidos
             const cardForUrl = { ...cardData };
             delete cardForUrl.url;
 
-            // Calcular tamaño aproximado de la tarjeta
-            const cardSize = JSON.stringify(cardForUrl).length;
-
-            // Límite aproximado para URLs seguras en móviles (2048 caracteres)
-            const URL_SIZE_LIMIT = 1800;
-
-            if (cardSize > URL_SIZE_LIMIT) {
-                // Usar localStorage para tarjetas grandes
-                const storageId = 'shared_card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-                localStorage.setItem(storageId, LZString.compressToEncodedURIComponent(JSON.stringify(cardForUrl)));
-                cardData.url = 'card-storage-' + storageId;
-
-                // Limpiar localStorage después de 24 horas
-                setTimeout(() => {
-                    localStorage.removeItem(storageId);
-                }, 24 * 60 * 60 * 1000);
-            } else {
-                // Usar URL codificada para tarjetas pequeñas
-                const encoded = LZString.compressToEncodedURIComponent(JSON.stringify(cardForUrl));
-                cardData.url = 'card-' + encoded;
-            }
+            // Generar nombre URL-friendly
+            const urlName = generateUrlName(cardData.name || 'tarjeta');
+            const compressedData = LZString.compressToEncodedURIComponent(JSON.stringify(cardForUrl));
+            cardData.url = `card-${urlName}-${compressedData}`;
 
             if (editingCardId) {
                 // Actualizar tarjeta existente
