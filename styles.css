@@ -686,6 +686,52 @@ body {
     .form-buttons {
         flex-direction: column;
     }
+
+    .contact-button {
+        padding: 1rem;
+        font-size: 1rem;
+        min-height: 48px; /* Mejor accesibilidad táctil */
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    .social-media-icon {
+        width: 48px;
+        height: 48px;
+        margin: 0.25rem;
+        min-width: 48px;
+        min-height: 48px;
+    }
+
+    .btn {
+        min-height: 48px; /* Mejor accesibilidad táctil */
+    }
+
+    .action-buttons .btn {
+        min-height: 44px;
+    }
+}
+
+/* Estilos para tablets */
+@media (max-width: 1024px) and (min-width: 769px) {
+    .contact-button {
+        padding: 0.875rem;
+        font-size: 0.95rem;
+        min-height: 44px;
+    }
+
+    .social-media-icon {
+        width: 44px;
+        height: 44px;
+        margin: 0.25rem;
+        min-width: 44px;
+        min-height: 44px;
+    }
+
+    .btn {
+        min-height: 44px;
+    }
 }
 
 @media (max-width: 480px) {

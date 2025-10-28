@@ -47,7 +47,7 @@
             });
         }
 
-        // CORREGIDO: Manejar rutas basadas en hash
+        // MEJORADO: Manejar rutas basadas en hash con mejor soporte para móviles
         function handleRoute() {
             const hash = window.location.hash.substring(1); // Eliminar el #
             console.log('Procesando hash:', hash, 'Usuario logueado:', currentUser?.loggedIn);
@@ -223,19 +223,45 @@
             console.log('Buscando tarjeta con URL:', url);
             console.log('Tarjetas disponibles:', cards.length);
 
+            if (!url || !cards.length) {
+                console.log('URL vacía o no hay tarjetas');
+                return null;
+            }
+
             // Normalizar la URL para comparación
             const normalizedUrl = url.toLowerCase().trim();
             console.log('URL normalizada:', normalizedUrl);
 
-            const found = cards.find(card => {
+            // Buscar por URL exacta
+            let found = cards.find(card => {
                 const cardUrl = (card.url || '').toLowerCase().trim();
                 const match = cardUrl === normalizedUrl;
                 console.log('Comparando:', cardUrl, 'con', normalizedUrl, '->', match);
                 return match;
             });
 
+            // Si no se encuentra, intentar con variaciones comunes
+            if (!found) {
+                // Intentar sin guiones al final
+                const urlWithoutDashes = normalizedUrl.replace(/-+$/, '');
+                found = cards.find(card => {
+                    const cardUrl = (card.url || '').toLowerCase().trim().replace(/-+$/, '');
+                    return cardUrl === urlWithoutDashes;
+                });
+            }
+
             console.log('Resultado de búsqueda:', found ? 'ENCONTRADA' : 'NO ENCONTRADA');
             return found;
+        }
+
+        // MEJORADO: Función para manejar enlaces en móviles
+        function handleLink(url, event) {
+            event.preventDefault();
+            if (url.startsWith('tel:') || url.startsWith('mailto:')) {
+                window.location.href = url;
+            } else {
+                window.open(url, '_blank');
+            }
         }
 
         function generateContactButtons(card) {
@@ -249,7 +275,7 @@
             const addressIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="${accentColor}" stroke-width="2"/><circle cx="12" cy="10" r="3" stroke="${accentColor}" stroke-width="2"/></svg>`;
 
             if (card.phone) {
-                contacts.push(`<a href="tel:${card.phone.replace(/\s/g, '')}" class="contact-button" style="border-color: ${accentColor};">
+                contacts.push(`<a href="tel:${card.phone.replace(/\s/g, '')}" onclick="handleLink('tel:${card.phone.replace(/\s/g, '')}', event)" class="contact-button" style="border-color: ${accentColor};">
                     <span style="display: flex; align-items: center;">
                         <span style="margin-right: 0.75rem;">${phoneIcon}</span>
                         <span>Teléfono: ${card.phone}</span>
@@ -259,7 +285,7 @@
             }
 
             if (card.mobile) {
-                contacts.push(`<a href="tel:${card.mobile.replace(/\s/g, '')}" class="contact-button" style="border-color: ${accentColor};">
+                contacts.push(`<a href="tel:${card.mobile.replace(/\s/g, '')}" onclick="handleLink('tel:${card.mobile.replace(/\s/g, '')}', event)" class="contact-button" style="border-color: ${accentColor};">
                     <span style="display: flex; align-items: center;">
                         <span style="margin-right: 0.75rem;">${mobileIcon}</span>
                         <span>Móvil: ${card.mobile}</span>
@@ -269,7 +295,7 @@
             }
 
             if (card.email) {
-                contacts.push(`<a href="mailto:${card.email}" class="contact-button" style="border-color: ${accentColor};">
+                contacts.push(`<a href="mailto:${card.email}" onclick="handleLink('mailto:${card.email}', event)" class="contact-button" style="border-color: ${accentColor};">
                     <span style="display: flex; align-items: center;">
                         <span style="margin-right: 0.75rem;">${emailIcon}</span>
                         <span>Email: ${card.email}</span>
@@ -279,7 +305,8 @@
             }
 
             if (card.address) {
-                contacts.push(`<a href="https://maps.google.com/?q=${encodeURIComponent(card.address)}" target="_blank" class="contact-button" style="border-color: ${accentColor};">
+                const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(card.address)}`;
+                contacts.push(`<a href="${mapsUrl}" onclick="handleLink('${mapsUrl}', event)" target="_blank" class="contact-button" style="border-color: ${accentColor};">
                     <span style="display: flex; align-items: center;">
                         <span style="margin-right: 0.75rem;">${addressIcon}</span>
                         <span>Dirección: ${card.address}</span>
@@ -310,31 +337,32 @@
             const whatsappIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 11.5C21.0034 12.8199 20.6951 14.1219 20.1 15.3C19.3944 16.7118 18.3098 17.8992 16.9674 18.7293C15.6251 19.5594 14.0782 19.9994 12.5 20C11.1801 20.0035 9.87812 19.6951 8.7 19.1L3 21L4.9 15.3C4.30493 14.1219 3.99656 12.8199 4 11.5C4.00061 9.92179 4.44061 8.37488 5.27072 7.03258C6.10083 5.69028 7.28825 4.6056 8.7 3.90003C9.87812 3.30496 11.1801 2.99659 12.5 3.00003H13C15.0843 3.11502 17.053 3.99479 18.5291 5.47089C20.0052 6.94699 20.885 8.91568 21 11V11.5Z" stroke="${accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
             if (card.website) {
-                socialIcons.push(`<a href="${card.website}" target="_blank" class="social-media-icon" title="Sitio Web">${websiteIcon}</a>`);
+                socialIcons.push(`<a href="${card.website}" onclick="handleLink('${card.website}', event)" target="_blank" class="social-media-icon" title="Sitio Web">${websiteIcon}</a>`);
             }
-            
+
             if (card.linkedin) {
-                socialIcons.push(`<a href="${card.linkedin}" target="_blank" class="social-media-icon" title="LinkedIn">${linkedinIcon}</a>`);
+                socialIcons.push(`<a href="${card.linkedin}" onclick="handleLink('${card.linkedin}', event)" target="_blank" class="social-media-icon" title="LinkedIn">${linkedinIcon}</a>`);
             }
-            
+
             if (card.facebook) {
-                socialIcons.push(`<a href="${card.facebook}" target="_blank" class="social-media-icon" title="Facebook">${facebookIcon}</a>`);
+                socialIcons.push(`<a href="${card.facebook}" onclick="handleLink('${card.facebook}', event)" target="_blank" class="social-media-icon" title="Facebook">${facebookIcon}</a>`);
             }
-            
+
             if (card.instagram) {
-                socialIcons.push(`<a href="${card.instagram}" target="_blank" class="social-media-icon" title="Instagram">${instagramIcon}</a>`);
+                socialIcons.push(`<a href="${card.instagram}" onclick="handleLink('${card.instagram}', event)" target="_blank" class="social-media-icon" title="Instagram">${instagramIcon}</a>`);
             }
-            
+
             if (card.twitter) {
-                socialIcons.push(`<a href="${card.twitter}" target="_blank" class="social-media-icon" title="Twitter/X">${twitterIcon}</a>`);
+                socialIcons.push(`<a href="${card.twitter}" onclick="handleLink('${card.twitter}', event)" target="_blank" class="social-media-icon" title="Twitter/X">${twitterIcon}</a>`);
             }
-            
+
             if (card.youtube) {
-                socialIcons.push(`<a href="${card.youtube}" target="_blank" class="social-media-icon" title="YouTube">${youtubeIcon}</a>`);
+                socialIcons.push(`<a href="${card.youtube}" onclick="handleLink('${card.youtube}', event)" target="_blank" class="social-media-icon" title="YouTube">${youtubeIcon}</a>`);
             }
-            
+
             if (card.whatsapp) {
-                socialIcons.push(`<a href="https://wa.me/${card.whatsapp}" target="_blank" class="social-media-icon" title="WhatsApp">${whatsappIcon}</a>`);
+                const whatsappUrl = `https://wa.me/${card.whatsapp}`;
+                socialIcons.push(`<a href="${whatsappUrl}" onclick="handleLink('${whatsappUrl}', event)" target="_blank" class="social-media-icon" title="WhatsApp">${whatsappIcon}</a>`);
             }
 
             return socialIcons.length > 0 ? socialIcons.join('') : '<p style="text-align: center; color: #7f8c8d; width: 100%;">No hay redes sociales</p>';
