@@ -710,6 +710,7 @@ body {
 
     .action-buttons .btn {
         min-height: 44px;
+        width: 100%;
     }
 }
 
