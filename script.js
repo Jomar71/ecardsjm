@@ -11,9 +11,52 @@
         document.addEventListener('DOMContentLoaded', function() {
             console.log('DOM cargado - Inicializando aplicación...');
             initializeApp();
-            
-            // Manejar el enrutamiento basado en el hash
-            window.addEventListener('hashchange', handleRoute);
+
+            // Manejar el enrutamiento basado en el hash con soporte mejorado para móviles
+            window.addEventListener('hashchange', debounce(handleRoute, 100));
+
+            // Agregar listeners adicionales para móviles
+            window.addEventListener('touchstart', function(e) {
+                // Prevenir comportamientos por defecto en algunos móviles
+                if (e.touches.length > 1) {
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            window.addEventListener('touchend', function(e) {
+                // Mejorar respuesta táctil
+                if (e.changedTouches.length === 1) {
+                    // Procesar eventos táctiles simples
+                    const touch = e.changedTouches[0];
+                    const target = document.elementFromPoint(touch.clientX, touch.clientY);
+
+                    // Mejorar navegación táctil para enlaces
+                    if (target && target.tagName === 'A') {
+                        e.preventDefault();
+                        setTimeout(() => {
+                            if (target.href) {
+                                window.open(target.href, target.target || '_self');
+                            }
+                        }, 10);
+                    }
+                }
+            }, { passive: false });
+
+            // Mejorar detección de cambios de hash en móviles con debouncing
+            let lastHash = window.location.hash;
+            const hashCheckInterval = setInterval(() => {
+                if (window.location.hash !== lastHash) {
+                    lastHash = window.location.hash;
+                    console.log('Hash changed via polling:', lastHash);
+                    debounce(handleRoute, 50)();
+                }
+            }, 200); // Polling cada 200ms para mejor rendimiento
+
+            // Limpiar intervalo cuando la página se descarga
+            window.addEventListener('beforeunload', () => {
+                clearInterval(hashCheckInterval);
+            });
+
             handleRoute(); // Manejar la ruta actual al cargar
         });
 
@@ -55,14 +98,20 @@
             // Si hay un hash y es una tarjeta existente, mostrar solo la tarjeta
             if (hash && hash !== 'home' && hash !== 'my-cards') {
                 console.log('Buscando tarjeta con URL:', hash);
+
+                // Mostrar indicador de carga para móviles
+                showLoadingIndicator();
+
                 const card = findCardByUrl(hash);
                 if (card) {
                     console.log('Tarjeta encontrada:', card.name, 'Mostrando vista individual');
+                    hideLoadingIndicator();
                     displayCard(card);
                     return;
                 } else {
                     console.log('Tarjeta NO encontrada para hash:', hash);
-                    // Si no se encuentra la tarjeta, mostrar mensaje de error
+                    hideLoadingIndicator();
+                    // Si no se encuentra la tarjeta, mostrar mensaje de error mejorado
                     showNotFound();
                     return;
                 }
@@ -98,6 +147,27 @@
         function displayCard(card) {
             console.log('Mostrando tarjeta individual:', card.name);
 
+            // Validar que la tarjeta tenga datos válidos
+            if (!card || typeof card !== 'object') {
+                console.error('Tarjeta inválida:', card);
+                showNotFound();
+                return;
+            }
+
+            // Sanitizar datos de la tarjeta
+            if (card.name && typeof card.name === 'string') {
+                card.name = card.name.trim();
+            }
+            if (card.title && typeof card.title === 'string') {
+                card.title = card.title.trim();
+            }
+            if (card.company && typeof card.company === 'string') {
+                card.company = card.company.trim();
+            }
+            if (card.description && typeof card.description === 'string') {
+                card.description = card.description.trim();
+            }
+
             // Forzar la ocultación de todas las vistas previas
             document.getElementById('loginScreen').style.display = 'none';
             document.getElementById('app').style.display = 'none';
@@ -128,6 +198,9 @@
 
         // NUEVA FUNCIÓN: Renderizar tarjeta para vista individual
         function renderCardForIndividualView(card, container) {
+            // Mostrar indicador de carga optimizado
+            showLoadingIndicator('Renderizando tarjeta...');
+
             // Cargar fuente personalizada si existe
             if (card.design?.customFont) {
                 loadCustomFontFromUrl(card.design.customFont, card.design.fontFamily);
@@ -138,6 +211,49 @@
                 loadCustomFontFromData(card.design.customFontData, card.design.fontFamily);
             }
 
+            // Lazy loading para imágenes en móviles con mejor rendimiento
+            const loadImage = (imgElement, src) => {
+                if (!src) return;
+
+                // Usar Intersection Observer para lazy loading más eficiente
+                if ('IntersectionObserver' in window) {
+                    const imageObserver = new IntersectionObserver((entries, observer) => {
+                        entries.forEach(entry => {
+                            if (entry.isIntersecting) {
+                                const img = new Image();
+                                img.onload = () => {
+                                    imgElement.src = src;
+                                    imgElement.style.opacity = '1';
+                                    hideLoadingIndicator();
+                                };
+                                img.onerror = () => {
+                                    console.warn('Error loading image:', src);
+                                    imgElement.style.display = 'none';
+                                    hideLoadingIndicator();
+                                };
+                                img.src = src;
+                                observer.unobserve(imgElement);
+                            }
+                        });
+                    });
+                    imageObserver.observe(imgElement);
+                } else {
+                    // Fallback para navegadores sin Intersection Observer
+                    const img = new Image();
+                    img.onload = () => {
+                        imgElement.src = src;
+                        imgElement.style.opacity = '1';
+                        hideLoadingIndicator();
+                    };
+                    img.onerror = () => {
+                        console.warn('Error loading image:', src);
+                        imgElement.style.display = 'none';
+                        hideLoadingIndicator();
+                    };
+                    img.src = src;
+                }
+            };
+
             container.innerHTML = `
                 <div style="max-width: 400px; margin: 0 auto; padding: 20px 0;">
 
@@ -146,17 +262,19 @@
                     <div class="card-preview" style="background: ${card.design?.cardBackground || '#ffffff'}; color: ${card.design?.textPrimary || '#2c3e50'}; font-family: ${card.design?.fontFamily || 'Arial, sans-serif'}; margin: 0 auto;">
                         <div class="card-header">
                             <div class="card-profile-section">
-                                ${card.profileImage ? 
-                                    `<img src="${card.profileImage}" class="avatar img-rounded media-size-avatar" 
-                                          style="width: 150px; height: 150px; border-radius: ${card.design?.profileShape === 'circular' ? '50%' : '10px'}; 
-                                                 border: 3px solid ${card.design?.accentColor || '#3498db'}; object-fit: cover;">` : 
+                                ${card.profileImage ?
+                                    `<img src="" class="avatar img-rounded media-size-avatar"
+                                          style="width: 150px; height: 150px; border-radius: ${card.design?.profileShape === 'circular' ? '50%' : '10px'};
+                                                 border: 3px solid ${card.design?.accentColor || '#3498db'}; object-fit: cover; opacity: 0; transition: opacity 0.3s ease;"
+                                          alt="Foto de perfil">` :
                                     '<div style="width: 150px; height: 150px; background: #ecf0f1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #7f8c8d;">Sin foto</div>'
                                 }
                             </div>
                             <div class="card-logo-section">
-                                ${card.logo ? 
-                                    `<img src="${card.logo}" class="card-logo" 
-                                          style="max-width: 80px; max-height: 80px; object-fit: contain;">` : 
+                                ${card.logo ?
+                                    `<img src="" class="card-logo"
+                                          style="max-width: 80px; max-height: 80px; object-fit: contain; opacity: 0; transition: opacity 0.3s ease;"
+                                          alt="Logo">` :
                                     ''
                                 }
                             </div>
@@ -189,9 +307,29 @@
                     </div>
                     
 
-                </div>
-            `;
+        </div>
+    `;
+
+    // Aplicar lazy loading después de renderizar
+    if (card.profileImage) {
+        const profileImg = container.querySelector('.card-profile-section img');
+        if (profileImg) {
+            loadImage(profileImg, card.profileImage);
         }
+    }
+
+    if (card.logo) {
+        const logoImg = container.querySelector('.card-logo-section img');
+        if (logoImg) {
+            loadImage(logoImg, card.logo);
+        }
+    }
+
+    // Ocultar indicador de carga si no hay imágenes que cargar
+    if (!card.profileImage && !card.logo) {
+        hideLoadingIndicator();
+    }
+}
 
         // NUEVA FUNCIÓN: Mostrar aplicación completa
         function showFullApp() {
@@ -227,15 +365,85 @@
                 return null;
             }
 
-            // Check if it's an encoded card URL
+            // Validación robusta para URLs codificadas
             if (url.startsWith('card-')) {
                 try {
                     const encoded = url.substring(5); // Remove 'card-' prefix
-                    const decoded = JSON.parse(atob(encoded));
+
+                    // Validar que el encoded string no esté vacío
+                    if (!encoded || encoded.trim() === '') {
+                        console.error('URL codificada vacía');
+                        return null;
+                    }
+
+                    const decompressed = LZString.decompressFromEncodedURIComponent(encoded);
+                    if (!decompressed) {
+                        console.error('Error al descomprimir datos');
+                        return null;
+                    }
+
+                    const decoded = JSON.parse(decompressed);
+
+                    // Validar estructura básica de la tarjeta
+                    if (!decoded || typeof decoded !== 'object') {
+                        console.error('Datos decodificados no válidos');
+                        return null;
+                    }
+
+                    // Sanitizar datos decodificados
+                    if (decoded.name && typeof decoded.name === 'string') {
+                        decoded.name = decoded.name.trim();
+                    }
+                    if (decoded.title && typeof decoded.title === 'string') {
+                        decoded.title = decoded.title.trim();
+                    }
+                    if (decoded.company && typeof decoded.company === 'string') {
+                        decoded.company = decoded.company.trim();
+                    }
+
                     console.log('Tarjeta decodificada desde URL:', decoded.name);
                     return decoded;
                 } catch (e) {
                     console.error('Error decoding card from URL:', e);
+                    return null;
+                }
+            }
+
+            // Check if it's a localStorage card URL
+            if (url.startsWith('card-storage-')) {
+                try {
+                    const storageId = url.substring(13); // Remove 'card-storage-' prefix
+
+                    // Validar ID de storage
+                    if (!storageId || !storageId.match(/^[a-zA-Z0-9_-]+$/)) {
+                        console.error('ID de storage no válido:', storageId);
+                        return null;
+                    }
+
+                    const compressedData = localStorage.getItem(storageId);
+                    if (compressedData) {
+                        const decompressed = LZString.decompressFromEncodedURIComponent(compressedData);
+                        if (!decompressed) {
+                            console.error('Error al descomprimir datos de localStorage');
+                            return null;
+                        }
+
+                        const decoded = JSON.parse(decompressed);
+
+                        // Validar estructura básica
+                        if (!decoded || typeof decoded !== 'object') {
+                            console.error('Datos de localStorage no válidos');
+                            return null;
+                        }
+
+                        console.log('Tarjeta cargada desde localStorage:', decoded.name);
+                        return decoded;
+                    } else {
+                        console.error('Datos de tarjeta no encontrados en localStorage:', storageId);
+                        return null;
+                    }
+                } catch (e) {
+                    console.error('Error loading card from localStorage:', e);
                     return null;
                 }
             }
@@ -270,11 +478,47 @@
         // MEJORADO: Función para manejar enlaces en móviles
         function handleLink(url, event) {
             event.preventDefault();
-            if (url.startsWith('tel:') || url.startsWith('mailto:')) {
-                window.location.href = url;
-            } else {
-                window.open(url, '_blank');
+
+            // Validar URL antes de procesar
+            if (!url || typeof url !== 'string') {
+                console.error('URL inválida:', url);
+                return;
             }
+
+            try {
+                if (url.startsWith('tel:') || url.startsWith('mailto:')) {
+                    // Para teléfonos y email, usar location.href para mejor compatibilidad móvil
+                    window.location.href = url;
+                } else {
+                    // Para otros enlaces, usar window.open con noopener para seguridad
+                    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
+                    if (!newWindow) {
+                        // Fallback si popup está bloqueado
+                        window.location.href = url;
+                    }
+                }
+            } catch (error) {
+                console.error('Error al manejar enlace:', error);
+                // Fallback: intentar abrir directamente
+                try {
+                    window.location.href = url;
+                } catch (fallbackError) {
+                    console.error('Fallback también falló:', fallbackError);
+                }
+            }
+        }
+
+        // Función de utilidad para debouncing
+        function debounce(func, wait) {
+            let timeout;
+            return function executedFunction(...args) {
+                const later = () => {
+                    clearTimeout(timeout);
+                    func(...args);
+                };
+                clearTimeout(timeout);
+                timeout = setTimeout(later, wait);
+            };
         }
 
         function generateContactButtons(card) {
@@ -416,18 +660,252 @@
             }
 
             errorView.style.display = 'flex';
+
+            // Intentar búsqueda aproximada de tarjetas similares
+            const currentHash = window.location.hash.substring(1);
+            const similarCards = findSimilarCards(currentHash);
+
             errorView.innerHTML = `
                 <div style="text-align: center; max-width: 400px; background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
+                    <div style="font-size: 4rem; margin-bottom: 1rem;">🔍</div>
                     <h2 style="color: #e74c3c; margin-bottom: 1rem;">Tarjeta No Encontrada</h2>
-                    <p style="color: #7f8c8d; margin-bottom: 2rem;">La tarjeta que buscas no existe o ha sido eliminada.</p>
-                    <button onclick="showFullApp()" class="btn btn-primary" style="margin-right: 1rem;">
-                        Ir al Inicio
-                    </button>
-                    <button onclick="window.location.href='${window.location.origin}${window.location.pathname}'" class="btn btn-secondary">
-                        Crear Tarjetas
-                    </button>
+                    <p style="color: #7f8c8d; margin-bottom: 2rem;">La tarjeta que buscas no existe, ha sido eliminada o el enlace ha expirado.</p>
+                    <div style="margin-bottom: 2rem;">
+                        <p style="font-size: 0.9rem; color: #95a5a6; margin-bottom: 1rem;"><strong>Posibles causas:</strong></p>
+                        <ul style="text-align: left; color: #7f8c8d; font-size: 0.9rem; margin: 0 auto; max-width: 300px;">
+                            <li>El enlace ha expirado (24 horas para tarjetas grandes)</li>
+                            <li>La URL fue truncada al compartir</li>
+                            <li>La tarjeta fue eliminada por el creador</li>
+                            <li>Error de codificación en la URL</li>
+                        </ul>
+                    </div>
+                    ${similarCards.length > 0 ? `
+                        <div style="margin-bottom: 2rem; padding: 1rem; background: #ecf0f1; border-radius: 8px;">
+                            <p style="font-size: 0.9rem; color: #2c3e50; margin-bottom: 0.5rem;"><strong>¿Quizás quisiste decir?</strong></p>
+                            ${similarCards.map(card => `
+                                <button onclick="displayCardFromJson('${JSON.stringify(card).replace(/'/g, "\\'").replace(/"/g, '"')}')" class="btn btn-outline" style="width: 100%; margin-bottom: 0.5rem; font-size: 0.9rem;">
+                                    ${card.name || 'Sin nombre'}
+                                </button>
+                            `).join('')}
+                        </div>
+                    ` : ''}
+                    <div style="display: flex; flex-direction: column; gap: 1rem;">
+                        <button onclick="showFullApp()" class="btn btn-primary" style="width: 100%;">
+                            Ir al Inicio
+                        </button>
+                        <button onclick="window.location.href='${window.location.origin}${window.location.pathname}'" class="btn btn-secondary" style="width: 100%;">
+                            Crear Nueva Tarjeta
+                        </button>
+                        <button onclick="window.history.back()" class="btn btn-outline" style="width: 100%; border: 1px solid #bdc3c7; color: #7f8c8d;">
+                            ← Volver Atrás
+                        </button>
+                    </div>
                 </div>
             `;
+        }
+
+        // Función para mostrar tarjeta desde JSON string
+        function displayCardFromJson(cardJson) {
+            try {
+                const card = JSON.parse(cardJson);
+                displayCard(card);
+            } catch (error) {
+                console.error('Error parsing card JSON:', error);
+                showNotFound();
+            }
+        }
+
+        // Función de testing para móviles
+        function runMobileTests() {
+            console.log('=== INICIANDO TESTS PARA MÓVILES ===');
+
+            // Test 1: Verificar compatibilidad con diferentes tamaños de pantalla
+            const screenTests = [
+                { width: 320, height: 568, name: 'iPhone SE' },
+                { width: 375, height: 667, name: 'iPhone 6/7/8' },
+                { width: 414, height: 896, name: 'iPhone 11' },
+                { width: 390, height: 844, name: 'iPhone 12/13' },
+                { width: 428, height: 926, name: 'iPhone 12/13 Pro Max' },
+                { width: 360, height: 640, name: 'Android pequeño' },
+                { width: 411, height: 731, name: 'Android mediano' },
+                { width: 412, height: 915, name: 'Android grande' }
+            ];
+
+            console.log('Test 1: Compatibilidad de pantalla');
+            screenTests.forEach(test => {
+                const aspectRatio = test.width / test.height;
+                const isValid = aspectRatio > 0.5 && aspectRatio < 1.0;
+                console.log(`  ${test.name}: ${test.width}x${test.height} - ${isValid ? '✓' : '✗'}`);
+            });
+
+            // Test 2: Verificar límites de URL
+            console.log('\nTest 2: Límites de URL en navegadores móviles');
+            const testUrls = [
+                'card-' + 'x'.repeat(1800), // Límite aproximado
+                'card-' + 'x'.repeat(2000), // Por encima del límite
+                'card-storage-' + 'x'.repeat(32), // ID de storage válido
+                'card-storage-' + 'x'.repeat(64), // ID de storage largo
+            ];
+
+            testUrls.forEach((url, index) => {
+                const length = url.length;
+                const isValidLength = length < 2048; // Límite típico de URL
+                console.log(`  URL ${index + 1}: ${length} chars - ${isValidLength ? '✓' : '✗'}`);
+            });
+
+            // Test 3: Verificar navegación táctil
+            console.log('\nTest 3: Navegación táctil');
+            const touchCapabilities = {
+                'TouchEvent': typeof TouchEvent !== 'undefined',
+                'Touch': typeof Touch !== 'undefined',
+                'IntersectionObserver': 'IntersectionObserver' in window,
+                'localStorage': typeof localStorage !== 'undefined',
+                'LZString': typeof LZString !== 'undefined'
+            };
+
+            Object.entries(touchCapabilities).forEach(([feature, supported]) => {
+                console.log(`  ${feature}: ${supported ? '✓' : '✗'}`);
+            });
+
+            // Test 4: Simular navegación móvil
+            console.log('\nTest 4: Simulación de navegación móvil');
+            const testCard = {
+                name: 'Test Card',
+                title: 'Mobile Test',
+                company: 'Test Company',
+                design: { accentColor: '#3498db' }
+            };
+
+            try {
+                // Simular creación de URL
+                const cardSize = JSON.stringify(testCard).length;
+                const urlType = cardSize > 1800 ? 'localStorage' : 'URL';
+                console.log(`  Tamaño de tarjeta de prueba: ${cardSize} bytes`);
+                console.log(`  Tipo de URL recomendado: ${urlType}`);
+
+                // Simular compresión
+                const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(testCard));
+                const compressedSize = compressed.length;
+                console.log(`  Tamaño comprimido: ${compressedSize} chars`);
+                console.log(`  Compresión efectiva: ${((cardSize - compressedSize) / cardSize * 100).toFixed(1)}%`);
+
+                console.log('\n=== TESTS COMPLETADOS ===');
+                alert('Tests completados. Revisa la consola para ver los resultados.');
+            } catch (error) {
+                console.error('Error en tests:', error);
+                alert('Error durante los tests: ' + error.message);
+            }
+        }
+
+        // Hacer función de testing global para debugging
+        window.runMobileTests = runMobileTests;
+
+        // Función para encontrar tarjetas similares
+        function findSimilarCards(searchTerm) {
+            if (!searchTerm || cards.length === 0) return [];
+
+            const normalizedSearch = searchTerm.toLowerCase().trim();
+            const similarCards = [];
+
+            // Buscar por nombre aproximado
+            cards.forEach(card => {
+                if (card.name) {
+                    const cardName = card.name.toLowerCase().trim();
+                    // Calcular similitud simple (contiene el término o viceversa)
+                    if (cardName.includes(normalizedSearch) ||
+                        normalizedSearch.includes(cardName) ||
+                        levenshteinDistance(cardName, normalizedSearch) <= 2) {
+                        similarCards.push(card);
+                    }
+                }
+            });
+
+            return similarCards.slice(0, 3); // Máximo 3 sugerencias
+        }
+
+        // Función de distancia de Levenshtein para comparación aproximada
+        function levenshteinDistance(a, b) {
+            if (a.length === 0) return b.length;
+            if (b.length === 0) return a.length;
+
+            const matrix = [];
+            for (let i = 0; i <= b.length; i++) {
+                matrix[i] = [i];
+            }
+            for (let j = 0; j <= a.length; j++) {
+                matrix[0][j] = j;
+            }
+
+            for (let i = 1; i <= b.length; i++) {
+                for (let j = 1; j <= a.length; j++) {
+                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
+                        matrix[i][j] = matrix[i - 1][j - 1];
+                    } else {
+                        matrix[i][j] = Math.min(
+                            matrix[i - 1][j - 1] + 1, // sustitución
+                            matrix[i][j - 1] + 1,     // inserción
+                            matrix[i - 1][j] + 1      // eliminación
+                        );
+                    }
+                }
+            }
+
+            return matrix[b.length][a.length];
+        }
+
+        // NUEVA FUNCIÓN: Mostrar indicador de carga
+        function showLoadingIndicator(message = 'Cargando tarjeta...') {
+            let loadingIndicator = document.getElementById('loadingIndicator');
+            if (!loadingIndicator) {
+                loadingIndicator = document.createElement('div');
+                loadingIndicator.id = 'loadingIndicator';
+                loadingIndicator.style.position = 'fixed';
+                loadingIndicator.style.top = '0';
+                loadingIndicator.style.left = '0';
+                loadingIndicator.style.width = '100%';
+                loadingIndicator.style.height = '100%';
+                loadingIndicator.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
+                loadingIndicator.style.display = 'flex';
+                loadingIndicator.style.alignItems = 'center';
+                loadingIndicator.style.justifyContent = 'center';
+                loadingIndicator.style.zIndex = '9999';
+                loadingIndicator.style.backdropFilter = 'blur(2px)';
+                loadingIndicator.innerHTML = `
+                    <div style="text-align: center; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
+                        <div class="spinner" style="margin: 0 auto 1rem; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <p style="color: #2c3e50; font-weight: 500; margin: 0;">${message}</p>
+                    </div>
+                `;
+                document.body.appendChild(loadingIndicator);
+
+                // Agregar estilos de animación si no existen
+                if (!document.getElementById('loading-styles')) {
+                    const style = document.createElement('style');
+                    style.id = 'loading-styles';
+                    style.textContent = `
+                        @keyframes spin {
+                            0% { transform: rotate(0deg); }
+                            100% { transform: rotate(360deg); }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+            } else {
+                // Actualizar mensaje si el indicador ya existe
+                const messageElement = loadingIndicator.querySelector('p');
+                if (messageElement) {
+                    messageElement.textContent = message;
+                }
+            }
+            loadingIndicator.style.display = 'flex';
+        }
+
+        // NUEVA FUNCIÓN: Ocultar indicador de carga
+        function hideLoadingIndicator() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            if (loadingIndicator) {
+                loadingIndicator.style.display = 'none';
+            }
         }
 
         function setupDefaultDesign() {
@@ -1174,11 +1652,31 @@
         }
 
         function saveCard(cardData) {
-            // Encode card data into URL for cross-device sharing
+            // Sistema híbrido: usar localStorage para tarjetas grandes, URLs cortas para pequeñas
             const cardForUrl = { ...cardData };
             delete cardForUrl.url;
-            const encoded = btoa(JSON.stringify(cardForUrl));
-            cardData.url = 'card-' + encoded;
+
+            // Calcular tamaño aproximado de la tarjeta
+            const cardSize = JSON.stringify(cardForUrl).length;
+
+            // Límite aproximado para URLs seguras en móviles (2048 caracteres)
+            const URL_SIZE_LIMIT = 1800;
+
+            if (cardSize > URL_SIZE_LIMIT) {
+                // Usar localStorage para tarjetas grandes
+                const storageId = 'shared_card_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+                localStorage.setItem(storageId, LZString.compressToEncodedURIComponent(JSON.stringify(cardForUrl)));
+                cardData.url = 'card-storage-' + storageId;
+
+                // Limpiar localStorage después de 24 horas
+                setTimeout(() => {
+                    localStorage.removeItem(storageId);
+                }, 24 * 60 * 60 * 1000);
+            } else {
+                // Usar URL codificada para tarjetas pequeñas
+                const encoded = LZString.compressToEncodedURIComponent(JSON.stringify(cardForUrl));
+                cardData.url = 'card-' + encoded;
+            }
 
             if (editingCardId) {
                 // Actualizar tarjeta existente
@@ -1380,3 +1878,5 @@
         window.deleteCard = deleteCard;
         window.showFullApp = showFullApp;
         window.showHomeSection = showHomeSection;
+        window.displayCardFromJson = displayCardFromJson;
+        window.runMobileTests = runMobileTests;
