@@ -4,14 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>eCards JM</title>
-    <!-- Styles -->
     <link rel="stylesheet" href="styles.css">
-    <!-- Importar Google Fonts para más variedad tipográfica -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;600;700&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Merriweather:wght@300;400;700&family=PT+Sans:wght@400;700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
-
 </head>
 <body>
-    <!-- Sistema de Login -->
     <div id="loginScreen" class="login-screen">
         <div class="login-container">
             <div class="login-header">
@@ -29,9 +25,7 @@
         </div>
     </div>
 
-    <!-- Aplicación Principal -->
     <div id="app" class="app" style="display: none;">
-        <!-- Navegación -->
         <nav class="navbar">
             <div class="nav-container">
                 <div class="logo">
@@ -45,9 +39,7 @@
             </div>
         </nav>
 
-        <!-- Contenido Principal -->
         <div class="container">
-            <!-- Sección Inicio -->
             <section id="home" class="section active">
                 <div class="hero-section">
                     <div class="hero-content">
@@ -72,258 +64,152 @@
                     </div>
                 </div>
 
-                <!-- Formulario de Creación -->
                 <div class="creation-section" id="creationSection" style="display: none;">
                     <div class="creation-container">
                         <div class="form-column">
                             <h2 id="formTitle">Crear Nueva Tarjeta</h2>
                             <form id="cardForm" class="card-form">
-                                <div class="form-group">
-                                    <label for="name">Nombre Completo</label>
-                                    <input type="text" id="name" placeholder="Opcional">
+                                <div class="form-section">
+                                    <h3>Datos Personales y de Empresa</h3>
+                                    <div class="form-group">
+                                        <label for="name">Nombre Completo</label>
+                                        <input type="text" id="name" placeholder="Opcional">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="title">Título/Cargo</label>
+                                        <input type="text" id="title" placeholder="Opcional">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="company">Empresa</label>
+                                        <input type="text" id="company" placeholder="Opcional">
+                                    </div>
+                                    <div class="form-group">
+                                        <label for="description">Descripción</label>
+                                        <textarea id="description" placeholder="Opcional. Describe brevemente tu empresa o servicio."></textarea>
+                                    </div>
                                 </div>
                                 
-                                <div class="form-group">
-                                    <label for="title">Título/Cargo</label>
-                                    <input type="text" id="title" placeholder="Opcional">
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="company">Empresa</label>
-                                    <input type="text" id="company" placeholder="Opcional">
-                                </div>
-                                
-                                <div class="form-group">
-                                    <label for="description">Descripción</label>
-                                    <textarea id="description" placeholder="Opcional"></textarea>
-                                </div>
-
-                                <!-- Información de Contacto -->
-                                <div class="customization-section">
+                                <div class="form-section">
                                     <h3>Información de Contacto</h3>
                                     <div class="form-group">
-                                        <label for="phone">Teléfono Fijo</label>
-                                        <input type="tel" id="phone" placeholder="Ej: 418 7446">
+                                        <label for="phone">Teléfono (WhatsApp)</label>
+                                        <input type="tel" id="phone" placeholder="Opcional. Ej: +57 123 456 7890">
                                     </div>
                                     <div class="form-group">
-                                        <label for="mobile">Teléfono Móvil</label>
-                                        <input type="tel" id="mobile" placeholder="Ej: 3116070554 - 3014346788">
+                                        <label for="mobile">Móvil Adicional</label>
+                                        <input type="tel" id="mobile" placeholder="Opcional.">
                                     </div>
                                     <div class="form-group">
-                                        <label for="email">Correo Electrónico</label>
-                                        <input type="email" id="email" placeholder="Ej: contacto@empresa.com">
+                                        <label for="email">Email</label>
+                                        <input type="email" id="email" placeholder="Opcional.">
                                     </div>
                                     <div class="form-group">
-                                        <label for="address">Dirección</label>
-                                        <input type="text" id="address" placeholder="Ej: Calle 45 #6-60, Medellín">
+                                        <label for="address">Dirección Física</label>
+                                        <input type="text" id="address" placeholder="Opcional.">
                                     </div>
                                 </div>
-
-                                <!-- Redes Sociales -->
-                                <div class="customization-section">
-                                    <h3>Redes Sociales</h3>
+                                
+                                <div class="form-section">
+                                    <h3>Redes Sociales y Web</h3>
                                     <div class="form-group">
-                                        <label for="website">Sitio Web</label>
-                                        <input type="url" id="website" placeholder="https://tusitio.com">
+                                        <label for="website">Sitio Web / Enlace Principal</label>
+                                        <input type="url" id="website" placeholder="Opcional. Ej: https://miempresa.com">
                                     </div>
                                     <div class="form-group">
-                                        <label for="linkedin">LinkedIn</label>
-                                        <input type="url" id="linkedin" placeholder="https://linkedin.com/in/tuperfil">
+                                        <label for="linkedin">LinkedIn URL</label>
+                                        <input type="url" id="linkedin" placeholder="Opcional.">
                                     </div>
                                     <div class="form-group">
-                                        <label for="facebook">Facebook</label>
-                                        <input type="url" id="facebook" placeholder="https://facebook.com/tuperfil">
+                                        <label for="facebook">Facebook URL</label>
+                                        <input type="url" id="facebook" placeholder="Opcional.">
                                     </div>
                                     <div class="form-group">
-                                        <label for="instagram">Instagram</label>
-                                        <input type="url" id="instagram" placeholder="https://instagram.com/tuperfil">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="twitter">Twitter/X</label>
-                                        <input type="url" id="twitter" placeholder="https://twitter.com/tuperfil">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="youtube">YouTube</label>
-                                        <input type="url" id="youtube" placeholder="https://youtube.com/tucanal">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="whatsapp">WhatsApp</label>
-                                        <input type="tel" id="whatsapp" placeholder="Ej: 573116070554">
+                                        <label for="instagram">Instagram URL</label>
+                                        <input type="url" id="instagram" placeholder="Opcional.">
                                     </div>
                                 </div>
-
-                                <!-- Personalización de Imágenes -->
-                                <div class="customization-section">
-                                    <h3>Personalización de Imágenes</h3>
-                                    <div class="form-group">
-                                        <label for="profileShape">Forma de la Foto de Perfil</label>
-                                        <select id="profileShape">
-                                            <option value="circular">Circular</option>
-                                            <option value="square">Cuadrado</option>
-                                        </select>
+                                
+                                <div class="form-section">
+                                    <h3>Diseño y Medios</h3>
+                                    <div class="form-group media-input-group">
+                                        <label>Logo de la Empresa</label>
+                                        <input type="file" id="logoUpload" accept="image/*">
+                                        <div class="image-preview" id="logoPreview" style="display: none;">
+                                            <img src="" alt="Logo Preview">
+                                            <button type="button" class="btn-remove" onclick="removeImage('logo')">Eliminar</button>
+                                        </div>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="profileSize">Tamaño de la Foto (px)</label>
-                                        <input type="number" id="profileSize" min="80" max="250" value="150">
+                                    <div class="form-group media-input-group">
+                                        <label>Foto de Perfil</label>
+                                        <input type="file" id="profileImageUpload" accept="image/*">
+                                        <div class="image-preview" id="profilePreview" style="display: none;">
+                                            <img src="" alt="Profile Preview">
+                                            <button type="button" class="btn-remove" onclick="removeImage('profile')">Eliminar</button>
+                                        </div>
                                     </div>
-                                </div>
-
-                                <!-- Personalización de Colores -->
-                                <div class="customization-section">
-                                    <h3>Personalización de Colores</h3>
-                                    <div class="color-grid">
-                                        <div class="color-group">
-                                            <label for="cardBackground">Fondo de Tarjeta</label>
+                                    
+                                    <div class="customization-grid">
+                                        <div class="form-group">
+                                            <label for="cardBackground">Color de Fondo</label>
                                             <input type="color" id="cardBackground" value="#ffffff">
                                         </div>
-                                        <div class="color-group">
-                                            <label for="textPrimary">Texto Principal</label>
-                                            <input type="color" id="textPrimary" value="#2c3e50">
-                                        </div>
-                                        <div class="color-group">
-                                            <label for="textSecondary">Texto Secundario</label>
-                                            <input type="color" id="textSecondary" value="#7f8c8d">
-                                        </div>
-                                        <div class="color-group">
+                                        <div class="form-group">
                                             <label for="accentColor">Color de Acento</label>
                                             <input type="color" id="accentColor" value="#3498db">
                                         </div>
-                                    </div>
-                                </div>
-
-                                <!-- Personalización de Tipografía MEJORADA -->
-                                <div class="customization-section">
-                                    <h3>Personalización de Tipografía</h3>
-                                    <div class="typography-grid">
-                                        <div class="typography-group">
-                                            <label for="fontFamily">Familia de Fuente</label>
+                                        <div class="form-group">
+                                            <label for="textPrimary">Color de Texto (Principal)</label>
+                                            <input type="color" id="textPrimary" value="#2c3e50">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="textSecondary">Color de Texto (Secundario)</label>
+                                            <input type="color" id="textSecondary" value="#7f8c8d">
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="profileShape">Forma de Perfil</label>
+                                            <select id="profileShape">
+                                                <option value="circular">Circular</option>
+                                                <option value="square">Cuadrado</option>
+                                            </select>
+                                        </div>
+                                        <div class="form-group">
+                                            <label for="fontFamily">Fuente</label>
                                             <select id="fontFamily">
-                                                <option value="Arial, sans-serif">Arial</option>
-                                                <option value="Georgia, serif">Georgia</option>
-                                                <option value="'Courier New', monospace">Courier New</option>
-                                                <option value="'Segoe UI', Tahoma, Geneva, Verdana, sans-serif">Segoe UI</option>
-                                                <option value="'Helvetica Neue', Helvetica, sans-serif">Helvetica</option>
-                                                <!-- Nuevas fuentes de Google Fonts -->
                                                 <option value="'Roboto', sans-serif">Roboto</option>
                                                 <option value="'Open Sans', sans-serif">Open Sans</option>
                                                 <option value="'Lato', sans-serif">Lato</option>
                                                 <option value="'Montserrat', sans-serif">Montserrat</option>
                                                 <option value="'Poppins', sans-serif">Poppins</option>
                                                 <option value="'Raleway', sans-serif">Raleway</option>
-                                                <option value="'Source Sans Pro', sans-serif">Source Sans Pro</option>
-                                                <option value="'Oswald', sans-serif">Oswald</option>
-                                                <option value="'Playfair Display', serif">Playfair Display</option>
                                                 <option value="'Merriweather', serif">Merriweather</option>
-                                                <option value="'PT Sans', sans-serif">PT Sans</option>
-                                                <option value="'Ubuntu', sans-serif">Ubuntu</option>
                                             </select>
-                                        </div>
-                                        <div class="typography-group">
-                                            <label for="nameSize">Tamaño Nombre (px)</label>
-                                            <input type="number" id="nameSize" min="16" max="32" value="24">
-                                        </div>
-                                        <div class="typography-group">
-                                            <label for="titleSize">Tamaño Título (px)</label>
-                                            <input type="number" id="titleSize" min="12" max="20" value="16">
-                                        </div>
-                                        <div class="typography-group">
-                                            <label for="descriptionSize">Tamaño Descripción (px)</label>
-                                            <input type="number" id="descriptionSize" min="12" max="18" value="14">
-                                        </div>
-                                    </div>
-                                    <!-- Sección para cargar fuentes personalizadas -->
-                                    <div class="form-group" style="margin-top: 1rem;">
-                                        <label for="customFontFile">Subir Fuente Personalizada</label>
-                                        <div class="file-input-container">
-                                            <div class="file-input-btn">Seleccionar Archivo de Fuente</div>
-                                            <input type="file" id="customFontFile" class="file-input" accept=".ttf,.otf,.woff,.woff2">
-                                        </div>
-                                        <small style="color: #7f8c8d; font-size: 0.8rem;">Formatos soportados: .ttf, .otf, .woff, .woff2</small>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="customFont">O usar URL de Fuente Web</label>
-                                        <input type="url" id="customFont" placeholder="https://fonts.googleapis.com/css2?family=TuFuente">
-                                        <small style="color: #7f8c8d; font-size: 0.8rem;">Pega la URL de Google Fonts o cualquier fuente web</small>
-                                    </div>
-                                </div>
-
-                                <!-- Subida de Archivos -->
-                                <div class="file-upload-section">
-                                    <div class="form-group">
-                                        <label>Logo de la empresa</label>
-                                        <div class="file-input-container">
-                                            <div class="file-input-btn">Seleccionar Logo</div>
-                                            <input type="file" id="logo" class="file-input" accept="image/*">
-                                        </div>
-                                        <div class="preview-container">
-                                            <img id="logoPreview" class="preview-image" style="display: none;">
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="form-group">
-                                        <label>Foto de perfil</label>
-                                        <div class="file-input-container">
-                                            <div class="file-input-btn">Seleccionar Foto</div>
-                                            <input type="file" id="profileImage" class="file-input" accept="image/*">
-                                        </div>
-                                        <div class="preview-container">
-                                            <img id="profilePreview" class="preview-image" style="display: none; max-width: 200px; max-height: 200px;">
                                         </div>
                                     </div>
                                 </div>
                                 
-                                <div class="form-buttons">
+                                <div class="form-actions">
                                     <button type="submit" class="btn btn-primary" id="submitButton">Crear Tarjeta</button>
-                                    <button type="button" class="btn btn-secondary" id="cancelEditButton" style="display: none;">Cancelar Edición</button>
+                                    <button type="button" class="btn btn-secondary" id="cancelEditButton" style="display: none;">Cancelar</button>
                                 </div>
                             </form>
                         </div>
                         
                         <div class="preview-column">
-                            <h3>Vista Previa</h3>
-                            <div id="cardPreview" class="card-preview">
-                                <!-- NUEVA ESTRUCTURA: Logo a la derecha, foto a la izquierda -->
-                                <div class="card-header">
-                                    <div class="card-profile-section">
-                                        <!-- ESTRUCTURA MEJORADA PARA LA FOTO DE PERFIL -->
-                                        <span class="media-thumbnail avatar img-rounded media-size-avatar">
-                                            <img id="previewProfile" class="avatar img-rounded media-size-avatar" src="" alt="Foto de perfil" style="display: none;">
-                                        </span>
+                            <h2>Vista Previa de la Tarjeta</h2>
+                            <div class="card-preview-container">
+                                <div class="card-preview" id="liveCardPreview">
                                     </div>
-                                    <div class="card-logo-section">
-                                        <img id="previewLogo" class="card-logo" src="" alt="Logo" style="display: none;">
-                                    </div>
-                                </div>
-                                
-                                <div class="card-content">
-                                    <h2 id="previewName" class="card-name">Nombre Completo</h2>
-                                    <p id="previewTitle" class="card-title">Título/Cargo</p>
-                                    <p id="previewCompany" class="card-company">Empresa</p>
-                                    <div class="card-description">
-                                        <p id="previewDescription">Descripción de la empresa o usuario aparecerá aquí.</p>
-                                    </div>
-                                </div>
-                                
-                                <!-- Botones de Contacto -->
-                                <div class="contact-buttons-block" id="previewContactButtons">
-                                    <!-- Los botones de contacto se generarán aquí dinámicamente -->
-                                </div>
-
-                                <!-- NUEVA ESTRUCTURA: Redes Sociales con SVG -->
-                                <div class="social-media-block" id="previewSocialMedia">
-                                    <!-- Las redes sociales se mostrarán aquí con SVG -->
-                                </div>
-                                
-                                <div class="card-url">
-                                    <p>Comparte tu tarjeta: <span id="previewUrl">url-unica</span></p>
-                                </div>
+                            </div>
+                            <div class="share-info">
+                                <h4>URL de Tarjeta (Después de crear/actualizar):</h4>
+                                <p id="customUrlDisplay">URL aparecerá aquí</p>
+                                <button type="button" class="btn btn-secondary btn-sm" id="copyUrlBtn" style="display: none;">Copiar URL</button>
                             </div>
                         </div>
                     </div>
                 </div>
             </section>
 
-            <!-- Sección Mis Tarjetas -->
             <section id="my-cards" class="section">
                 <h1>Mis Tarjetas</h1>
                 <p>Administra tus tarjetas de presentación digital.</p>
@@ -340,22 +226,18 @@
                             </tr>
                         </thead>
                         <tbody id="cardsTableBody">
-                            <!-- Las tarjetas se cargarán aquí dinámicamente -->
-                        </tbody>
+                            </tbody>
                     </table>
                 </div>
             </section>
 
-            <!-- NUEVA SECCIÓN: Visualización de Tarjetas -->
             <section id="card-view" class="section">
                 <div id="cardDisplayContainer">
-                    <!-- La tarjeta se mostrará aquí cuando se acceda por URL -->
-                </div>
+                    </div>
             </section>
         </div>
     </div>
 
-    <!-- Scripts -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
     <script src="script.js"></script>
 </body>

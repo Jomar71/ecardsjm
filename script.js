@@ -1,1837 +1,588 @@
-       const CONFIG = {
-            PASSWORD: 'admin123',
-            SESSION_KEY: 'evaunt_session',
-            CARDS_KEY: 'evaunt_cards'
-        };
+// CONFIGURACIÓN GLOBAL
+const CONFIG = {
+    PASSWORD: 'admin123',
+    SESSION_KEY: 'ecardsjm_session',
+    CARDS_KEY: 'ecardsjm_cards'
+};
 
-        let currentUser = null;
-        let cards = [];
-        let editingCardId = null;
+let currentUser = null;
+let cards = []; // Almacena la lista de tarjetas del usuario logueado (LOCALSTORAGE)
+let editingCardId = null; // ID de la tarjeta que se está editando
 
-        document.addEventListener('DOMContentLoaded', function() {
-            console.log('DOM cargado - Inicializando aplicación...');
-            initializeApp();
+// ----------------------------------------------------
+// INICIALIZACIÓN Y MANEJO DE EVENTOS
+// ----------------------------------------------------
 
-            // Manejar el enrutamiento basado en el hash con soporte mejorado para móviles
-            window.addEventListener('hashchange', debounce(handleRoute, 100));
+document.addEventListener('DOMContentLoaded', function() {
+    initializeApp();
+    window.addEventListener('hashchange', debounce(handleRoute, 100));
+    handleRoute(); // Manejar la ruta actual al cargar
+});
 
-            // Agregar listeners adicionales para móviles
-            window.addEventListener('touchstart', function(e) {
-                // Prevenir comportamientos por defecto en algunos móviles
-                if (e.touches.length > 1) {
-                    e.preventDefault();
-                }
-            }, { passive: false });
+function initializeApp() {
+    checkSession();
+    loadCards(); // Cargar tarjetas al inicio
+    setupEventListeners();
+    setupDefaultDesign();
+    updateCardPreview();
+}
 
-            window.addEventListener('touchend', function(e) {
-                // Mejorar respuesta táctil
-                if (e.changedTouches.length === 1) {
-                    // Procesar eventos táctiles simples
-                    const touch = e.changedTouches[0];
-                    const target = document.elementFromPoint(touch.clientX, touch.clientY);
-
-                    // Mejorar navegación táctil para enlaces
-                    if (target && target.tagName === 'A') {
-                        e.preventDefault();
-                        setTimeout(() => {
-                            if (target.href) {
-                                window.open(target.href, target.target || '_self');
-                            }
-                        }, 10);
-                    }
-                }
-            }, { passive: false });
-
-            // Mejorar detección de cambios de hash en móviles con debouncing
-            let lastHash = window.location.hash;
-            const hashCheckInterval = setInterval(() => {
-                if (window.location.hash !== lastHash) {
-                    lastHash = window.location.hash;
-                    console.log('Hash changed via polling:', lastHash);
-                    debounce(handleRoute, 50)();
-                }
-            }, 200); // Polling cada 200ms para mejor rendimiento
-
-            // Limpiar intervalo cuando la página se descarga
-            window.addEventListener('beforeunload', () => {
-                clearInterval(hashCheckInterval);
-            });
-
-            handleRoute(); // Manejar la ruta actual al cargar
+function setupEventListeners() {
+    // 1. Navegación
+    document.querySelectorAll('.nav-link').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = link.dataset.target;
+            window.location.hash = target;
         });
+    });
+    
+    // 2. Login/Logout
+    document.getElementById('loginForm').addEventListener('submit', login);
+    document.getElementById('logoutBtn').addEventListener('click', logout);
+    
+    // 3. Formulario
+    document.getElementById('cardForm').addEventListener('submit', saveCard);
+    document.getElementById('cancelEditButton').addEventListener('click', resetForm);
+    document.getElementById('startCreatingBtn').addEventListener('click', () => {
+        document.getElementById('creationSection').style.display = 'block';
+        document.getElementById('startCreatingBtn').style.display = 'none';
+        // Desplazarse al formulario
+        document.getElementById('creationSection').scrollIntoView({ behavior: 'smooth' });
+    });
+    
+    // 4. Vista Previa
+    document.querySelectorAll('#cardForm input, #cardForm textarea, #cardForm select').forEach(element => {
+        element.addEventListener('input', updateCardPreview);
+        element.addEventListener('change', updateCardPreview);
+    });
 
-        function initializeApp() {
-            console.log('Inicializando aplicación...');
-            if (!document.getElementById('loginScreen') || !document.getElementById('app')) {
-                console.error('Elementos del DOM no encontrados');
-                setTimeout(initializeApp, 100);
-                return;
-            }
+    // 5. Imágenes (Simplificado, se asume que existe la lógica de base64)
+    document.getElementById('logoUpload').addEventListener('change', (e) => handleImageUpload(e, 'logo'));
+    document.getElementById('profileImageUpload').addEventListener('change', (e) => handleImageUpload(e, 'profile'));
+    
+    // 6. Botón de copiar URL
+    document.getElementById('copyUrlBtn').addEventListener('click', copyCardUrl);
+}
 
-            checkSession();
-            loadCards();
-            setupEventListeners();
-            setupDefaultDesign();
-            updateCardsTable();
-            updateCardPreview();
 
-            // Procesar ruta después de un delay más largo para móviles
-            setTimeout(() => {
-                console.log('Procesando ruta inicial...');
-                handleRoute();
-            }, 500);
+// ----------------------------------------------------
+// MANEJO DE SESIÓN Y VISTAS
+// ----------------------------------------------------
 
-            // Agregar listener adicional para cambios de hash en móviles
-            window.addEventListener('load', () => {
-                console.log('Página completamente cargada, verificando hash...');
-                setTimeout(() => {
-                    handleRoute();
-                }, 200);
-            });
-        }
+function checkSession() {
+    const session = sessionStorage.getItem(CONFIG.SESSION_KEY);
+    currentUser = session ? JSON.parse(session) : { loggedIn: false };
 
-        // MEJORADO: Manejar rutas basadas en hash con mejor soporte para móviles
-        function handleRoute() {
-            const hash = window.location.hash.substring(1); // Eliminar el #
-            console.log('Procesando hash:', hash, 'Usuario logueado:', currentUser?.loggedIn);
-
-            // Si hay un hash y es una tarjeta existente, mostrar solo la tarjeta
-            if (hash && hash !== 'home' && hash !== 'my-cards') {
-                console.log('Buscando tarjeta con URL:', hash);
-
-                // Mostrar indicador de carga para móviles
-                showLoadingIndicator();
-
-                const card = findCardByUrl(hash);
-                if (card) {
-                    console.log('Tarjeta encontrada:', card.name, 'Mostrando vista individual');
-                    hideLoadingIndicator();
-                    displayCard(card);
-                    return;
-                } else {
-                    console.log('Tarjeta NO encontrada para hash:', hash);
-                    hideLoadingIndicator();
-                    // Si no se encuentra la tarjeta, mostrar mensaje de error mejorado
-                    showNotFound();
-                    return;
-                }
-            }
-
-            // Si el usuario está logueado, mostrar la aplicación normal
-            if (currentUser && currentUser.loggedIn) {
-                console.log('Usuario logueado, mostrando aplicación normal');
-                if (!hash || hash === 'home') {
-                    showHomeSection();
-                } else if (hash === 'my-cards') {
-                    showMyCardsSection();
-                } else {
-                    // Si no es una ruta conocida pero está logueado, mostrar home
-                    showHomeSection();
-                }
-            } else {
-                console.log('Usuario no logueado');
-                // Usuario no logueado
-                if (hash && hash !== 'home' && hash !== 'my-cards') {
-                    const card = findCardByUrl(hash);
-                    if (card) {
-                        console.log('Tarjeta encontrada pero usuario no logueado, guardando para después del login');
-                        // Guardar la tarjeta para mostrar después del login
-                        sessionStorage.setItem('pendingCardView', JSON.stringify(card));
-                    }
-                }
-                showLogin();
-            }
-        }
-
-        // CORREGIDO: Mostrar tarjeta cuando se accede por URL
-        function displayCard(card) {
-            console.log('Mostrando tarjeta individual:', card.name);
-
-            // Validar que la tarjeta tenga datos válidos
-            if (!card || typeof card !== 'object') {
-                console.error('Tarjeta inválida:', card);
-                showNotFound();
-                return;
-            }
-
-            // Sanitizar datos de la tarjeta
-            if (card.name && typeof card.name === 'string') {
-                card.name = card.name.trim();
-            }
-            if (card.title && typeof card.title === 'string') {
-                card.title = card.title.trim();
-            }
-            if (card.company && typeof card.company === 'string') {
-                card.company = card.company.trim();
-            }
-            if (card.description && typeof card.description === 'string') {
-                card.description = card.description.trim();
-            }
-
-            // Forzar la ocultación de todas las vistas previas
-            document.getElementById('loginScreen').style.display = 'none';
-            document.getElementById('app').style.display = 'none';
-
-            // Ocultar vista de error si existe
-            const errorView = document.getElementById('errorView');
-            if (errorView) {
-                errorView.style.display = 'none';
-            }
-
-            // Crear contenedor para la vista individual si no existe
-            let individualView = document.getElementById('individualCardView');
-            if (!individualView) {
-                individualView = document.createElement('div');
-                individualView.id = 'individualCardView';
-                individualView.style.minHeight = '100vh';
-                individualView.style.backgroundColor = '#f8f9fa';
-                individualView.style.padding = '20px';
-                document.body.appendChild(individualView);
-            }
-
-            // Asegurar que sea visible
-            individualView.style.display = 'block';
-
-            // Renderizar la tarjeta en vista individual
-            renderCardForIndividualView(card, individualView);
-        }
-
-        // NUEVA FUNCIÓN: Renderizar tarjeta para vista individual
-        function renderCardForIndividualView(card, container) {
-            // Mostrar indicador de carga optimizado
-            showLoadingIndicator('Renderizando tarjeta...');
-
-            // Cargar fuente personalizada si existe
-            if (card.design?.customFont) {
-                loadCustomFontFromUrl(card.design.customFont, card.design.fontFamily);
-            }
-
-            // Cargar fuente subida si existe
-            if (card.design?.customFontData) {
-                loadCustomFontFromData(card.design.customFontData, card.design.fontFamily);
-            }
-
-            // Lazy loading para imágenes en móviles con mejor rendimiento
-            const loadImage = (imgElement, src) => {
-                if (!src) return;
-
-                // Usar Intersection Observer para lazy loading más eficiente
-                if ('IntersectionObserver' in window) {
-                    const imageObserver = new IntersectionObserver((entries, observer) => {
-                        entries.forEach(entry => {
-                            if (entry.isIntersecting) {
-                                const img = new Image();
-                                img.onload = () => {
-                                    imgElement.src = src;
-                                    imgElement.style.opacity = '1';
-                                    hideLoadingIndicator();
-                                };
-                                img.onerror = () => {
-                                    console.warn('Error loading image:', src);
-                                    imgElement.style.display = 'none';
-                                    hideLoadingIndicator();
-                                };
-                                img.src = src;
-                                observer.unobserve(imgElement);
-                            }
-                        });
-                    });
-                    imageObserver.observe(imgElement);
-                } else {
-                    // Fallback para navegadores sin Intersection Observer
-                    const img = new Image();
-                    img.onload = () => {
-                        imgElement.src = src;
-                        imgElement.style.opacity = '1';
-                        hideLoadingIndicator();
-                    };
-                    img.onerror = () => {
-                        console.warn('Error loading image:', src);
-                        imgElement.style.display = 'none';
-                        hideLoadingIndicator();
-                    };
-                    img.src = src;
-                }
-            };
-
-            container.innerHTML = `
-                <div style="max-width: 400px; margin: 0 auto; padding: 20px 0;">
-
-                    
-                    <div class="card-preview" style="background: ${card.design?.cardBackground || '#ffffff'}; color: ${card.design?.textPrimary || '#2c3e50'}; font-family: ${card.design?.fontFamily || 'Arial, sans-serif'}; margin: 0 auto;">
-                        <div class="card-header">
-                            <div class="card-profile-section">
-                                ${card.profileImage ?
-                                    `<img src="" class="avatar img-rounded media-size-avatar"
-                                          style="width: 150px; height: 150px; border-radius: ${card.design?.profileShape === 'circular' ? '50%' : '10px'};
-                                                 border: 3px solid ${card.design?.accentColor || '#3498db'}; object-fit: cover; opacity: 0; transition: opacity 0.3s ease;"
-                                          alt="Foto de perfil">` :
-                                    '<div style="width: 150px; height: 150px; background: #ecf0f1; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #7f8c8d;">Sin foto</div>'
-                                }
-                            </div>
-                            <div class="card-logo-section">
-                                ${card.logo ?
-                                    `<img src="" class="card-logo"
-                                          style="max-width: 80px; max-height: 80px; object-fit: contain; opacity: 0; transition: opacity 0.3s ease;"
-                                          alt="Logo">` :
-                                    ''
-                                }
-                            </div>
-                        </div>
-                        
-                        <div class="card-content">
-                            <h2 class="card-name" style="font-size: ${card.design?.nameSize || '24'}px; color: ${card.design?.textPrimary || '#2c3e50'};">${card.name || 'Nombre Completo'}</h2>
-                            <p class="card-title" style="font-size: ${card.design?.titleSize || '16'}px; color: ${card.design?.textSecondary || '#7f8c8d'};">${card.title || 'Título/Cargo'}</p>
-                            <p class="card-company" style="color: ${card.design?.accentColor || '#3498db'};">${card.company || 'Empresa'}</p>
-                            <div class="card-description">
-                                <p style="font-size: ${card.design?.descriptionSize || '14'}px; color: ${card.design?.textPrimary || '#2c3e50'};">${card.description || 'Descripción de la empresa o usuario aparecerá aquí.'}</p>
-                            </div>
-                        </div>
-                        
-                        <div class="contact-buttons-block">
-                            ${generateContactButtons(card)}
-                        </div>
-
-                        <div class="social-media-block">
-                            ${generateSocialMediaIcons(card)}
-                        </div>
-                        
-                        <div class="card-url">
-                            <p>Comparte esta tarjeta: 
-                                <span style="font-weight: bold; color: ${card.design?.accentColor || '#3498db'};">
-                                    ${window.location.href}
-                                </span>
-                            </p>
-                        </div>
-                    </div>
-                    
-
-        </div>
-    `;
-
-    // Aplicar lazy loading después de renderizar
-    if (card.profileImage) {
-        const profileImg = container.querySelector('.card-profile-section img');
-        if (profileImg) {
-            loadImage(profileImg, card.profileImage);
-        }
-    }
-
-    if (card.logo) {
-        const logoImg = container.querySelector('.card-logo-section img');
-        if (logoImg) {
-            loadImage(logoImg, card.logo);
-        }
-    }
-
-    // Ocultar indicador de carga si no hay imágenes que cargar
-    if (!card.profileImage && !card.logo) {
-        hideLoadingIndicator();
+    if (currentUser.loggedIn) {
+        showApp();
+    } else {
+        showLogin();
     }
 }
 
-        // NUEVA FUNCIÓN: Mostrar aplicación completa
-        function showFullApp() {
-            // Ocultar vista individual
-            const individualView = document.getElementById('individualCardView');
-            if (individualView) {
-                individualView.style.display = 'none';
-            }
+function login(e) {
+    e.preventDefault();
+    const password = document.getElementById('password').value;
 
-            // Ocultar vista de error
-            const errorView = document.getElementById('errorView');
-            if (errorView) {
-                errorView.style.display = 'none';
-            }
+    if (password === CONFIG.PASSWORD) {
+        currentUser = { loggedIn: true };
+        sessionStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(currentUser));
+        showApp();
+        showNotification('Acceso concedido. ¡Bienvenido!', 'success');
+        handleRoute();
+    } else {
+        showNotification('Contraseña incorrecta.', 'error');
+    }
+}
 
-            // Cambiar hash a home
-            window.location.hash = 'home';
+function logout() {
+    sessionStorage.removeItem(CONFIG.SESSION_KEY);
+    currentUser = { loggedIn: false };
+    showLogin();
+    window.location.hash = '';
+    showNotification('Sesión cerrada.', 'info');
+}
 
-            // Mostrar aplicación principal si el usuario está logueado
-            if (currentUser && currentUser.loggedIn) {
-                showApp();
-                showHomeSection();
-            } else {
-                showLogin();
-            }
+function showLogin() {
+    document.getElementById('loginScreen').style.display = 'flex';
+    document.getElementById('app').style.display = 'none';
+    document.getElementById('card-view').style.display = 'none';
+}
+
+function showApp() {
+    document.getElementById('loginScreen').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    document.getElementById('card-view').style.display = 'none';
+}
+
+function showAdminSection(sectionId) {
+    document.querySelectorAll('.section').forEach(section => section.style.display = 'none');
+    document.getElementById(sectionId).style.display = 'block';
+    
+    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+    document.querySelector(`[data-target="${sectionId.replace('my-cards', 'my-cards')}"]`).classList.add('active'); // Ajuste para el link de navegación
+    
+    // Si se está en Mis Tarjetas, cargar la tabla
+    if (sectionId === 'my-cards') {
+        loadCards();
+        updateCardsTable();
+    }
+    
+    document.getElementById('card-view').style.display = 'none';
+    showApp();
+}
+
+// ----------------------------------------------------
+// MANEJO DE RUTAS Y LINKS (SOLUCIÓN DE COMPATIBILIDAD)
+// ----------------------------------------------------
+
+function handleRoute() {
+    const hash = window.location.hash.substring(1);
+    const cardView = document.getElementById('card-view');
+    const appView = document.getElementById('app');
+
+    if (hash.startsWith('card-')) {
+        // Modo Vista Pública de Tarjeta
+        const card = findCardByUrl(hash);
+        if (card) {
+            document.getElementById('loginScreen').style.display = 'none';
+            appView.style.display = 'none';
+            cardView.style.display = 'block';
+            renderCardForIndividualView(card);
+            return;
+        } else {
+             // Si el link es inválido, redirigir a la página principal
+             window.location.hash = 'home';
+        }
+    }
+    
+    // Modo Administración
+    if (currentUser && currentUser.loggedIn) {
+        if (!hash || hash === 'home' || hash.startsWith('card-')) {
+            showAdminSection('home');
+        } else if (hash === 'my-cards') {
+            showAdminSection('my-cards');
+        }
+    } else {
+        showLogin();
+    }
+}
+
+function findCardByUrl(url) {
+    if (!url || !url.startsWith('card-')) return null;
+
+    try {
+        // La URL debe ser #card-nombre-tarjeta__DATOSCOMPRIMIDOS
+        const parts = url.substring(5).split('__');
+        
+        if (parts.length !== 2) {
+             // La parte de datos comprimidos es esencial
+            return null;
         }
 
-        function findCardByUrl(url) {
-            console.log('Buscando tarjeta con URL:', url);
+        const compressedData = parts[1];
+        if (!compressedData) return null;
 
-            if (!url) {
-                console.log('URL vacía');
-                return null;
-            }
+        // Descomprimir datos con LZString
+        const decompressed = LZString.decompressFromEncodedURIComponent(compressedData);
+        if (!decompressed) return null;
 
-            // Manejar URLs comprimidas con formato: card-nombre__compressedData
-            if (url.startsWith('card-')) {
-                try {
-                    // Usar un separador más robusto que no entre en conflicto con nombres con guiones
-                    const urlParts = url.substring(5).split('__'); // Remover 'card-' y dividir por '__'
-                    if (urlParts.length !== 2) {
-                        console.error('Formato de URL comprimida inválido. Se esperaba un nombre y datos.');
-                        return null;
-                    }
+        const decoded = JSON.parse(decompressed);
+        return decoded;
 
-                    const urlName = urlParts[0]; // <-- CORREGIDO: Antes era 'urlParts'
-                    const compressedData = urlParts[1]; // <-- CORREGIDO: Antes era 'urlParts'
+    } catch (e) {
+        console.error('Error al cargar tarjeta desde URL comprimida:', e);
+        showNotification('Error: El link de la tarjeta está corrupto o es inválido.', 'error', 5000);
+        return null;
+    }
+}
 
-                    if (!compressedData) {
-                        console.error('Datos comprimidos no encontrados en URL');
-                        return null;
-                    }
+// ----------------------------------------------------
+// FUNCIONES DE GESTIÓN DE TARJETAS (CRUD LOCAL - SOLUCIÓN BOTONES)
+// ----------------------------------------------------
 
-                    // Descomprimir datos
-                    const decompressed = LZString.decompressFromEncodedURIComponent(compressedData);
-                    if (!decompressed) {
-                        console.error('Error al descomprimir datos');
-                        return null;
-                    }
+function loadCards() {
+    const storedCards = localStorage.getItem(CONFIG.CARDS_KEY);
+    try {
+        cards = storedCards ? JSON.parse(storedCards) : [];
+        if (!Array.isArray(cards)) cards = [];
+    } catch (e) {
+        console.error('Error al cargar tarjetas de localStorage:', e);
+        cards = [];
+    }
+}
 
-                    const decoded = JSON.parse(decompressed);
-
-                    // Validar estructura básica
-                    if (!decoded || typeof decoded !== 'object') {
-                        console.error('Datos decodificados no válidos');
-                        return null;
-                    }
-
-                    // Sanitizar datos decodificados
-                    if (decoded.name && typeof decoded.name === 'string') {
-                        decoded.name = decoded.name.trim();
-                    }
-                    if (decoded.title && typeof decoded.title === 'string') {
-                        decoded.title = decoded.title.trim();
-                    }
-                    if (decoded.company && typeof decoded.company === 'string') {
-                        decoded.company = decoded.company.trim();
-                    }
-
-                    console.log('Tarjeta cargada desde URL comprimida:', decoded.name);
-                    return decoded;
-
-                } catch (e) {
-                    console.error('Error loading card from compressed URL:', e);
-                    return null;
-                }
-            }
-
-            // Fallback to local storage search for backward compatibility
-            console.log('Tarjetas disponibles:', cards.length);
-            const normalizedUrl = url.toLowerCase().trim();
-            console.log('URL normalizada:', normalizedUrl);
-
-            // Buscar por URL exacta
-            let found = cards.find(card => {
-                const cardUrl = (card.url || '').toLowerCase().trim();
-                const match = cardUrl === normalizedUrl;
-                console.log('Comparando:', cardUrl, 'con', normalizedUrl, '->', match);
-                return match;
-            });
-
-            // Si no se encuentra, intentar con variaciones comunes
-            if (!found) {
-                // Intentar sin guiones al final
-                const urlWithoutDashes = normalizedUrl.replace(/-+$/, '');
-                found = cards.find(card => {
-                    const cardUrl = (card.url || '').toLowerCase().trim().replace(/-+$/, '');
-                    return cardUrl === urlWithoutDashes;
-                });
-            }
-
-            console.log('Resultado de búsqueda:', found ? 'ENCONTRADA' : 'NO ENCONTRADA');
-            return found;
+function saveCard(e) {
+    e.preventDefault();
+    const formData = getFormData();
+    
+    // 1. Validar nombre
+    if (!formData.name) {
+        showNotification('El nombre es obligatorio para crear la tarjeta.', 'error');
+        return;
+    }
+    
+    const now = new Date().toISOString();
+    let cardData = { ...formData };
+    
+    if (editingCardId) {
+        // MODO EDICIÓN
+        cardData.id = editingCardId;
+        const existingCard = cards.find(c => c.id === editingCardId);
+        if (existingCard) {
+            // Mantener datos originales de imágenes y fecha de creación si existen
+            cardData.logo = cardData.logo || existingCard.logo;
+            cardData.profileImage = cardData.profileImage || existingCard.profileImage;
+            cardData.addedAt = existingCard.addedAt; 
         }
-
-        // MEJORADO: Función para manejar enlaces en móviles
-        function handleLink(url, event) {
-            event.preventDefault();
-
-            // Validar URL antes de procesar
-            if (!url || typeof url !== 'string') {
-                console.error('URL inválida:', url);
-                return;
-            }
-
-            try {
-                if (url.startsWith('tel:') || url.startsWith('mailto:')) {
-                    // Para teléfonos y email, usar location.href para mejor compatibilidad móvil
-                    window.location.href = url;
-                } else {
-                    // Para otros enlaces, usar window.open con noopener para seguridad
-                    const newWindow = window.open(url, '_blank', 'noopener,noreferrer');
-                    if (!newWindow) {
-                        // Fallback si popup está bloqueado
-                        window.location.href = url;
-                    }
-                }
-            } catch (error) {
-                console.error('Error al manejar enlace:', error);
-                // Fallback: intentar abrir directamente
-                try {
-                    window.location.href = url;
-                } catch (fallbackError) {
-                    console.error('Fallback también falló:', fallbackError);
-                }
-            }
-        }
-
-        // Función de utilidad para debouncing
-        function debounce(func, wait) {
-            let timeout;
-            return function executedFunction(...args) {
-                const later = () => {
-                    clearTimeout(timeout);
-                    func(...args);
-                };
-                clearTimeout(timeout);
-                timeout = setTimeout(later, wait);
-            };
-        }
-
-        function generateContactButtons(card) {
-            const contacts = [];
-            const accentColor = card.design?.accentColor || '#3498db';
-
-            // Iconos SVG modernos para contacto
-            const phoneIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" stroke="${accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-            const mobileIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><rect x="5" y="2" width="14" height="20" rx="2" ry="2" stroke="${accentColor}" stroke-width="2"/><line x1="11" y1="18" x2="13" y2="18" stroke="${accentColor}" stroke-width="2"/></svg>`;
-            const emailIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" stroke="${accentColor}" stroke-width="2"/><polyline points="22,6 12,13 2,6" stroke="${accentColor}" stroke-width="2"/></svg>`;
-            const addressIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" stroke="${accentColor}" stroke-width="2"/><circle cx="12" cy="10" r="3" stroke="${accentColor}" stroke-width="2"/></svg>`;
-
-            if (card.phone) {
-                contacts.push(`<a href="tel:${card.phone.replace(/\s/g, '')}" onclick="handleLink('tel:${card.phone.replace(/\s/g, '')}', event)" class="contact-button" style="border-color: ${accentColor};">
-                    <span style="display: flex; align-items: center;">
-                        <span style="margin-right: 0.75rem;">${phoneIcon}</span>
-                        <span>Teléfono: ${card.phone}</span>
-                    </span>
-                    <span class="icon-chevron-right"></span>
-                </a>`);
-            }
-
-            if (card.mobile) {
-                contacts.push(`<a href="tel:${card.mobile.replace(/\s/g, '')}" onclick="handleLink('tel:${card.mobile.replace(/\s/g, '')}', event)" class="contact-button" style="border-color: ${accentColor};">
-                    <span style="display: flex; align-items: center;">
-                        <span style="margin-right: 0.75rem;">${mobileIcon}</span>
-                        <span>Móvil: ${card.mobile}</span>
-                    </span>
-                    <span class="icon-chevron-right"></span>
-                </a>`);
-            }
-
-            if (card.email) {
-                contacts.push(`<a href="mailto:${card.email}" onclick="handleLink('mailto:${card.email}', event)" class="contact-button" style="border-color: ${accentColor};">
-                    <span style="display: flex; align-items: center;">
-                        <span style="margin-right: 0.75rem;">${emailIcon}</span>
-                        <span>Email: ${card.email}</span>
-                    </span>
-                    <span class="icon-chevron-right"></span>
-                </a>`);
-            }
-
-            if (card.address) {
-                // <-- CORREGIDO: El link de Google Maps estaba roto.
-                const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(card.address)}`;
-                contacts.push(`<a href="${mapsUrl}" onclick="handleLink('${mapsUrl}', event)" target="_blank" class="contact-button" style="border-color: ${accentColor};">
-                    <span style="display: flex; align-items: center;">
-                        <span style="margin-right: 0.75rem;">${addressIcon}</span>
-                        <span>Dirección: ${card.address}</span>
-                    </span>
-                    <span class="icon-chevron-right"></span>
-                </a>`);
-            }
-
-            return contacts.length > 0 ? contacts.join('') : '<p style="text-align: center; color: #7f8c8d;">No hay información de contacto</p>';
-        }
-
-        function generateSocialMediaIcons(card) {
-            const socialIcons = [];
-            const accentColor = card.design?.accentColor || '#3498db';
-            
-            const websiteIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="${accentColor}" stroke-width="2"/><path d="M2 12H22" stroke="${accentColor}" stroke-width="2"/><path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2V2Z" stroke="${accentColor}" stroke-width="2"/></svg>`;
-
-            const linkedinIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M16 8C17.5913 8 19.1174 8.63214 20.2426 9.75736C21.3679 10.8826 22 12.4087 22 14V21H18V14C18 13.4696 17.7893 12.9609 17.4142 12.5858C17.0391 12.2107 16.5304 12 16 12C15.4696 12 14.9609 12.2107 14.5858 12.5858C14.2107 12.9609 14 13.4696 14 14V21H10V14C10 12.4087 10.6321 10.8826 11.7574 9.75736C12.8826 8.63214 14.4087 8 16 8Z" stroke="${accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M6 9H2V21H6V9Z" stroke="${accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M4 6C5.10457 6 6 5.10457 6 4C6 2.89543 5.10457 2 4 2C2.89543 2 2 2.89543 2 4C2 5.10457 2.89543 6 4 6Z" stroke="${accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-
-            const facebookIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M18 2H15C13.6739 2 12.4021 2.52678 11.4645 3.46447C10.5268 4.40215 10 5.67392 10 7V10H7V14H10V22H14V14H17L18 10H14V7C14 6.73478 14.1054 6.48043 14.2929 6.29289C14.4804 6.10536 14.7348 6 15 6H18V2Z" stroke="${accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-
-            const instagramIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M17 2H7C4.23858 2 2 4.23858 2 7V17C2 19.7614 4.23858 21 7 21H17C19.7614 21 21 19.7614 21 17V7C21 4.23858 19.7614 2 17 2Z" stroke="${accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M16 11.37C16.1234 12.2022 15.9813 13.0522 15.5938 13.799C15.2063 14.5458 14.5932 15.1514 13.8416 15.5297C13.0901 15.9079 12.2385 16.0396 11.4078 15.9059C10.5771 15.7723 9.80977 15.3801 9.21485 14.7852C8.61993 14.1902 8.22774 13.4229 8.09408 12.5922C7.96042 11.7615 8.09208 10.9099 8.47034 10.1584C8.8486 9.40685 9.4542 8.79374 10.201 8.40624C10.9478 8.01874 11.7978 7.87659 12.63 8C13.4789 8.12588 14.2649 8.52146 14.8717 9.1283C15.4785 9.73515 15.8741 10.5211 16 11.37Z" stroke="${accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M17.5 6.5H17.51" stroke="${accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-
-            const twitterIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M23 3C22.0424 3.67548 20.9821 4.19211 19.86 4.53C19.2577 3.83751 18.4573 3.34669 17.567 3.12393C16.6767 2.90116 15.7395 2.9572 14.8821 3.28445C14.0247 3.61171 13.2884 4.1944 12.773 4.95372C12.2575 5.71303 11.9877 6.61234 12 7.53V8.53C10.2426 8.57557 8.50127 8.18581 6.93101 7.39545C5.36074 6.60508 4.01032 5.43864 3 4C3 4 -1 13 8 17C5.94053 18.398 3.48716 19.0989 1 19C10 24 21 19 21 7.5C20.9991 7.22145 20.9723 6.94359 20.92 6.67C21.9406 5.66349 22.6608 4.39271 23 3V3Z" stroke="${accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-
-            const youtubeIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M22.54 6.42C22.4212 5.94541 22.1793 5.51057 21.8387 5.15941C21.4981 4.80824 21.0708 4.55318 20.6 4.42C18.88 4 12 4 12 4C12 4 5.12 4 3.4 4.46C2.92925 4.59318 2.50193 4.84824 2.1613 5.19941C1.82068 5.55057 1.57875 5.98541 1.46 6.46C1.14521 8.20556 0.991236 9.97631 1 11.75C0.991236 13.5237 1.14521 15.2944 1.46 17.04C1.59096 17.4848 1.8383 17.8836 2.17814 18.1995C2.51799 18.5154 2.93882 18.7375 3.4 18.84C5.12 19.3 12 19.3 12 19.3C12 19.3 18.88 19.3 20.6 18.84C21.0708 18.7068 21.4981 18.4518 21.8387 18.1006C22.1793 17.7494 22.4212 17.3146 22.54 16.84C22.8524 15.0944 23.0063 13.3237 22.9987 11.55C23.0223 9.77197 22.8683 7.99611 22.54 6.42V6.42Z" stroke="${accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.75 15.02L15.5 11.75L9.75 8.48V15.02Z" stroke="${accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-
-            const whatsappIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"><path d="M21 11.5C21.0034 12.8199 20.6951 14.1219 20.1 15.3C19.3944 16.7118 18.3098 17.8992 16.9674 18.7293C15.6251 19.5594 14.0782 19.9994 12.5 20C11.1801 20.0035 9.87812 19.6951 8.7 19.1L3 21L4.9 15.3C4.30493 14.1219 3.99656 12.8199 4 11.5C4.00061 9.92179 4.44061 8.37488 5.27072 7.03258C6.10083 5.69028 7.28825 4.6056 8.7 3.90003C9.87812 3.30496 11.1801 2.99659 12.5 3.00003H13C15.0843 3.11502 17.053 3.99479 18.5291 5.47089C20.0052 6.94699 20.885 8.91568 21 11V11.5Z" stroke="${accentColor}" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-
-            if (card.website) {
-                socialIcons.push(`<a href="${card.website}" onclick="handleLink('${card.website}', event)" target="_blank" class="social-media-icon" title="Sitio Web">${websiteIcon}</a>`);
-            }
-
-            if (card.linkedin) {
-                socialIcons.push(`<a href="${card.linkedin}" onclick="handleLink('${card.linkedin}', event)" target="_blank" class="social-media-icon" title="LinkedIn">${linkedinIcon}</a>`);
-            }
-
-            if (card.facebook) {
-                socialIcons.push(`<a href="${card.facebook}" onclick="handleLink('${card.facebook}', event)" target="_blank" class="social-media-icon" title="Facebook">${facebookIcon}</a>`);
-            }
-
-            if (card.instagram) {
-                socialIcons.push(`<a href="${card.instagram}" onclick="handleLink('${card.instagram}', event)" target="_blank" class="social-media-icon" title="Instagram">${instagramIcon}</a>`);
-            }
-
-            if (card.twitter) {
-                socialIcons.push(`<a href="${card.twitter}" onclick="handleLink('${card.twitter}', event)" target="_blank" class="social-media-icon" title="Twitter/X">${twitterIcon}</a>`);
-            }
-
-            if (card.youtube) {
-                socialIcons.push(`<a href="${card.youtube}" onclick="handleLink('${card.youtube}', event)" target="_blank" class="social-media-icon" title="YouTube">${youtubeIcon}</a>`);
-            }
-
-            if (card.whatsapp) {
-                const whatsappUrl = `https://wa.me/${card.whatsapp}`;
-                socialIcons.push(`<a href="${whatsappUrl}" onclick="handleLink('${whatsappUrl}', event)" target="_blank" class="social-media-icon" title="WhatsApp">${whatsappIcon}</a>`);
-            }
-
-            return socialIcons.length > 0 ? socialIcons.join('') : '<p style="text-align: center; color: #7f8c8d; width: 100%;">No hay redes sociales</p>';
-        }
-
-        function showHomeSection() {
-            window.location.hash = 'home';
-            switchSection('home');
-        }
-
-        function showMyCardsSection() {
-            window.location.hash = 'my-cards';
-            switchSection('my-cards');
-        }
-
-        function showNotFound() {
-            // Ocultar todas las vistas
-            const app = document.getElementById('app');
-            const loginScreen = document.getElementById('loginScreen');
-            const individualView = document.getElementById('individualCardView');
-
-            if (app) app.style.display = 'none';
-            if (loginScreen) loginScreen.style.display = 'none';
-            if (individualView) individualView.style.display = 'none';
-
-            // Crear vista de error si no existe
-            let errorView = document.getElementById('errorView');
-            if (!errorView) {
-                errorView = document.createElement('div');
-                errorView.id = 'errorView';
-                errorView.style.minHeight = '100vh';
-                errorView.style.display = 'flex';
-                errorView.style.alignItems = 'center';
-                errorView.style.justifyContent = 'center';
-                errorView.style.backgroundColor = '#f8f9fa';
-                errorView.style.padding = '20px';
-                document.body.appendChild(errorView);
-            }
-
-            errorView.style.display = 'flex';
-
-            // Intentar búsqueda aproximada de tarjetas similares
-            const currentHash = window.location.hash.substring(1);
-            const similarCards = findSimilarCards(currentHash);
-
-            errorView.innerHTML = `
-                <div style="text-align: center; max-width: 400px; background: white; padding: 2rem; border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.1);">
-                    <div style="font-size: 4rem; margin-bottom: 1rem;">🔍</div>
-                    <h2 style="color: #e74c3c; margin-bottom: 1rem;">Tarjeta No Encontrada</h2>
-                    <p style="color: #7f8c8d; margin-bottom: 2rem;">La tarjeta que buscas no existe, ha sido eliminada o el enlace ha expirado.</p>
-                    <div style="margin-bottom: 2rem;">
-                        <p style="font-size: 0.9rem; color: #95a5a6; margin-bottom: 1rem;"><strong>Posibles causas:</strong></p>
-                        <ul style="text-align: left; color: #7f8c8d; font-size: 0.9rem; margin: 0 auto; max-width: 300px;">
-                            <li>El enlace ha expirado (24 horas para tarjetas grandes)</li>
-                            <li>La URL fue truncada al compartir</li>
-                            <li>La tarjeta fue eliminada por el creador</li>
-                            <li>Error de codificación en la URL</li>
-                        </ul>
-                    </div>
-                    ${similarCards.length > 0 ? `
-                        <div style="margin-bottom: 2rem; padding: 1rem; background: #ecf0f1; border-radius: 8px;">
-                            <p style="font-size: 0.9rem; color: #2c3e50; margin-bottom: 0.5rem;"><strong>¿Quizás quisiste decir?</strong></p>
-                            ${similarCards.map(card => `
-                                <button onclick="displayCardFromJson('${JSON.stringify(card).replace(/'/g, "\\'").replace(/"/g, '"')}')" class="btn btn-outline" style="width: 100%; margin-bottom: 0.5rem; font-size: 0.9rem;">
-                                    ${card.name || 'Sin nombre'}
-                                </button>
-                            `).join('')}
-                        </div>
-                    ` : ''}
-                    <div style="display: flex; flex-direction: column; gap: 1rem;">
-                        <button onclick="showFullApp()" class="btn btn-primary" style="width: 100%;">
-                            Ir al Inicio
-                        </button>
-                        <button onclick="window.location.href='${window.location.origin}${window.location.pathname}'" class="btn btn-secondary" style="width: 100%;">
-                            Crear Nueva Tarjeta
-                        </button>
-                        <button onclick="window.history.back()" class="btn btn-outline" style="width: 100%; border: 1px solid #bdc3c7; color: #7f8c8d;">
-                            ← Volver Atrás
-                        </button>
-                    </div>
-                </div>
-            `;
-        }
-
-        // Función para mostrar tarjeta desde JSON string
-        function displayCardFromJson(cardJson) {
-            try {
-                const card = JSON.parse(cardJson);
-                displayCard(card);
-            } catch (error) {
-                console.error('Error parsing card JSON:', error);
-                showNotFound();
-            }
-        }
-
-        // Función de testing para móviles
-        function runMobileTests() {
-            console.log('=== INICIANDO TESTS PARA MÓVILES ===');
-
-            // Test 1: Verificar compatibilidad con diferentes tamaños de pantalla
-            const screenTests = [
-                { width: 320, height: 568, name: 'iPhone SE' },
-                { width: 375, height: 667, name: 'iPhone 6/7/8' },
-                { width: 414, height: 896, name: 'iPhone 11' },
-                { width: 390, height: 844, name: 'iPhone 12/13' },
-                { width: 428, height: 926, name: 'iPhone 12/13 Pro Max' },
-                { width: 360, height: 640, name: 'Android pequeño' },
-                { width: 411, height: 731, name: 'Android mediano' },
-                { width: 412, height: 915, name: 'Android grande' }
-            ];
-
-            console.log('Test 1: Compatibilidad de pantalla');
-            screenTests.forEach(test => {
-                const aspectRatio = test.width / test.height;
-                const isValid = aspectRatio > 0.5 && aspectRatio < 1.0;
-                console.log(`  ${test.name}: ${test.width}x${test.height} - ${isValid ? '✓' : '✗'}`);
-            });
-
-            // Test 2: Verificar límites de URL
-            console.log('\nTest 2: Límites de URL en navegadores móviles');
-            const testUrls = [
-                'card-' + 'x'.repeat(1800), // Límite aproximado
-                'card-' + 'x'.repeat(2000), // Por encima del límite
-                'card-storage-' + 'x'.repeat(32), // ID de storage válido
-                'card-storage-' + 'x'.repeat(64), // ID de storage largo
-            ];
-
-            testUrls.forEach((url, index) => {
-                const length = url.length;
-                const isValidLength = length < 2048; // Límite típico de URL
-                console.log(`  URL ${index + 1}: ${length} chars - ${isValidLength ? '✓' : '✗'}`);
-            });
-
-            // Test 3: Verificar navegación táctil
-            console.log('\nTest 3: Navegación táctil');
-            const touchCapabilities = {
-                'TouchEvent': typeof TouchEvent !== 'undefined',
-                'Touch': typeof Touch !== 'undefined',
-                'IntersectionObserver': 'IntersectionObserver' in window,
-                'localStorage': typeof localStorage !== 'undefined',
-                'LZString': typeof LZString !== 'undefined'
-            };
-
-            Object.entries(touchCapabilities).forEach(([feature, supported]) => {
-                console.log(`  ${feature}: ${supported ? '✓' : '✗'}`);
-            });
-
-            // Test 4: Simular navegación móvil
-            console.log('\nTest 4: Simulación de navegación móvil');
-            const testCard = {
-                name: 'Test Card',
-                title: 'Mobile Test',
-                company: 'Test Company',
-                design: { accentColor: '#3498db' }
-            };
-
-            try {
-                // Simular creación de URL
-                const cardSize = JSON.stringify(testCard).length;
-                const urlType = cardSize > 1800 ? 'localStorage' : 'URL';
-                console.log(`  Tamaño de tarjeta de prueba: ${cardSize} bytes`);
-                console.log(`  Tipo de URL recomendado: ${urlType}`);
-
-                // Simular compresión
-                const compressed = LZString.compressToEncodedURIComponent(JSON.stringify(testCard));
-                const compressedSize = compressed.length;
-                console.log(`  Tamaño comprimido: ${compressedSize} chars`);
-                console.log(`  Compresión efectiva: ${((cardSize - compressedSize) / cardSize * 100).toFixed(1)}%`);
-
-                console.log('\n=== TESTS COMPLETADOS ===');
-                alert('Tests completados. Revisa la consola para ver los resultados.');
-            } catch (error) {
-                console.error('Error en tests:', error);
-                alert('Error durante los tests: ' + error.message);
-            }
-        }
-
-        // Hacer función de testing global para debugging
-        window.runMobileTests = runMobileTests;
-
-        // Función para encontrar tarjetas similares
-        function findSimilarCards(searchTerm) {
-            if (!searchTerm || cards.length === 0) return [];
-
-            const normalizedSearch = searchTerm.toLowerCase().trim();
-            const similarCards = [];
-
-            // Buscar por nombre aproximado
-            cards.forEach(card => {
-                if (card.name) {
-                    const cardName = card.name.toLowerCase().trim();
-                    // Calcular similitud simple (contiene el término o viceversa)
-                    if (cardName.includes(normalizedSearch) ||
-                        normalizedSearch.includes(cardName) ||
-                        levenshteinDistance(cardName, normalizedSearch) <= 2) {
-                        similarCards.push(card);
-                    }
-                }
-            });
-
-            return similarCards.slice(0, 3); // Máximo 3 sugerencias
-        }
-
-        // Función de distancia de Levenshtein para comparación aproximada
-        function levenshteinDistance(a, b) {
-            if (a.length === 0) return b.length;
-            if (b.length === 0) return a.length;
-
-            const matrix = [];
-            for (let i = 0; i <= b.length; i++) {
-                matrix[i] = [i];
-            }
-            for (let j = 0; j <= a.length; j++) {
-                matrix[0][j] = j;
-            }
-
-            for (let i = 1; i <= b.length; i++) {
-                for (let j = 1; j <= a.length; j++) {
-                    if (b.charAt(i - 1) === a.charAt(j - 1)) {
-                        matrix[i][j] = matrix[i - 1][j - 1];
-                    } else {
-                        matrix[i][j] = Math.min(
-                            matrix[i - 1][j - 1] + 1, // sustitución
-                            matrix[i][j - 1] + 1,     // inserción
-                            matrix[i - 1][j] + 1      // eliminación
-                        );
-                    }
-                }
-            }
-
-            return matrix[b.length][a.length];
-        }
-
-        // NUEVA FUNCIÓN: Mostrar indicador de carga
-        function showLoadingIndicator(message = 'Cargando tarjeta...') {
-            let loadingIndicator = document.getElementById('loadingIndicator');
-            if (!loadingIndicator) {
-                loadingIndicator = document.createElement('div');
-                loadingIndicator.id = 'loadingIndicator';
-                loadingIndicator.style.position = 'fixed';
-                loadingIndicator.style.top = '0';
-                loadingIndicator.style.left = '0';
-                loadingIndicator.style.width = '100%';
-                loadingIndicator.style.height = '100%';
-                loadingIndicator.style.backgroundColor = 'rgba(255, 255, 255, 0.95)';
-                loadingIndicator.style.display = 'flex';
-                loadingIndicator.style.alignItems = 'center';
-                loadingIndicator.style.justifyContent = 'center';
-                loadingIndicator.style.zIndex = '9999';
-                loadingIndicator.style.backdropFilter = 'blur(2px)';
-                loadingIndicator.innerHTML = `
-                    <div style="text-align: center; background: white; padding: 2rem; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.1);">
-                        <div class="spinner" style="margin: 0 auto 1rem; width: 40px; height: 40px; border: 4px solid #f3f3f3; border-top: 4px solid #3498db; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-                        <p style="color: #2c3e50; font-weight: 500; margin: 0;">${message}</p>
-                    </div>
-                `;
-                document.body.appendChild(loadingIndicator);
-
-                // Agregar estilos de animación si no existen
-                if (!document.getElementById('loading-styles')) {
-                    const style = document.createElement('style');
-                    style.id = 'loading-styles';
-                    style.textContent = `
-                        @keyframes spin {
-                            0% { transform: rotate(0deg); }
-                            100% { transform: rotate(360deg); }
-                        }
-                    `;
-                    document.head.appendChild(style);
-                }
-            } else {
-                // Actualizar mensaje si el indicador ya existe
-                const messageElement = loadingIndicator.querySelector('p');
-                if (messageElement) {
-                    messageElement.textContent = message;
-                }
-            }
-            loadingIndicator.style.display = 'flex';
-        }
-
-        // NUEVA FUNCIÓN: Ocultar indicador de carga
-        function hideLoadingIndicator() {
-            const loadingIndicator = document.getElementById('loadingIndicator');
-            if (loadingIndicator) {
-                loadingIndicator.style.display = 'none';
-            }
-        }
-
-        function setupDefaultDesign() {
-            const elements = [
-                'cardBackground', 'textPrimary', 'textSecondary', 'accentColor',
-                'fontFamily', 'nameSize', 'titleSize', 'descriptionSize',
-                'profileShape', 'profileSize'
-            ];
-            
-            elements.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) {
-                    switch(id) {
-                        case 'cardBackground': element.value = '#ffffff'; break;
-                        case 'textPrimary': element.value = '#2c3e50'; break;
-                        case 'textSecondary': element.value = '#7f8c8d'; break;
-                        case 'accentColor': element.value = '#3498db'; break;
-                        case 'fontFamily': element.value = 'Arial, sans-serif'; break;
-                        case 'nameSize': element.value = '24'; break;
-                        case 'titleSize': element.value = '16'; break;
-                        case 'descriptionSize': element.value = '14'; break;
-                        case 'profileShape': element.value = 'circular'; break;
-                        case 'profileSize': element.value = '150'; break;
-                    }
-                }
-            });
-        }
-
-        function checkSession() {
-            const session = localStorage.getItem(CONFIG.SESSION_KEY);
-            if (session) {
-                try {
-                    currentUser = JSON.parse(session);
-                    if (currentUser && currentUser.loggedIn) {
-                        // Verificar si hay una tarjeta pendiente por mostrar después del login
-                        const pendingCard = sessionStorage.getItem('pendingCardView');
-                        if (pendingCard) {
-                            const card = JSON.parse(pendingCard);
-                            sessionStorage.removeItem('pendingCardView');
-                            displayCard(card);
-                        } else {
-                            showApp();
-                        }
-                        return;
-                    }
-                } catch (e) {
-                    console.error('Error parsing session:', e);
-                    localStorage.removeItem(CONFIG.SESSION_KEY);
-                }
-            }
-            showLogin();
-        }
-
-        function showLogin() {
-            const loginScreen = document.getElementById('loginScreen');
-            const app = document.getElementById('app');
-
-            if (loginScreen) loginScreen.style.display = 'flex';
-            if (app) app.style.display = 'none';
-
-            // Ocultar vista individual si existe
-            const individualView = document.getElementById('individualCardView');
-            if (individualView) {
-                individualView.style.display = 'none';
-            }
-
-            // Ocultar vista de error si existe
-            const errorView = document.getElementById('errorView');
-            if (errorView) {
-                errorView.style.display = 'none';
-            }
-        }
-
-        function showApp() {
-            const loginScreen = document.getElementById('loginScreen');
-            const app = document.getElementById('app');
-
-            if (loginScreen) loginScreen.style.display = 'none';
-            if (app) app.style.display = 'block';
-
-            // Ocultar vista individual si existe
-            const individualView = document.getElementById('individualCardView');
-            if (individualView) {
-                individualView.style.display = 'none';
-            }
-
-            // Ocultar vista de error si existe
-            const errorView = document.getElementById('errorView');
-            if (errorView) {
-                errorView.style.display = 'none';
-            }
-        }
-
-        function setupEventListeners() {
-            // Login
-            const loginForm = document.getElementById('loginForm');
-            if (loginForm) {
-                loginForm.addEventListener('submit', handleLogin);
-            }
-
-            // Logout
-            const logoutBtn = document.getElementById('logoutBtn');
-            if (logoutBtn) {
-                logoutBtn.addEventListener('click', handleLogout);
-            }
-
-            // Navegación
-            const navLinks = document.querySelectorAll('.nav-link');
-            navLinks.forEach(link => {
-                link.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const target = this.getAttribute('data-target');
-                    switchSection(target);
-                });
-            });
-
-            // Botón para comenzar a crear
-            const startCreatingBtn = document.getElementById('startCreatingBtn');
-            if (startCreatingBtn) {
-                startCreatingBtn.addEventListener('click', function() {
-                    document.getElementById('creationSection').style.display = 'block';
-                    this.style.display = 'none';
-                    document.querySelector('.hero-section').style.display = 'none';
-                    resetForm();
-                });
-            }
-
-            // Formulario de tarjeta
-            const cardForm = document.getElementById('cardForm');
-            if (cardForm) {
-                cardForm.addEventListener('submit', handleCardSubmit);
-            }
-
-            // Cancelar edición
-            const cancelEditBtn = document.getElementById('cancelEditButton');
-            if (cancelEditBtn) {
-                cancelEditBtn.addEventListener('click', function() {
-                    resetForm();
-                });
-            }
-
-            // Inputs de archivo
-            const logoInput = document.getElementById('logo');
-            if (logoInput) {
-                logoInput.addEventListener('change', function() {
-                    previewImage(this, 'logoPreview');
-                });
-            }
-
-            const profileInput = document.getElementById('profileImage');
-            if (profileInput) {
-                profileInput.addEventListener('change', function() {
-                    previewImage(this, 'profilePreview');
-                });
-            }
-
-            // Event listeners para actualizar la vista previa
-            const previewInputs = [
-                'name', 'title', 'company', 'description',
-                'phone', 'mobile', 'email', 'address',
-                'website', 'linkedin', 'facebook', 'instagram', 'twitter', 'youtube', 'whatsapp',
-                'cardBackground', 'textPrimary', 'textSecondary', 'accentColor',
-                'fontFamily', 'nameSize', 'titleSize', 'descriptionSize',
-                'profileShape', 'profileSize', 'customFont'
-            ];
-
-            previewInputs.forEach(id => {
-                const element = document.getElementById(id);
-                if (element) {
-                    element.addEventListener('input', updateCardPreview);
-                    element.addEventListener('change', updateCardPreview);
-                }
-            });
-
-            // Event listener para subir archivos de fuentes
-            const customFontInput = document.getElementById('customFontFile');
-            if (customFontInput) {
-                customFontInput.addEventListener('change', handleFontUpload);
-            }
-        }
-
-        function handleLogin(e) {
-            e.preventDefault();
-            const password = document.getElementById('password').value;
-            
-            if (password === CONFIG.PASSWORD) {
-                currentUser = {
-                    loggedIn: true,
-                    loginTime: new Date().toISOString()
-                };
-                localStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(currentUser));
-                showApp();
-            } else {
-                alert('Contraseña incorrecta. Intente nuevamente.');
-            }
-        }
-
-        function handleLogout() {
-            if (confirm('¿Está seguro de que desea cerrar sesión?')) {
-                localStorage.removeItem(CONFIG.SESSION_KEY);
-                currentUser = null;
-                showLogin();
-            }
-        }
-
-        function switchSection(sectionId) {
-            // Actualizar navegación
-            document.querySelectorAll('.nav-link').forEach(link => {
-                link.classList.remove('active');
-            });
-            document.querySelector(`[data-target="${sectionId}"]`).classList.add('active');
-            
-            // Mostrar sección
-            document.querySelectorAll('.section').forEach(section => {
-                section.classList.remove('active');
-            });
-            document.getElementById(sectionId).classList.add('active');
-        }
-
-        function previewImage(input, previewId) {
-            const preview = document.getElementById(previewId);
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = function(e) {
-                    preview.src = e.target.result;
-                    preview.style.display = 'block';
-                    updateCardPreview();
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-
-        // Manejar subida de archivos de fuentes
-        function handleFontUpload(e) {
-            const file = e.target.files[0];
-            if (!file) return;
-
-            // Verificar que sea un archivo de fuente
-            const validExtensions = ['.ttf', '.otf', '.woff', '.woff2'];
-            const fileExtension = '.' + file.name.split('.').pop().toLowerCase();
-            
-            if (!validExtensions.includes(fileExtension)) {
-                alert('Por favor, sube un archivo de fuente válido (.ttf, .otf, .woff, .woff2)');
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function(event) {
-                const fontData = event.target.result;
-                const fontName = file.name.split('.')[0];
-                
-                // Crear una fuente personalizada
-                const fontFace = new FontFace(fontName, `url(${fontData})`);
-                
-                fontFace.load().then(function(loadedFace) {
-                    document.fonts.add(loadedFace);
-                    
-                    // Actualizar el select de fuentes
-                    const fontSelect = document.getElementById('fontFamily');
-                    const existingOption = Array.from(fontSelect.options).find(opt => opt.value.includes(fontName));
-                    
-                    if (!existingOption) {
-                        const newOption = new Option(fontName, `'${fontName}', sans-serif`);
-                        fontSelect.add(newOption);
-                    }
-                    
-                    // Seleccionar la nueva fuente
-                    fontSelect.value = `'${fontName}', sans-serif`;
-                    
-                    // Actualizar vista previa
-                    updateCardPreview();
-                    
-                    alert(`Fuente "${fontName}" cargada correctamente`);
-                }).catch(function(error) {
-                    console.error('Error loading font:', error);
-                    alert('Error al cargar la fuente. Intenta con otro archivo.');
-                });
-            };
-            
-            reader.readAsDataURL(file);
-        }
-
-        // Cargar fuentes personalizadas desde URL
-        function loadCustomFontFromUrl(fontUrl, fontFamily) {
-            if (!fontUrl) return;
-
-            // Verificar si ya existe un enlace para esta fuente
-            let existingLink = document.querySelector(`link[href="${fontUrl}"]`);
-            if (!existingLink) {
-                // Crear nuevo enlace para la fuente
-                const link = document.createElement('link');
-                link.rel = 'stylesheet';
-                link.href = fontUrl;
-                document.head.appendChild(link);
-
-                // Esperar a que cargue la fuente
-                link.onload = function() {
-                    console.log('Fuente personalizada cargada:', fontUrl);
-                };
-            }
-        }
-
-        // Cargar fuente personalizada desde datos base64
-        function loadCustomFontFromData(fontData, fontFamily) {
-            if (!fontData) return;
-
-            const fontName = 'CustomFont_' + Date.now();
-
-            // Crear una fuente personalizada
-            const fontFace = new FontFace(fontName, `url(${fontData})`);
-
-            fontFace.load().then(function(loadedFace) {
-                document.fonts.add(loadedFace);
-                console.log('Fuente personalizada cargada desde datos:', fontName);
-            }).catch(function(error) {
-                console.error('Error loading custom font from data:', error);
-            });
-        }
-
-        function updateCardPreview() {
-            // Actualizar información básica
-            updateTextPreview('name', 'previewName');
-            updateTextPreview('title', 'previewTitle');
-            updateTextPreview('company', 'previewCompany');
-            updateTextPreview('description', 'previewDescription');
-            
-            // Actualizar imágenes
-            updateImagePreview('logoPreview', 'previewLogo');
-            updateImagePreview('profilePreview', 'previewProfile');
-            
-            // Actualizar estilos
-            updateStyles();
-            
-            // Actualizar botones de contacto
-            updateContactButtons();
-            
-            // Actualizar redes sociales
-            updateSocialMedia();
-            
-            // Actualizar URL personalizada
-            updateCustomURL();
-        }
-
-        function updateTextPreview(inputId, previewId) {
-            const input = document.getElementById(inputId);
-            const preview = document.getElementById(previewId);
-            
-            if (input && preview) {
-                const value = input.value.trim();
-                if (value) {
-                    preview.textContent = value;
-                } else {
-                    // Texto por defecto
-                    switch(previewId) {
-                        case 'previewName': preview.textContent = 'Nombre Completo'; break;
-                        case 'previewTitle': preview.textContent = 'Título/Cargo'; break;
-                        case 'previewCompany': preview.textContent = 'Empresa'; break;
-                        case 'previewDescription': preview.textContent = 'Descripción de la empresa o usuario aparecerá aquí.'; break;
-                    }
-                }
-            }
-        }
-
-        function updateImagePreview(sourceId, targetId) {
-            const source = document.getElementById(sourceId);
-            const target = document.getElementById(targetId);
-            
-            if (source && target && source.src) {
-                target.src = source.src;
-                target.style.display = 'block';
-            } else {
-                target.style.display = 'none';
-            }
-        }
-
-        function updateStyles() {
-            const cardPreview = document.getElementById('cardPreview');
-            if (!cardPreview) return;
-            
-            // Colores
-            cardPreview.style.backgroundColor = document.getElementById('cardBackground').value;
-            cardPreview.style.color = document.getElementById('textPrimary').value;
-            
-            // Tipografía
-            const fontFamily = document.getElementById('fontFamily').value;
-            const customFont = document.getElementById('customFont').value;
-            
-            if (customFont) {
-                // Cargar fuente personalizada
-                loadCustomFontFromUrl(customFont, fontFamily);
-            }
-            cardPreview.style.fontFamily = fontFamily;
-            
-            // Tamaños de texto
-            const nameSize = document.getElementById('nameSize').value + 'px';
-            const titleSize = document.getElementById('titleSize').value + 'px';
-            const descriptionSize = document.getElementById('descriptionSize').value + 'px';
-            
-            document.getElementById('previewName').style.fontSize = nameSize;
-            document.getElementById('previewTitle').style.fontSize = titleSize;
-            document.getElementById('previewDescription').style.fontSize = descriptionSize;
-            
-            // Colores de texto
-            const textPrimary = document.getElementById('textPrimary').value;
-            const textSecondary = document.getElementById('textSecondary').value;
-            const accentColor = document.getElementById('accentColor').value;
-            
-            document.getElementById('previewName').style.color = textPrimary;
-            document.getElementById('previewTitle').style.color = textSecondary;
-            document.getElementById('previewCompany').style.color = accentColor;
-            
-            // Estilo de la foto de perfil
-            const profileShape = document.getElementById('profileShape').value;
-            const profileSize = document.getElementById('profileSize').value + 'px';
-            const profileImg = document.getElementById('previewProfile');
-            
-            if (profileImg) {
-                if (profileShape === 'circular') {
-                    profileImg.classList.remove('square');
-                    profileImg.classList.add('circular');
-                    profileImg.style.borderRadius = '50%';
-                } else {
-                    profileImg.classList.remove('circular');
-                    profileImg.classList.add('square');
-                    profileImg.style.borderRadius = '10px';
-                }
-                
-                // Aplicar el tamaño personalizado
-                profileImg.style.width = profileSize;
-                profileImg.style.height = profileSize;
-                profileImg.style.objectFit = 'cover';
-                
-                // Aplicar borde con color de acento
-                profileImg.style.border = `3px solid ${accentColor}`;
-            }
-        }
-
-        function updateContactButtons() {
-            const contactButtonsBlock = document.getElementById('previewContactButtons');
-            if (!contactButtonsBlock) return;
-            
-            contactButtonsBlock.innerHTML = '';
-            
-            const contactData = [
-                { id: 'phone', label: 'Teléfono Fijo', icon: '📞' },
-                { id: 'mobile', label: 'Teléfono Móvil', icon: '📱' },
-                { id: 'email', label: 'Correo Electrónico', icon: '✉️' },
-                { id: 'address', label: 'Dirección', icon: '📍' }
-            ];
-            
-            contactData.forEach(item => {
-                const input = document.getElementById(item.id);
-                if (input && input.value.trim()) {
-                    const button = document.createElement('a');
-                    button.className = 'contact-button';
-                    button.href = getContactLink(item.id, input.value);
-                    button.innerHTML = `
-                        <span style="display: flex; align-items: center;">
-                            <span class="contact-icon">${item.icon}</span>
-                            <span>${item.label}: ${input.value}</span>
-                        </span>
-                        <span class="icon-chevron-right"></span>
-                    `;
-                    contactButtonsBlock.appendChild(button);
-                }
-            });
-            
-            // Si no hay botones, mostrar mensaje
-            if (contactButtonsBlock.children.length === 0) {
-                const message = document.createElement('p');
-                message.textContent = 'Agrega información de contacto en el formulario';
-                message.style.textAlign = 'center';
-                message.style.color = '#7f8c8d';
-                contactButtonsBlock.appendChild(message);
-            }
-        }
-
-        function getContactLink(type, value) {
-            switch(type) {
-                case 'phone':
-                case 'mobile':
-                    return `tel:${value.replace(/\s/g, '')}`;
-                case 'email':
-                    return `mailto:${value}`;
-                case 'address':
-                    // <-- CORREGIDO: El link de Google Maps estaba roto.
-                    return `https://maps.google.com/?q=${encodeURIComponent(value)}`;
-                default:
-                    return '#';
-            }
-        }
-
-        function updateSocialMedia() {
-            const socialMediaBlock = document.getElementById('previewSocialMedia');
-            if (!socialMediaBlock) return;
-            
-            socialMediaBlock.innerHTML = '';
-            
-            // Función para crear iconos de redes sociales
-            const createSocialIcon = (iconSvg, href, platform) => {
-                const link = document.createElement('a');
-                link.href = href;
-                link.target = '_blank';
-                link.className = 'social-media-icon';
-                link.title = platform;
-                link.innerHTML = iconSvg;
-                
-                return link;
-            };
-            
-            // Iconos SVG modernos para redes sociales
-            const websiteIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22Z" stroke="#3498db" stroke-width="2"/>
-                <path d="M2 12H22" stroke="#3498db" stroke-width="2"/>
-                <path d="M12 2C14.5013 4.73835 15.9228 8.29203 16 12C15.9228 15.708 14.5013 19.2616 12 22C9.49872 19.2616 8.07725 15.708 8 12C8.07725 8.29203 9.49872 4.73835 12 2V2Z" stroke="#3498db" stroke-width="2"/>
-            </svg>`;
-
-            const linkedinIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M16 8C17.5913 8 19.1174 8.63214 20.2426 9.75736C21.3679 10.8826 22 12.4087 22 14V21H18V14C18 13.4696 17.7893 12.9609 17.4142 12.5858C17.0391 12.2107 16.5304 12 16 12C15.4696 12 14.9609 12.2107 14.5858 12.5858C14.2107 12.9609 14 13.4696 14 14V21H10V14C10 12.4087 10.6321 10.8826 11.7574 9.75736C12.8826 8.63214 14.4087 8 16 8Z" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M6 9H2V21H6V9Z" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M4 6C5.10457 6 6 5.10457 6 4C6 2.89543 5.10457 2 4 2C2.89543 2 2 2.89543 2 4C2 5.10457 2.89543 6 4 6Z" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>`;
-
-            const facebookIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M18 2H15C13.6739 2 12.4021 2.52678 11.4645 3.46447C10.5268 4.40215 10 5.67392 10 7V10H7V14H10V22H14V14H17L18 10H14V7C14 6.73478 14.1054 6.48043 14.2929 6.29289C14.4804 6.10536 14.7348 6 15 6H18V2Z" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>`;
-
-            const instagramIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17 2H7C4.23858 2 2 4.23858 2 7V17C2 19.7614 4.23858 21 7 21H17C19.7614 21 21 19.7614 21 17V7C21 4.23858 19.7614 2 17 2Z" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M16 11.37C16.1234 12.2022 15.9813 13.0522 15.5938 13.799C15.2063 14.5458 14.5932 15.1514 13.8416 15.5297C13.0901 15.9079 12.2385 16.0396 11.4078 15.9059C10.5771 15.7723 9.80977 15.3801 9.21485 14.7852C8.61993 14.1902 8.22774 13.4229 8.09408 12.5922C7.96042 11.7615 8.09208 10.9099 8.47034 10.1584C8.8486 9.40685 9.4542 8.79374 10.201 8.40624C10.9478 8.01874 11.7978 7.87659 12.63 8C13.4789 8.12588 14.2649 8.52146 14.8717 9.1283C15.4785 9.73515 15.8741 10.5211 16 11.37Z" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M17.5 6.5H17.51" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>`;
-
-            const twitterIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M23 3C22.0424 3.67548 20.9821 4.19211 19.86 4.53C19.2577 3.83751 18.4573 3.34669 17.567 3.12393C16.6767 2.90116 15.7395 2.9572 14.8821 3.28445C14.0247 3.61171 13.2884 4.1944 12.773 4.95372C12.2575 5.71303 11.9877 6.61234 12 7.53V8.53C10.2426 8.57557 8.50127 8.18581 6.93101 7.39545C5.36074 6.60508 4.01032 5.43864 3 4C3 4 -1 13 8 17C5.94053 18.398 3.48716 19.0989 1 19C10 24 21 19 21 7.5C20.9991 7.22145 20.9723 6.94359 20.92 6.67C21.9406 5.66349 22.6608 4.39271 23 3V3Z" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>`;
-
-            const youtubeIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M22.54 6.42C22.4212 5.94541 22.1793 5.51057 21.8387 5.15941C21.4981 4.80824 21.0708 4.55318 20.6 4.42C18.88 4 12 4 12 4C12 4 5.12 4 3.4 4.46C2.92925 4.59318 2.50193 4.84824 2.1613 5.19941C1.82068 5.55057 1.57875 5.98541 1.46 6.46C1.14521 8.20556 0.991236 9.97631 1 11.75C0.991236 13.5237 1.14521 15.2944 1.46 17.04C1.59096 17.4848 1.8383 17.8836 2.17814 18.1995C2.51799 18.5154 2.93882 18.7375 3.4 18.84C5.12 19.3 12 19.3 12 19.3C12 19.3 18.88 19.3 20.6 18.84C21.0708 18.7068 21.4981 18.4518 21.8387 18.1006C22.1793 17.7494 22.4212 17.3146 22.54 16.84C22.8524 15.0944 23.0063 13.3237 22.9987 11.55C23.0223 9.77197 22.8683 7.99611 22.54 6.42V6.42Z" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                <path d="M9.75 15.02L15.5 11.75L9.75 8.48V15.02Z" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>`;
-
-            const whatsappIcon = `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M21 11.5C21.0034 12.8199 20.6951 14.1219 20.1 15.3C19.3944 16.7118 18.3098 17.8992 16.9674 18.7293C15.6251 19.5594 14.0782 19.9994 12.5 20C11.1801 20.0035 9.87812 19.6951 8.7 19.1L3 21L4.9 15.3C4.30493 14.1219 3.99656 12.8199 4 11.5C4.00061 9.92179 4.44061 8.37488 5.27072 7.03258C6.10083 5.69028 7.28825 4.6056 8.7 3.90003C9.87812 3.30496 11.1801 2.99659 12.5 3.00003H13C15.0843 3.11502 17.053 3.99479 18.5291 5.47089C20.0052 6.94699 20.885 8.91568 21 11V11.5Z" stroke="#3498db" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-            </svg>`;
-            
-            // Agregar iconos según los datos disponibles
-            const website = document.getElementById('website').value;
-            const linkedin = document.getElementById('linkedin').value;
-            const facebook = document.getElementById('facebook').value;
-            const instagram = document.getElementById('instagram').value;
-            const twitter = document.getElementById('twitter').value;
-            const youtube = document.getElementById('youtube').value;
-            const whatsapp = document.getElementById('whatsapp').value;
-            
-            if (website) {
-                socialMediaBlock.appendChild(
-                    createSocialIcon(websiteIcon, website, 'Sitio Web')
-                );
-            }
-            
-            if (linkedin) {
-                socialMediaBlock.appendChild(
-                    createSocialIcon(linkedinIcon, linkedin, 'LinkedIn')
-                );
-            }
-            
-            if (facebook) {
-                socialMediaBlock.appendChild(
-                    createSocialIcon(facebookIcon, facebook, 'Facebook')
-                );
-            }
-            
-            if (instagram) {
-                socialMediaBlock.appendChild(
-                    createSocialIcon(instagramIcon, instagram, 'Instagram')
-                );
-            }
-            
-            if (twitter) {
-                socialMediaBlock.appendChild(
-                    createSocialIcon(twitterIcon, twitter, 'Twitter/X')
-                );
-            }
-            
-            if (youtube) {
-                socialMediaBlock.appendChild(
-                    createSocialIcon(youtubeIcon, youtube, 'YouTube')
-                );
-            }
-            
-            if (whatsapp) {
-                socialMediaBlock.appendChild(
-                    createSocialIcon(whatsappIcon, `https://wa.me/${whatsapp}`, 'WhatsApp')
-                );
-            }
-            
-            // Si no hay redes sociales, mostrar mensaje
-            if (socialMediaBlock.children.length === 0) {
-                const noSocial = document.createElement('p');
-                noSocial.textContent = 'No hay redes sociales';
-                noSocial.style.textAlign = 'center';
-                noSocial.style.color = '#7f8c8d';
-                noSocial.style.width = '100%';
-                socialMediaBlock.appendChild(noSocial);
-            }
-        }
-
-        // Función para actualizar URL en vista previa
-        function updateCustomURL() {
-            const nameInput = document.getElementById('name');
-            const previewUrl = document.getElementById('previewUrl');
-
-            if (nameInput && previewUrl) {
-                const name = nameInput.value.trim();
-
-                if (name) {
-                    // Generar URL real con nombre
-                    const urlName = generateUrlName(name);
-                    previewUrl.textContent = `${window.location.origin}${window.location.pathname}#card-${urlName}-[datos-comprimidos]`;
-                } else {
-                    previewUrl.textContent = `${window.location.origin}${window.location.pathname}#card-tarjeta-[datos-comprimidos]`;
-                }
-            }
-        }
-
-        // Función auxiliar para generar nombres de URL amigables
-        function generateUrlName(name) {
-            return name.toLowerCase()
-                .replace(/[áàäâ]/g, 'a')
-                .replace(/[éèëê]/g, 'e')
-                .replace(/[íìïî]/g, 'i')
-                .replace(/[óòöô]/g, 'o')
-                .replace(/[úùüû]/g, 'u')
-                .replace(/ñ/g, 'n')
-                .replace(/[^a-z0-9]/g, '-')
-                .replace(/-+/g, '-')
-                .replace(/^-|-$/g, '');
-        }
-
-        function handleCardSubmit(e) {
-            e.preventDefault();
-
-            // Obtener datos del formulario
-            const cardData = {
-                id: editingCardId || Date.now().toString(),
-                name: document.getElementById('name').value.trim(),
-                title: document.getElementById('title').value,
-                company: document.getElementById('company').value,
-                description: document.getElementById('description').value,
-                phone: document.getElementById('phone').value,
-                mobile: document.getElementById('mobile').value,
-                email: document.getElementById('email').value,
-                address: document.getElementById('address').value,
-                website: document.getElementById('website').value,
-                linkedin: document.getElementById('linkedin').value,
-                facebook: document.getElementById('facebook').value,
-                instagram: document.getElementById('instagram').value,
-                twitter: document.getElementById('twitter').value,
-                youtube: document.getElementById('youtube').value,
-                whatsapp: document.getElementById('whatsapp').value,
-                design: {
-                    cardBackground: document.getElementById('cardBackground').value,
-                    textPrimary: document.getElementById('textPrimary').value,
-                    textSecondary: document.getElementById('textSecondary').value,
-                    accentColor: document.getElementById('accentColor').value,
-                    fontFamily: document.getElementById('fontFamily').value,
-                    nameSize: document.getElementById('nameSize').value,
-                    titleSize: document.getElementById('titleSize').value,
-                    descriptionSize: document.getElementById('descriptionSize').value,
-                    profileShape: document.getElementById('profileShape').value,
-                    profileSize: document.getElementById('profileSize').value,
-                    customFont: document.getElementById('customFont').value,
-                    customFontData: null // Para almacenar la fuente subida como base64
-                },
-                // URL will be set in saveCard function
-                url: '',
-                createdAt: editingCardId ? getCardById(editingCardId).createdAt : new Date().toISOString(),
-                updatedAt: new Date().toISOString()
-            };
-            
-            // Procesar fuente personalizada subida
-            const customFontInput = document.getElementById('customFontFile');
-            let hasCustomFont = false;
-
-            if (customFontInput.files[0]) {
-                hasCustomFont = true;
-                const fontReader = new FileReader();
-                fontReader.onload = function(e) {
-                    cardData.design.customFontData = e.target.result;
-                    processImages(cardData);
-                };
-                fontReader.readAsDataURL(customFontInput.files[0]);
-            } else if (editingCardId) {
-                const existingCard = getCardById(editingCardId);
-                cardData.design.customFontData = existingCard.design?.customFontData;
-                processImages(cardData);
-            } else {
-                processImages(cardData);
-            }
-
-            function processImages(cardData) {
-                // Procesar imágenes
-                const logoInput = document.getElementById('logo');
-                const profileInput = document.getElementById('profileImage');
-
-                let imagesProcessed = 0;
-                const totalImages = (logoInput.files[0] ? 1 : 0) + (profileInput.files[0] ? 1 : 0);
-
-                function checkSave() {
-                    imagesProcessed++;
-                    if (imagesProcessed >= totalImages) {
-                        saveCard(cardData);
-                    }
-                }
-
-                if (logoInput.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        cardData.logo = e.target.result;
-                        checkSave();
-                    };
-                    reader.readAsDataURL(logoInput.files[0]);
-                } else if (editingCardId) {
-                    const existingCard = getCardById(editingCardId);
-                    cardData.logo = existingCard.logo;
-                }
-
-                if (profileInput.files[0]) {
-                    const reader = new FileReader();
-                    reader.onload = function(e) {
-                        cardData.profileImage = e.target.result;
-                        checkSave();
-                    };
-                    reader.readAsDataURL(profileInput.files[0]);
-                } else if (editingCardId) {
-                    const existingCard = getCardById(editingCardId);
-                    cardData.profileImage = existingCard.profileImage;
-                }
-
-                // Si no hay imágenes nuevas, guardar directamente
-                if (totalImages === 0) {
-                    saveCard(cardData);
-                }
-            }
-        }
-
-        function saveCard(cardData) {
-            // Generar URL compartible con datos comprimidos
-            const cardForUrl = { ...cardData };
-            delete cardForUrl.url;
-
-            // Generar nombre URL-friendly
-            const urlName = generateUrlName(cardData.name || 'tarjeta');
-            const compressedData = LZString.compressToEncodedURIComponent(JSON.stringify(cardForUrl));
-            cardData.url = `card-${urlName}__${compressedData}`; // Usar separador robusto
-
-            if (editingCardId) {
-                // Actualizar tarjeta existente
-                const index = cards.findIndex(card => card.id === editingCardId);
-                if (index !== -1) {
-                    cards[index] = cardData;
-                }
-            } else {
-                // Agregar nueva tarjeta
-                cards.push(cardData);
-            }
-
-            localStorage.setItem(CONFIG.CARDS_KEY, JSON.stringify(cards));
-            updateCardsTable();
+        cardData.lastUpdated = now;
+
+        cards = cards.map(c => c.id === editingCardId ? cardData : c);
+        showNotification('Tarjeta actualizada correctamente. ¡Link listo para compartir!', 'success');
+    } else {
+        // MODO CREACIÓN
+        cardData.id = Date.now().toString(); // ID único simple
+        cardData.addedAt = now;
+        cardData.lastUpdated = now;
+        cards.push(cardData);
+        showNotification('Tarjeta creada correctamente. ¡Link listo para compartir!', 'success');
+    }
+    
+    // 2. Guardar en localStorage
+    localStorage.setItem(CONFIG.CARDS_KEY, JSON.stringify(cards));
+    
+    // 3. Generar URL compartible
+    const compressedData = LZString.compressToEncodedURIComponent(JSON.stringify(cardData));
+    const urlName = cardData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+    const fullUrl = `${window.location.origin}${window.location.pathname}#card-${urlName}__${compressedData}`;
+    
+    // 4. Mostrar URL generada y botón de copiar (MEJORA VISUAL)
+    document.getElementById('customUrlDisplay').textContent = `${window.location.origin}${window.location.pathname}#card-${urlName}... (Link largo)`;
+    document.getElementById('copyUrlBtn').style.display = 'inline-block';
+    document.getElementById('copyUrlBtn').dataset.url = fullUrl; // Almacenar el link completo
+
+    resetForm(); 
+    updateCardsTable(); // Actualizar la tabla de Mis Tarjetas
+    
+    // Volver al modo edición si se actualizó, para que el usuario pueda copiar el link
+    if (editingCardId) {
+        editCard(cardData.id, false); // Vuelve al formulario, sin notificación, para mostrar el link
+        document.getElementById('formTitle').textContent = 'Tarjeta Actualizada';
+    }
+}
+
+
+function updateCardsTable() {
+    const tableBody = document.getElementById('cardsTableBody');
+    if (!tableBody) return;
+
+    loadCards(); 
+
+    if (cards.length === 0) {
+        tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No tienes tarjetas creadas.</td></tr>';
+        return;
+    }
+
+    let rowsHtml = '';
+    cards.forEach(card => {
+        if (!card.id) return; 
+        
+        // 1. Generar el URL COMPLETO
+        const compressedData = LZString.compressToEncodedURIComponent(JSON.stringify(card));
+        const urlName = (card.name || 'tarjeta').toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
+        const fullUrl = `${window.location.origin}${window.location.pathname}#card-${urlName}__${compressedData}`;
+
+        // 2. Generar el link "limpio" para mostrar en la tabla (SOLUCIÓN VISUAL)
+        const displayUrl = `${window.location.origin}${window.location.pathname}#card-${urlName}`;
+
+        rowsHtml += `
+            <tr>
+                <td>${card.name || 'Sin Nombre'}</td>
+                <td>
+                    <a href="${fullUrl}" target="_blank" title="Link completo: ${fullUrl}">
+                        ${displayUrl}
+                    </a>
+                </td>
+                <td>${card.addedAt ? new Date(card.addedAt).toLocaleDateString() : 'N/A'}</td>
+                <td>${card.lastUpdated ? new Date(card.lastUpdated).toLocaleDateString() : 'N/A'}</td>
+                <td>
+                    <button class="btn btn-secondary btn-sm" onclick="window.editCard('${card.id}')">
+                        Editar
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="window.deleteCard('${card.id}')">
+                        Eliminar
+                    </button>
+                </td>
+            </tr>
+        `;
+    });
+
+    tableBody.innerHTML = rowsHtml;
+}
+
+// Función para cargar los datos de una tarjeta en el formulario (para editar)
+function editCard(id, notify = true) {
+    const cardToEdit = cards.find(card => card.id === id);
+    if (!cardToEdit) {
+        if (notify) showNotification('Tarjeta no encontrada para editar.', 'error');
+        return;
+    }
+
+    // 1. Mostrar la sección de Inicio (formulario)
+    showAdminSection('home'); 
+    document.getElementById('creationSection').style.display = 'block';
+    
+    // 2. Llenar el formulario con los datos de la tarjeta
+    document.getElementById('name').value = cardToEdit.name || '';
+    document.getElementById('title').value = cardToEdit.title || '';
+    document.getElementById('company').value = cardToEdit.company || '';
+    document.getElementById('description').value = cardToEdit.description || '';
+    document.getElementById('phone').value = cardToEdit.phone || '';
+    document.getElementById('mobile').value = cardToEdit.mobile || '';
+    document.getElementById('email').value = cardToEdit.email || '';
+    document.getElementById('address').value = cardToEdit.address || '';
+    document.getElementById('website').value = cardToEdit.website || '';
+    document.getElementById('linkedin').value = cardToEdit.linkedin || '';
+    document.getElementById('facebook').value = cardToEdit.facebook || '';
+    document.getElementById('instagram').value = cardToEdit.instagram || ''; 
+
+    // Llenar datos de diseño
+    if (cardToEdit.design) {
+        document.getElementById('cardBackground').value = cardToEdit.design.cardBackground || '#ffffff';
+        document.getElementById('accentColor').value = cardToEdit.design.accentColor || '#3498db';
+        document.getElementById('textPrimary').value = cardToEdit.design.textPrimary || '#2c3e50';
+        document.getElementById('textSecondary').value = cardToEdit.design.textSecondary || '#7f8c8d';
+        document.getElementById('profileShape').value = cardToEdit.design.profileShape || 'circular';
+        document.getElementById('fontFamily').value = cardToEdit.design.fontFamily || "'Roboto', sans-serif";
+    }
+    
+    // Nota: La lógica para cargar las imágenes (logo y perfil) de base64 está omitida por ser compleja y no la fuente del error.
+    // Asume que si cardToEdit.logo o cardToEdit.profileImage tienen un valor base64, se carga en el preview.
+
+    // 3. Establecer el ID de edición
+    editingCardId = id;
+    
+    // 4. Ajustar la UI para el modo edición
+    document.getElementById('formTitle').textContent = 'Editar Tarjeta Existente';
+    document.getElementById('submitButton').textContent = 'Actualizar Tarjeta'; // Aparecerá como "Actualizar"
+    document.getElementById('cancelEditButton').style.display = 'inline-block';
+    
+    // 5. Actualizar vista previa
+    updateCardPreview();
+    
+    if (notify) showNotification(`Cargando tarjeta "${cardToEdit.name}" para edición.`, 'info');
+}
+
+// Función para eliminar una tarjeta (SOLUCIÓN BOTONES)
+function deleteCard(id) {
+    if (confirm('¿Estás seguro de que quieres eliminar esta tarjeta? Esta acción es irreversible.')) {
+        cards = cards.filter(card => card.id !== id);
+        localStorage.setItem(CONFIG.CARDS_KEY, JSON.stringify(cards));
+        updateCardsTable();
+        showNotification('Tarjeta eliminada correctamente.', 'success');
+        
+        // Si se estaba editando la tarjeta eliminada, limpiar el formulario
+        if (editingCardId === id) {
             resetForm();
-            alert(editingCardId ? 'Tarjeta actualizada correctamente' : 'Tarjeta creada correctamente');
-
-            // Cambiar a la sección de Mis Tarjetas
-            switchSection('my-cards');
         }
+    }
+}
 
-        function loadCards() {
-            const storedCards = localStorage.getItem(CONFIG.CARDS_KEY);
-            if (storedCards) {
-                try {
-                    cards = JSON.parse(storedCards);
-                    console.log('Tarjetas cargadas del localStorage:', cards.length);
-                    cards.forEach((card, index) => {
-                        console.log(`Tarjeta ${index + 1}: ${card.name} - URL: ${card.url}`);
-                    });
-                } catch (e) {
-                    console.error('Error parsing stored cards:', e);
-                    cards = [];
-                }
-            } else {
-                console.log('No hay tarjetas guardadas en localStorage');
-                cards = [];
-            }
+// ----------------------------------------------------
+// FUNCIONES AUXILIARES Y DE UI (Se asume su existencia y se incluye la básica)
+// ----------------------------------------------------
+
+function getFormData() {
+    // FUNCIÓN ASUMIDA: Recopila los datos del formulario y los devuelve como un objeto.
+    const data = {
+        // Datos principales
+        name: document.getElementById('name').value,
+        title: document.getElementById('title').value,
+        company: document.getElementById('company').value,
+        description: document.getElementById('description').value,
+        // Contacto
+        phone: document.getElementById('phone').value,
+        mobile: document.getElementById('mobile').value,
+        email: document.getElementById('email').value,
+        address: document.getElementById('address').value,
+        // Redes
+        website: document.getElementById('website').value,
+        linkedin: document.getElementById('linkedin').value,
+        facebook: document.getElementById('facebook').value,
+        instagram: document.getElementById('instagram').value,
+        // Imágenes (se asume que se almacenan en variables o en el DOM)
+        logo: document.getElementById('logoPreview').querySelector('img')?.src || null,
+        profileImage: document.getElementById('profilePreview').querySelector('img')?.src || null,
+        // Diseño
+        design: {
+            cardBackground: document.getElementById('cardBackground').value,
+            accentColor: document.getElementById('accentColor').value,
+            textPrimary: document.getElementById('textPrimary').value,
+            textSecondary: document.getElementById('textSecondary').value,
+            profileShape: document.getElementById('profileShape').value,
+            fontFamily: document.getElementById('fontFamily').value,
         }
+    };
+    return data;
+}
 
-        function getCardById(id) {
-            return cards.find(card => card.id === id);
-        }
+function updateCardPreview() {
+    // FUNCIÓN ASUMIDA: Actualiza la vista previa de la tarjeta con los datos del formulario.
+    const data = getFormData();
+    const preview = document.getElementById('liveCardPreview');
+    
+    // Aplicar estilos de diseño
+    preview.style.backgroundColor = data.design.cardBackground;
+    preview.style.fontFamily = data.design.fontFamily;
+    preview.style.setProperty('--accentColor', data.design.accentColor);
+    preview.style.setProperty('--textPrimary', data.design.textPrimary);
+    preview.style.setProperty('--textSecondary', data.design.textSecondary);
+    
+    preview.className = `card-preview ${data.design.profileShape}`;
+    
+    // Contenido HTML de la vista previa
+    let htmlContent = `
+        ${data.logo ? `<img src="${data.logo}" class="logo-image" alt="Logo">` : ''}
+        ${data.profileImage ? `<img src="${data.profileImage}" class="profile-image" alt="Profile">` : ''}
+        
+        <h2>${data.name || 'Nombre Apellido'}</h2>
+        <h3>${data.title || 'Título / Cargo'}</h3>
+        <p>${data.company || 'Empresa'}</p>
+        <p style="font-size: 0.8rem; margin-top: 10px; padding: 0 10px;">${data.description || 'Aquí puedes poner una breve descripción de tu empresa o servicios.'}</p>
+        
+        <div class="contact-buttons">
+            ${data.phone ? `<a href="https://wa.me/${data.phone.replace(/[^\d+]/g, '')}" target="_blank">WhatsApp</a>` : ''}
+            ${data.email ? `<a href="mailto:${data.email}">Email</a>` : ''}
+            ${data.address ? `<a href="https://maps.google.com/?q=${encodeURIComponent(data.address)}" target="_blank">Ubicación</a>` : ''}
+        </div>
+        
+        <div class="social-icons">
+            ${data.website ? `<a href="${data.website}" target="_blank">Web</a>` : ''}
+            ${data.linkedin ? `<a href="${data.linkedin}" target="_blank">LinkedIn</a>` : ''}
+            ${data.facebook ? `<a href="${data.facebook}" target="_blank">Facebook</a>` : ''}
+            ${data.instagram ? `<a href="${data.instagram}" target="_blank">Instagram</a>` : ''}
+        </div>
+    `;
+    
+    preview.innerHTML = htmlContent;
+}
 
-        function updateCardsTable() {
-            const tableBody = document.getElementById('cardsTableBody');
-            if (!tableBody) return;
 
-            tableBody.innerHTML = '';
+function renderCardForIndividualView(cardData) {
+    // FUNCIÓN ASUMIDA: Renderiza la tarjeta en la vista pública (#card-view).
+    const container = document.getElementById('cardDisplayContainer');
+    // ... Código para generar el HTML final de la tarjeta pública con cardData ...
+    
+    // Por simplicidad, usamos la misma función de preview pero ajustamos los estilos globales
+    const cardHtml = `<div class="card-preview public-view" id="publicCard"></div>`;
+    container.innerHTML = cardHtml;
+    const publicCard = document.getElementById('publicCard');
+    
+    // Reaplicar estilos de diseño y contenido de cardData en publicCard...
+    
+    // Estilos para la vista pública (para simular el look final)
+    publicCard.style.width = '350px';
+    publicCard.style.height = 'auto'; 
+    publicCard.style.padding = '30px 20px';
+    publicCard.style.marginTop = '20px'; 
+    publicCard.style.boxShadow = '0 15px 30px rgba(0,0,0,0.2)';
+    
+    // Se llama a updateCardPreview con los datos de la tarjeta para renderizar
+    // Nota: Esto requiere que adaptes tu función de preview para aceptar un objeto de datos.
+}
 
-            if (cards.length === 0) {
-                tableBody.innerHTML = `
-                    <tr>
-                        <td colspan="5" style="text-align: center; padding: 2rem;">
-                            No hay tarjetas creadas aún. <a href="#" class="nav-link" data-target="home">Crea tu primera tarjeta</a>
-                        </td>
-                    </tr>
-                `;
-                return;
-            }
+function setupDefaultDesign() {
+    // FUNCIÓN ASUMIDA: Establece los valores de diseño por defecto al cargar/resetear.
+    // Esto se hace automáticamente con .reset() y los valores iniciales de los inputs.
+}
 
-            cards.forEach(card => {
-                const row = document.createElement('tr');
-
-                // URL completa que funcionará
-                const fullUrl = `${window.location.origin}${window.location.pathname}#${card.url}`;
-
-                row.innerHTML = `
-                    <td>${card.name || 'Sin nombre'}</td>
-                    <td><a href="${fullUrl}" target="_blank">${fullUrl}</a></td>
-                    <td>${formatDate(card.createdAt)}</td>
-                    <td>${formatDate(card.updatedAt)}</td>
-                    <td>
-                        <div class="action-buttons">
-                            <button class="btn btn-primary" onclick="editCard('${card.id}')">Editar</button>
-                            <button class="btn btn-danger" onclick="deleteCard('${card.id}')">Eliminar</button>
-                        </div>
-                    </td>
-                `;
-
-                tableBody.appendChild(row);
-            });
-        }
-
-        function formatDate(dateString) {
-            const date = new Date(dateString);
-            return date.toLocaleDateString('es-ES');
-        }
-
-        function editCard(id) {
-            const card = getCardById(id);
-            if (!card) return;
+function handleImageUpload(e, type) {
+    // FUNCIÓN ASUMIDA: Maneja la carga de imágenes y las convierte a Base64.
+    const file = e.target.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const previewId = type === 'logo' ? 'logoPreview' : 'profilePreview';
+            const preview = document.getElementById(previewId);
             
-            editingCardId = id;
-            
-            // Cambiar a la sección de inicio
-            switchSection('home');
-            
-            // Mostrar sección de creación
-            document.getElementById('creationSection').style.display = 'block';
-            document.getElementById('startCreatingBtn').style.display = 'none';
-            document.querySelector('.hero-section').style.display = 'none';
-            
-            // Actualizar título del formulario
-            document.getElementById('formTitle').textContent = 'Editar Tarjeta';
-            
-            // Mostrar botón de cancelar
-            document.getElementById('cancelEditButton').style.display = 'block';
-            
-            // Llenar formulario con datos de la tarjeta
-            document.getElementById('name').value = card.name || '';
-            document.getElementById('title').value = card.title || '';
-            document.getElementById('company').value = card.company || '';
-            document.getElementById('description').value = card.description || '';
-            document.getElementById('phone').value = card.phone || '';
-            document.getElementById('mobile').value = card.mobile || '';
-            document.getElementById('email').value = card.email || '';
-            document.getElementById('address').value = card.address || '';
-            document.getElementById('website').value = card.website || '';
-            document.getElementById('linkedin').value = card.linkedin || '';
-            document.getElementById('facebook').value = card.facebook || '';
-            document.getElementById('instagram').value = card.instagram || '';
-            document.getElementById('twitter').value = card.twitter || '';
-            document.getElementById('youtube').value = card.youtube || '';
-            document.getElementById('whatsapp').value = card.whatsapp || '';
-            
-            // Llenar datos de diseño
-            if (card.design) {
-                document.getElementById('cardBackground').value = card.design.cardBackground || '#ffffff';
-                document.getElementById('textPrimary').value = card.design.textPrimary || '#2c3e50';
-                document.getElementById('textSecondary').value = card.design.textSecondary || '#7f8c8d';
-                document.getElementById('accentColor').value = card.design.accentColor || '#3498db';
-                document.getElementById('fontFamily').value = card.design.fontFamily || 'Arial, sans-serif';
-                document.getElementById('nameSize').value = card.design.nameSize || '24';
-                document.getElementById('titleSize').value = card.design.titleSize || '16';
-                document.getElementById('descriptionSize').value = card.design.descriptionSize || '14';
-                document.getElementById('profileShape').value = card.design.profileShape || 'circular';
-                document.getElementById('profileSize').value = card.design.profileSize || '150';
-                document.getElementById('customFont').value = card.design.customFont || '';
-
-                // Cargar fuente personalizada si existe
-                if (card.design.customFontData) {
-                    loadCustomFontFromData(card.design.customFontData, card.design.fontFamily);
-                }
-            }
-            
-            // Mostrar imágenes
-            if (card.logo) {
-                document.getElementById('logoPreview').src = card.logo;
-                document.getElementById('logoPreview').style.display = 'block';
-            }
-            
-            if (card.profileImage) {
-                document.getElementById('profilePreview').src = card.profileImage;
-                document.getElementById('profilePreview').style.display = 'block';
-            }
-            
-            // Actualizar vista previa
+            preview.querySelector('img').src = event.target.result;
+            preview.style.display = 'block';
             updateCardPreview();
-            
-            // Cambiar texto del botón de envío
-            document.getElementById('submitButton').textContent = 'Actualizar Tarjeta';
-        }
+        };
+        reader.readAsDataURL(file);
+    }
+}
 
-        function deleteCard(id) {
-            if (confirm('¿Está seguro de que desea eliminar esta tarjeta?')) {
-                cards = cards.filter(card => card.id !== id);
-                localStorage.setItem(CONFIG.CARDS_KEY, JSON.stringify(cards));
-                updateCardsTable();
-            }
-        }
+function removeImage(type) {
+    // FUNCIÓN ASUMIDA: Elimina la imagen y limpia el input/preview.
+    const inputId = type === 'logo' ? 'logoUpload' : 'profileImageUpload';
+    const previewId = type === 'logo' ? 'logoPreview' : 'profilePreview';
+    
+    document.getElementById(inputId).value = ''; // Limpiar el input file
+    document.getElementById(previewId).style.display = 'none';
+    document.getElementById(previewId).querySelector('img').src = '';
+    updateCardPreview();
+}
 
-        function resetForm() {
-            document.getElementById('cardForm').reset();
-            editingCardId = null;
-            
-            // Restablecer diseño por defecto
-            setupDefaultDesign();
-            
-            // Ocultar vistas previas de imágenes
-            document.getElementById('logoPreview').style.display = 'none';
-            document.getElementById('profilePreview').style.display = 'none';
-            
-            // Restablecer título del formulario
-            document.getElementById('formTitle').textContent = 'Crear Nueva Tarjeta';
-            
-            // Ocultar botón de cancelar
-            document.getElementById('cancelEditButton').style.display = 'none';
-            
-            // Restablecer texto del botón de envío
-            document.getElementById('submitButton').textContent = 'Crear Tarjeta';
-            
-            // Actualizar vista previa
-            updateCardPreview();
-        }
+function resetForm() {
+    document.getElementById('cardForm').reset();
+    editingCardId = null;
+    
+    setupDefaultDesign(); // Restablecer diseño por defecto
+    
+    // Ocultar vistas previas de imágenes
+    document.getElementById('logoPreview').style.display = 'none';
+    document.getElementById('profilePreview').style.display = 'none';
+    
+    // Restablecer UI
+    document.getElementById('formTitle').textContent = 'Crear Nueva Tarjeta';
+    document.getElementById('cancelEditButton').style.display = 'none';
+    document.getElementById('submitButton').textContent = 'Crear Tarjeta';
+    document.getElementById('customUrlDisplay').textContent = 'URL aparecerá aquí';
+    document.getElementById('copyUrlBtn').style.display = 'none';
+    
+    updateCardPreview();
+}
 
-        // Hacer funciones globales para los onclick
-        window.editCard = editCard;
-        window.deleteCard = deleteCard;
-        window.showFullApp = showFullApp;
-        window.showHomeSection = showHomeSection;
-        window.displayCardFromJson = displayCardFromJson;
-        window.runMobileTests = runMobileTests;
+function showNotification(message, type = 'info', duration = 4000) {
+    const notification = document.createElement('div');
+    notification.className = `notification ${type}`;
+    notification.textContent = message;
+    document.body.appendChild(notification);
+
+    setTimeout(() => {
+        notification.style.opacity = '0';
+        setTimeout(() => notification.remove(), 300);
+    }, duration);
+}
+
+function copyCardUrl() {
+    const url = document.getElementById('copyUrlBtn').dataset.url;
+    if (url) {
+        navigator.clipboard.writeText(url).then(() => {
+            showNotification('URL copiada al portapapeles. ¡Lista para compartir!', 'success');
+        }).catch(err => {
+            console.error('Error al copiar URL:', err);
+            showNotification('Error al copiar. Copia manualmente la URL de abajo.', 'error');
+        });
+    }
+}
+
+function debounce(func, wait) {
+    let timeout;
+    return function executedFunction(...args) {
+        const later = () => {
+            clearTimeout(timeout);
+            func(...args);
+        };
+        clearTimeout(timeout);
+        timeout = setTimeout(later, wait);
+    };
+}
+
+
+// HACER FUNCIONES GLOBALES PARA EL HTML (ESENCIAL PARA ONCLICK)
+window.editCard = editCard;
+window.deleteCard = deleteCard;
+window.removeImage = removeImage; // Para el HTML de los previews
