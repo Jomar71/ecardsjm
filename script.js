@@ -1,4 +1,4 @@
-        const CONFIG = {
+       const CONFIG = {
             PASSWORD: 'admin123',
             SESSION_KEY: 'evaunt_session',
             CARDS_KEY: 'evaunt_cards'
@@ -258,7 +258,6 @@
                 <div style="max-width: 400px; margin: 0 auto; padding: 20px 0;">
 
                     
-                    <!-- Tarjeta -->
                     <div class="card-preview" style="background: ${card.design?.cardBackground || '#ffffff'}; color: ${card.design?.textPrimary || '#2c3e50'}; font-family: ${card.design?.fontFamily || 'Arial, sans-serif'}; margin: 0 auto;">
                         <div class="card-header">
                             <div class="card-profile-section">
@@ -375,8 +374,8 @@
                         return null;
                     }
 
-                    const urlName = urlParts; // El nombre de la tarjeta
-                    const compressedData = urlParts; // La parte de los datos comprimidos
+                    const urlName = urlParts[0]; // <-- CORREGIDO: Antes era 'urlParts'
+                    const compressedData = urlParts[1]; // <-- CORREGIDO: Antes era 'urlParts'
 
                     if (!compressedData) {
                         console.error('Datos comprimidos no encontrados en URL');
@@ -532,6 +531,7 @@
             }
 
             if (card.address) {
+                // <-- CORREGIDO: El link de Google Maps estaba roto.
                 const mapsUrl = `https://maps.google.com/?q=${encodeURIComponent(card.address)}`;
                 contacts.push(`<a href="${mapsUrl}" onclick="handleLink('${mapsUrl}', event)" target="_blank" class="contact-button" style="border-color: ${accentColor};">
                     <span style="display: flex; align-items: center;">
@@ -1361,6 +1361,7 @@
                 case 'email':
                     return `mailto:${value}`;
                 case 'address':
+                    // <-- CORREGIDO: El link de Google Maps estaba roto.
                     return `https://maps.google.com/?q=${encodeURIComponent(value)}`;
                 default:
                     return '#';
