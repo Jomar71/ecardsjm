@@ -365,18 +365,18 @@
                 return null;
             }
 
-            // Manejar URLs comprimidas con formato: card-nombre-compressedData
+            // Manejar URLs comprimidas con formato: card-nombre__compressedData
             if (url.startsWith('card-')) {
                 try {
-                    // Extraer datos comprimidos (todo después del primer guion después de 'card-')
-                    const parts = url.split('-');
-                    if (parts.length < 3) {
-                        console.error('Formato de URL inválido');
+                    // Usar un separador más robusto que no entre en conflicto con nombres con guiones
+                    const urlParts = url.substring(5).split('__'); // Remover 'card-' y dividir por '__'
+                    if (urlParts.length !== 2) {
+                        console.error('Formato de URL comprimida inválido. Se esperaba un nombre y datos.');
                         return null;
                     }
 
-                    // El nombre está entre 'card-' y los datos comprimidos
-                    const compressedData = parts.slice(2).join('-'); // Unir todo después del nombre
+                    const urlName = urlParts; // El nombre de la tarjeta
+                    const compressedData = urlParts; // La parte de los datos comprimidos
 
                     if (!compressedData) {
                         console.error('Datos comprimidos no encontrados en URL');
@@ -1630,7 +1630,7 @@
             // Generar nombre URL-friendly
             const urlName = generateUrlName(cardData.name || 'tarjeta');
             const compressedData = LZString.compressToEncodedURIComponent(JSON.stringify(cardForUrl));
-            cardData.url = `card-${urlName}-${compressedData}`;
+            cardData.url = `card-${urlName}__${compressedData}`; // Usar separador robusto
 
             if (editingCardId) {
                 // Actualizar tarjeta existente
