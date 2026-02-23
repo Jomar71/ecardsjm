@@ -88,7 +88,10 @@ const Auth = {
                 this.onLogin(data.user);
                 UI.hideAuth();
                 Router.go('/dashboard');
-            } else { alert("CREDENCIALES INVÁLIDAS."); }
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                alert(errData.error === "DENIED" ? "CREDENCIALES INVÁLIDAS." : "ERROR: No se pudo conectar con el servidor backend.");
+            }
         } catch (err) { alert("SISTEMA AUTH OFFLINE."); }
     },
 
@@ -106,7 +109,10 @@ const Auth = {
             if (res.ok) {
                 alert("REGISTRO EXITOSO. INICIA SESIÓN.");
                 UI.showAuth('login');
-            } else { alert("USUARIO EXISTENTE."); }
+            } else {
+                const errData = await res.json().catch(() => ({}));
+                alert(errData.error === "EXECUTIVE_EXISTS" ? "USUARIO EXISTENTE." : "ERROR: El servidor backend no está configurado en GitHub Pages.");
+            }
         } catch (err) { alert("ERROR DE REGISTRO."); }
     },
 
