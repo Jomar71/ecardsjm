@@ -27,6 +27,9 @@ db = SQLAlchemy(app)
 if not os.path.exists(app.config["UPLOAD_FOLDER"]):
     os.makedirs(app.config["UPLOAD_FOLDER"])
 
+if not os.path.exists(app.instance_path):
+    os.makedirs(app.instance_path)
+
 # Models: Identity Schemas
 class User(db.Model):
     __tablename__ = "users"
@@ -152,7 +155,7 @@ def apply_migrations():
         for col, type_info in required_users.items():
             if col not in user_columns:
                 print(f"EliteCards: Migrating Column [{col}] in user table")
-                cursor.execute(f"ALTER TABLE user ADD COLUMN {col} {type_info}")
+                cursor.execute(f"ALTER TABLE users ADD COLUMN {col} {type_info}")
                 updated = True
             
     if updated: conn.commit()
