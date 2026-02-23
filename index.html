@@ -1,244 +1,377 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>eCards JM</title>
-    <link rel="stylesheet" href="styles.css">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&family=Open+Sans:wght@300;400;600;700&family=Lato:wght@300;400;700&family=Montserrat:wght@300;400;500;600;700&family=Poppins:wght@300;400;500;600;700&family=Raleway:wght@300;400;500;600;700&family=Source+Sans+Pro:wght@300;400;600;700&family=Oswald:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&family=Merriweather:wght@300;400;700&family=PT+Sans:wght@400;700&family=Ubuntu:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <title>EliteCards | Nexus for Digital Identity</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/styles.css">
 </head>
+
 <body>
-    <div id="loginScreen" class="login-screen">
-        <div class="login-container">
-            <div class="login-header">
-                <h1>eCards JM</h1>
-                <p>Tarjetas de Presentación Digital</p>
-            </div>
-            <form id="loginForm" class="login-form">
-                <div class="form-group">
-                    <label for="password">Contraseña de Acceso</label>
-                    <input type="password" id="password" required placeholder="Ingrese la contraseña">
-                </div>
-                <button type="submit" class="btn btn-primary">Acceder</button>
-                <p class="login-note">Contraseña por defecto: admin123</p>
-            </form>
-        </div>
+
+    <!-- Platform Loader -->
+    <div id="loader" class="loading-box hidden">
+        <div class="premium-loader"></div>
     </div>
 
-    <div id="app" class="app" style="display: none;">
-        <nav class="navbar">
-            <div class="nav-container">
-                <div class="logo">
-                    <h2>eCards JM</h2>
-                </div>
-                <ul class="nav-links">
-                    <li><a href="#" class="nav-link active" data-target="home">Inicio</a></li>
-                    <li><a href="#" class="nav-link" data-target="my-cards">Mis Tarjetas</a></li>
-                    <li><button id="logoutBtn" class="btn-logout">Cerrar Sesión</button></li>
-                </ul>
+    <!-- Navigation Header -->
+    <header id="main-header" class="studio-module"
+        style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; border-radius: 0; display: flex; justify-content: space-between; align-items: center; padding: 1rem 2.5rem; backdrop-filter: blur(10px); background: rgba(255,255,255,0.8);">
+        <h1 style="font-size: 1.25rem; font-weight: 800; margin:0; cursor: pointer;" onclick="Router.go('/')">ELITE<span
+                style="color:var(--accent)">CARDS.</span></h1>
+
+        <nav id="top-nav" style="display: flex; gap: 2rem; align-items: center;">
+            <a href="#" class="nav-link" onclick="Router.go('/')">INICIO</a>
+            <div id="auth-nav-guest" style="display: flex; gap: 1rem;">
+                <button class="nav-link" style="border:none; background:none; cursor:pointer;"
+                    onclick="UI.showAuth('login')">LOGIN</button>
+                <button class="tab-btn active" style="padding: 0.5rem 1.5rem;"
+                    onclick="UI.showAuth('register')">REGISTRO</button>
+            </div>
+            <div id="auth-nav-user" class="hidden" style="display: flex; gap: 1.5rem; align-items: center;">
+                <a href="#" class="nav-link" onclick="Router.go('/dashboard')">MIS TARJETAS</a>
+                <span id="nav-username" style="font-size: 0.7rem; font-weight: 800; opacity: 0.5;">USUARIO</span>
+                <button class="tab-btn" style="padding: 0.5rem 1.5rem;" onclick="Auth.logout()">SALIR</button>
             </div>
         </nav>
+    </header>
 
-        <div class="container">
-            <section id="home" class="section active">
-                <div class="hero-section">
-                    <div class="hero-content">
-                        <h1>Crea una tarjeta de presentación digital optimizada para dispositivos móviles para ti o su personal</h1>
-                        <p>eCards JM te permite crear una tarjeta de presentación digital para ti o los empleados de tu empresa, con una dirección de página web única y un diseño simple y responsivo optimizado para ver en dispositivos móviles.</p>
-                        <button class="btn btn-primary" id="startCreatingBtn">Comenzar a Crear</button>
-                    </div>
-                    <div class="hero-image">
-                        <div class="card-mockup">
-                            <div class="mockup-card">
-                                <div class="mockup-header">
-                                    <div class="mockup-logo"></div>
-                                    <div class="mockup-profile"></div>
-                                </div>
-                                <div class="mockup-content">
-                                    <div class="mockup-name"></div>
-                                    <div class="mockup-title"></div>
-                                    <div class="mockup-description"></div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
+    <!-- Content Engine -->
+    <main id="app-root" style="padding-top: 80px;">
+
+        <!-- Module: Landing Page -->
+        <section id="view-home" class="view-content animate-in">
+            <div style="max-width: 1200px; margin: 0 auto; padding: 4rem 2rem; text-align: center;">
+                <h1 style="font-size: 5rem; margin-bottom: 2rem; line-height: 1;">Tu Identidad Digital de <span
+                        style="color:var(--accent)">Élite.</span></h1>
+                <p style="font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; margin: 0 auto 3rem;">
+                    Crea, gestiona y despliega perfiles profesionales de alto impacto con un solo clic. La herramienta
+                    definitiva para ejecutivos modernos.</p>
+                <div style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 5rem;">
+                    <button class="studio-module"
+                        style="background: var(--text-primary); color: white; padding: 1.5rem 4rem; font-size: 1rem; cursor: pointer; border: none; font-weight: 800; letter-spacing: 0.1em; border-radius: 50px;"
+                        onclick="Router.go('/admin')">PROBAR ESTUDIO</button>
+                    <button class="studio-module"
+                        style="background: var(--accent); color: white; padding: 1.5rem 4rem; font-size: 1rem; cursor: pointer; border: none; font-weight: 800; letter-spacing: 0.1em; border-radius: 50px;"
+                        onclick="UI.showAuth('register')">CREAR CUENTA EJECUTIVA</button>
                 </div>
 
-                <div class="creation-section" id="creationSection" style="display: none;">
-                    <div class="creation-container">
-                        <div class="form-column">
-                            <h2 id="formTitle">Crear Nueva Tarjeta</h2>
-                            <form id="cardForm" class="card-form">
-                                <div class="form-section">
-                                    <h3>Datos Personales y de Empresa</h3>
-                                    <div class="form-group">
-                                        <label for="name">Nombre Completo</label>
-                                        <input type="text" id="name" placeholder="Opcional">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="title">Título/Cargo</label>
-                                        <input type="text" id="title" placeholder="Opcional">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="company">Empresa</label>
-                                        <input type="text" id="company" placeholder="Opcional">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="description">Descripción</label>
-                                        <textarea id="description" placeholder="Opcional. Describe brevemente tu empresa o servicio."></textarea>
+                <!-- Showcase Section: Tarjetas de Presentación Profesional -->
+                <div class="showcase-grid"
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; text-align: left;">
+                    <div class="studio-module">
+                        <div
+                            style="height: 200px; background: #f0f4f8; border-radius: 12px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                            <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=500"
+                                style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <h4 style="font-weight: 800; margin-bottom: 0.5rem;">Presentación Corporativa</h4>
+                        <p style="font-size: 0.8rem; opacity: 0.7;">Identidad unificada para equipos ejecutivos,
+                            enfocada en la seriedad y el valor de marca.</p>
+                    </div>
+                    <div class="studio-module">
+                        <div
+                            style="height: 200px; background: #f0f4f8; border-radius: 12px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                            <img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=500"
+                                style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <h4 style="font-weight: 800; margin-bottom: 0.5rem;">Perfiles de Consultoría</h4>
+                        <p style="font-size: 0.8rem; opacity: 0.7;">Optimizado para transmitir confianza y experiencia
+                            técnica a primer golpe de vista.</p>
+                    </div>
+                    <div class="studio-module">
+                        <div
+                            style="height: 200px; background: #f0f4f8; border-radius: 12px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+                            <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&q=80&w=500"
+                                style="width: 100%; height: 100%; object-fit: cover;">
+                        </div>
+                        <h4 style="font-weight: 800; margin-bottom: 0.5rem;">Vanguardia Creativa</h4>
+                        <p style="font-size: 0.8rem; opacity: 0.7;">Para quienes rompen el molde: integración multimedia
+                            y diseño dinámico.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Module: Dashboard (My Cards) -->
+        <section id="view-dashboard" class="view-content hidden animate-in">
+            <div class="bento-container">
+                <header class="studio-module"
+                    style="grid-column: span 12; display: flex; justify-content: space-between; align-items: center;">
+                    <h2 style="font-size: 1.5rem; margin:0;">Centro de Comando</h2>
+                    <button class="tab-btn active" onclick="UI.clearStudio(); Router.go('/admin')"><i
+                            class="fas fa-plus mr-2"></i> NUEVA TARJETA</button>
+                </header>
+                <div id="dashboard-grid"
+                    style="grid-column: span 12; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
+                    <!-- Injected via Script -->
+                </div>
+            </div>
+        </section>
+
+        <!-- Module: Studio (Editor) -->
+        <section id="view-admin" class="view-content hidden">
+            <div class="bento-container animate-in">
+                <!-- Editor Left Rail -->
+                <div class="bento-editor">
+                    <form id="cardForm">
+                        <div class="studio-module" style="margin-bottom: 1.5rem;">
+                            <nav class="studio-tabs">
+                                <button type="button" class="tab-btn active"
+                                    onclick="UI.showTab(event, 'tab-info')">DATOS</button>
+                                <button type="button" class="tab-btn"
+                                    onclick="UI.showTab(event, 'tab-contact')">CONECTOR</button>
+                                <button type="button" class="tab-btn"
+                                    onclick="UI.showTab(event, 'tab-design')">ESTILO</button>
+                            </nav>
+
+                            <div id="tab-info" class="tab-content">
+                                <div class="input-group"><label>Nombre Completo</label><input type="text" name="name"
+                                        required></div>
+                                <div class="input-group"><label>Cargo / Título</label><input type="text" name="title"
+                                        required>
+                                </div>
+                                <div class="input-group"><label>Compañía / Marca</label><input type="text"
+                                        name="company"></div>
+                                <div class="input-group"><label>Descripción de la Empresa</label>
+                                    <textarea name="description" rows="3"
+                                        placeholder="Describe brevemente tu empresa o servicios..."></textarea>
+                                </div>
+                                <div class="input-group"><label>Dirección física / Oficina</label><input type="text"
+                                        name="address" placeholder="Ej: Calle 123, Ciudad"></div>
+                            </div>
+
+                            <div id="tab-contact" class="tab-content hidden">
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                                    <div class="input-group"><label>Email</label><input type="email" name="email"></div>
+                                    <div class="input-group"><label>Teléfono</label><input type="tel" name="phone">
                                     </div>
                                 </div>
-                                
-                                <div class="form-section">
-                                    <h3>Información de Contacto</h3>
-                                    <div class="form-group">
-                                        <label for="phone">Teléfono (WhatsApp)</label>
-                                        <input type="tel" id="phone" placeholder="Opcional. Ej: +57 123 456 7890">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="mobile">Móvil Adicional</label>
-                                        <input type="tel" id="mobile" placeholder="Opcional.">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="email">Email</label>
-                                        <input type="email" id="email" placeholder="Opcional.">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="address">Dirección Física</label>
-                                        <input type="text" id="address" placeholder="Opcional.">
-                                    </div>
+                                <div class="input-group"><label>Website</label><input type="url" name="website"></div>
+
+                                <span
+                                    style="font-size: 0.6rem; font-weight: 800; opacity: 0.3; letter-spacing: 0.2em; display: block; margin: 1rem 0;">REDES
+                                    SOCIALES</span>
+
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                                    <div class="input-group"><label>LinkedIn</label><input type="text" name="linkedin"
+                                            placeholder="usuario"></div>
+                                    <div class="input-group"><label>WhatsApp</label><input type="text" name="whatsapp"
+                                            placeholder="número"></div>
                                 </div>
-                                
-                                <div class="form-section">
-                                    <h3>Redes Sociales y Web</h3>
-                                    <div class="form-group">
-                                        <label for="website">Sitio Web / Enlace Principal</label>
-                                        <input type="url" id="website" placeholder="Opcional. Ej: https://miempresa.com">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="linkedin">LinkedIn URL</label>
-                                        <input type="url" id="linkedin" placeholder="Opcional.">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="facebook">Facebook URL</label>
-                                        <input type="url" id="facebook" placeholder="Opcional.">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="instagram">Instagram URL</label>
-                                        <input type="url" id="instagram" placeholder="Opcional.">
-                                    </div>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                                    <div class="input-group"><label>Instagram</label><input type="text" name="instagram"
+                                            placeholder="usuario"></div>
+                                    <div class="input-group"><label>Facebook</label><input type="text" name="facebook"
+                                            placeholder="usuario"></div>
                                 </div>
-                                
-                                <div class="form-section">
-                                    <h3>Diseño y Medios</h3>
-                                    <div class="form-group media-input-group">
-                                        <label>Logo de la Empresa</label>
-                                        <input type="file" id="logoUpload" accept="image/*">
-                                        <div class="image-preview" id="logoPreview" style="display: none;">
-                                            <img src="" alt="Logo Preview">
-                                            <button type="button" class="btn-remove" onclick="removeImage('logo')">Eliminar</button>
-                                        </div>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                                    <div class="input-group"><label>TikTok</label><input type="text" name="tiktok"
+                                            placeholder="usuario"></div>
+                                    <div class="input-group"><label>YouTube</label><input type="text" name="youtube"
+                                            placeholder="canal"></div>
+                                </div>
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                                    <div class="input-group"><label>Twitter (X)</label><input type="text" name="twitter"
+                                            placeholder="usuario"></div>
+                                    <div class="input-group"><label>GitHub</label><input type="text" name="github"
+                                            placeholder="usuario"></div>
+                                </div>
+                            </div>
+
+                            <div id="tab-design" class="tab-content hidden">
+                                <div class="input-group">
+                                    <label>Plantilla de Sistema</label>
+                                    <select name="template_id" id="template_id">
+                                        <option value="corporate">Corporate Blue (Elegante)</option>
+                                        <option value="minimal">Minimal White (Limpio)</option>
+                                        <option value="creative">Creative Dark (Moderno)</option>
+                                    </select>
+                                </div>
+
+                                <div class="input-group">
+                                    <label>O Subir Fondo como Plantilla (Imagen)</label>
+                                    <input type="file" id="bg_image" name="bg_image" accept="image/*">
+                                </div>
+
+                                <div class="input-group">
+                                    <label>Fuente (Tipografía)</label>
+                                    <select name="font_family">
+                                        <option value="'Plus Jakarta Sans', sans-serif">Jakarta Sans (Default)</option>
+                                        <option value="'Inter', sans-serif">Inter (Modern)</option>
+                                        <option value="'Playfair Display', serif">Playfair (Premium)</option>
+                                        <option value="'Roboto Mono', monospace">Roboto Mono (Tech)</option>
+                                    </select>
+                                </div>
+
+                                <div class="input-group">
+                                    <label>Importar Fuentes (Google Font URL)</label>
+                                    <input type="text" name="custom_fonts"
+                                        placeholder="https://fonts.googleapis.com/css2?family=...">
+                                </div>
+
+                                <div class="input-group">
+                                    <label>O Subir Archivo de Fuente (OTF, TTF)</label>
+                                    <input type="file" id="font_file" name="font_file" accept=".otf,.ttf,.woff,.woff2">
+                                </div>
+
+                                <div class="input-group">
+                                    <label>Importar Plantilla (Custom CSS)</label>
+                                    <textarea name="custom_css" rows="3"
+                                        placeholder=".card-preview { border: 5px solid red; } ..."></textarea>
+                                </div>
+
+                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem;">
+                                    <div class="input-group">
+                                        <label>Logo Empresa</label>
+                                        <input type="file" id="logo" name="logo" accept="image/*">
                                     </div>
-                                    <div class="form-group media-input-group">
+                                    <div class="input-group">
                                         <label>Foto de Perfil</label>
-                                        <input type="file" id="profileImageUpload" accept="image/*">
-                                        <div class="image-preview" id="profilePreview" style="display: none;">
-                                            <img src="" alt="Profile Preview">
-                                            <button type="button" class="btn-remove" onclick="removeImage('profile')">Eliminar</button>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="customization-grid">
-                                        <div class="form-group">
-                                            <label for="cardBackground">Color de Fondo</label>
-                                            <input type="color" id="cardBackground" value="#ffffff">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="accentColor">Color de Acento</label>
-                                            <input type="color" id="accentColor" value="#3498db">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="textPrimary">Color de Texto (Principal)</label>
-                                            <input type="color" id="textPrimary" value="#2c3e50">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="textSecondary">Color de Texto (Secundario)</label>
-                                            <input type="color" id="textSecondary" value="#7f8c8d">
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="profileShape">Forma de Perfil</label>
-                                            <select id="profileShape">
-                                                <option value="circular">Circular</option>
-                                                <option value="square">Cuadrado</option>
-                                            </select>
-                                        </div>
-                                        <div class="form-group">
-                                            <label for="fontFamily">Fuente</label>
-                                            <select id="fontFamily">
-                                                <option value="'Roboto', sans-serif">Roboto</option>
-                                                <option value="'Open Sans', sans-serif">Open Sans</option>
-                                                <option value="'Lato', sans-serif">Lato</option>
-                                                <option value="'Montserrat', sans-serif">Montserrat</option>
-                                                <option value="'Poppins', sans-serif">Poppins</option>
-                                                <option value="'Raleway', sans-serif">Raleway</option>
-                                                <option value="'Merriweather', serif">Merriweather</option>
-                                            </select>
-                                        </div>
+                                        <input type="file" id="profile" name="profile" accept="image/*">
                                     </div>
                                 </div>
-                                
-                                <div class="form-actions">
-                                    <button type="submit" class="btn btn-primary" id="submitButton">Crear Tarjeta</button>
-                                    <button type="button" class="btn btn-secondary" id="cancelEditButton" style="display: none;">Cancelar</button>
+
+                                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
+                                    <div class="input-group"><label>Marca</label><input type="color"
+                                            name="primary_color" id="primary_color" value="#2D5BFF"></div>
+                                    <div class="input-group"><label>Fondo</label><input type="color" name="bg_color"
+                                            value="#0B0F19"></div>
+                                    <div class="input-group"><label>Texto</label><input type="color" name="text_color"
+                                            value="#FFFFFF"></div>
                                 </div>
-                            </form>
-                        </div>
-                        
-                        <div class="preview-column">
-                            <h2>Vista Previa de la Tarjeta</h2>
-                            <div class="card-preview-container">
-                                <div class="card-preview" id="liveCardPreview">
-                                    </div>
                             </div>
-                            <div class="share-info">
-                                <h4>URL de Tarjeta (Después de crear/actualizar):</h4>
-                                <p id="customUrlDisplay">URL aparecerá aquí</p>
-                                <button type="button" class="btn btn-secondary btn-sm" id="copyUrlBtn" style="display: none;">Copiar URL</button>
+                        </div>
+                        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1rem;">
+                            <button type="submit" class="studio-module"
+                                style="width: 100%; cursor: pointer; background: var(--accent); color: white; border: none; font-weight: 800; padding: 1.5rem;">GUARDAR
+                                Y DESPLEGAR</button>
+                            <button type="button" id="btn-delete-card" class="studio-module hidden"
+                                style="width: 100%; cursor: pointer; background: #ff4444; color: white; border: none; font-weight: 800; padding: 1.5rem;"
+                                onclick="UI.deleteCurrentCard()">ELIMINAR</button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Live Preview Rail -->
+                <div class="bento-preview-box">
+                    <div class="studio-module"
+                        style="min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden;">
+                        <span
+                            style="position: absolute; top: 1.5rem; left: 1.5rem; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.3em; opacity: 0.5;">LIVE
+                            ENGINE</span>
+
+                        <!-- Success Feedback -->
+                        <div id="save-success" class="hidden animate-in"
+                            style="position: absolute; top: 4rem; left: 1.5rem; right: 1.5rem; background: var(--accent); color: white; padding: 1rem; border-radius: 12px; font-size: 0.7rem; font-weight: 800; text-align: center; z-index: 10;">
+                            ¡IDENTIDAD ACTUALIZADA EXITOSAMENTE!
+                        </div>
+
+                        <div id="card-preview" class="animate-in">
+                            <!-- Decorative Elements -->
+                            <div class="deco-circle c1"></div>
+                            <div class="deco-circle c2"></div>
+                            <div class="deco-circle c3"></div>
+                            <div class="deco-circle c4"></div>
+
+                            <div class="card-content">
+                                <!-- Company Brand (Top Left) -->
+                                <div class="company-brand-box">
+                                    <div
+                                        style="width:40px; height:40px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden;">
+                                        <img id="preview-logo-brand" src="/uploads/default_logo.png"
+                                            style="width:100%; height:100%; object-fit:cover; display:none;">
+                                        <i id="preview-logo-icon" class="fas fa-building"
+                                            style="color:var(--accent); font-size:1rem;"></i>
+                                    </div>
+                                    <div class="brand-text">HOLDING<br>EMPRESARIAL</div>
+                                </div>
+
+                                <!-- Photo Container (Top Right/Center) -->
+                                <div class="profile-container">
+                                    <div id="preview-logo-box">
+                                        <i class="fas fa-user"
+                                            style="opacity: 0.1; font-size: 4rem; color:var(--accent);"></i>
+                                    </div>
+                                </div>
+
+                                <div class="card-text-block">
+                                    <p id="preview-company">EMPRESA EJEMPLO</p>
+                                    <h2 id="preview-name">NOMBRE COMPLETO</h2>
+                                    <p id="preview-title">CARGO O TÍTULO</p>
+
+                                    <p id="preview-description" class="card-desc">Esta es tu descripción empresarial.
+                                        Aquí puedes resaltar tus valores, servicios y lo que te hace único en el
+                                        mercado.</p>
+
+                                    <div id="preview-contacts" class="contact-container">
+                                        <!-- Functional links will be injected here -->
+                                    </div>
+                                    <div id="preview-social" class="social-strip"></div>
+                                </div>
+                            </div>
+
+                            <!-- Bottom Wave Decoration -->
+                            <div class="bottom-wave"></div>
+                        </div>
+
+                        <div id="preview-qr" class="studio-module"
+                            style="position: absolute; bottom: 1.5rem; right: 1.5rem; padding: 0.5rem; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center;">
+                            <!-- QR placeholder -->
+                            <div style="text-align:center; opacity:0.3;">
+                                <i class="fas fa-qrcode"
+                                    style="font-size: 1.5rem; display:block; margin-bottom: 5px;"></i>
+                                <span style="font-size: 8px; font-weight:800;">GUARDAR PARA QR</span>
                             </div>
                         </div>
                     </div>
                 </div>
-            </section>
+            </div>
+        </section>
+    </main>
 
-            <section id="my-cards" class="section">
-                <h1>Mis Tarjetas</h1>
-                <p>Administra tus tarjetas de presentación digital.</p>
-                
-                <div class="table-container">
-                    <table class="cards-table">
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>URL</th>
-                                <th>Añadido</th>
-                                <th>Última actualización</th>
-                                <th>Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody id="cardsTableBody">
-                            </tbody>
-                    </table>
-                </div>
-            </section>
-
-            <section id="card-view" class="section">
-                <div id="cardDisplayContainer">
+    <!-- Module: Auth Dialogs -->
+    <div id="auth-modal" class="hidden auth-overlay">
+        <div class="studio-module auth-box">
+            <div id="auth-login">
+                <h3 style="margin-bottom: 2rem;">Acceso Ejecutivo</h3>
+                <form id="loginForm" onsubmit="Auth.handleLogin(event)">
+                    <div class="input-group"><label>Usuario</label><input type="text" id="login-user" required></div>
+                    <div class="input-group"><label>Contraseña</label><input type="password" id="login-pass" required>
                     </div>
-            </section>
+                    <button type="submit" class="studio-module"
+                        style="width: 100%; background: var(--accent); color: white; border:none; cursor: pointer; padding: 1rem;">ENTRAR</button>
+                    <p style="margin-top: 2rem; font-size: 0.8rem; text-align: center; opacity: 0.5;">¿Sin cuenta? <a
+                            href="#" onclick="UI.showAuth('register')">Registrarse</a></p>
+                </form>
+            </div>
+            <div id="auth-register" class="hidden">
+                <h3 style="margin-bottom: 2rem;">Registrar Identidad</h3>
+                <form id="registerForm" onsubmit="Auth.handleRegister(event)">
+                    <div class="input-group"><label>Nombre de Usuario</label><input type="text" id="reg-user" required>
+                    </div>
+                    <div class="input-group"><label>Contraseña</label><input type="password" id="reg-pass" required>
+                    </div>
+                    <button type="submit" class="studio-module"
+                        style="width: 100%; background: var(--text-primary); color: white; border:none; cursor: pointer; padding: 1rem;">CREAR
+                        CUENTA</button>
+                    <p style="margin-top: 2rem; font-size: 0.8rem; text-align: center; opacity: 0.5;">¿Ya tienes cuenta?
+                        <a href="#" onclick="UI.showAuth('login')">Volver al Login</a>
+                    </p>
+                </form>
+            </div>
+            <button onclick="UI.hideAuth()"
+                style="position: absolute; top: 1rem; right: 1rem; background:none; border:none; cursor: pointer; font-size: 1.25rem; opacity: 0.3;">&times;</button>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lz-string/1.4.4/lz-string.min.js"></script>
-    <script src="script.js"></script>
+    <!-- Standalone View (Public) -->
+    <div id="public-view" class="hidden"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="/script.js"></script>
 </body>
+
 </html>

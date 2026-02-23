@@ -1,19 +1,20 @@
-# TODO: Implementar Compartir Tarjetas entre Dispositivos con URLs Comprimidas
+# TODO - Corrección de errores en app.py e index.html - COMPLETADO ✅
 
-## Estado: Completado ✅
+## Errores corregidos:
 
-### 1. Cambiar sistema de compartir a URLs comprimidas
-- [x] Modificar saveCard para generar URLs con datos comprimidos en lugar de localStorage
-- [x] Actualizar findCardByUrl para descomprimir datos desde URLs
-- [x] Eliminar almacenamiento en localStorage para datos compartidos
-- [x] Mantener localStorage solo para lista de tarjetas del creador
+- [x] 1. index.html: Eliminar input duplicado de logo (Verificado)
+- [x] 2. index.html: Corregir estructura HTML del campo logo (Estructura bento limpia)
+- [x] 3. app.py: Corregir PRAGMA table_info - usar business_cards (plural)
+- [x] 4. app.py: Añadir validación de request.json en /api/auth/register
+- [x] 5. app.py: Añadir validación de request.json en /api/auth/login
+- [x] 6. app.py: Añadir validación de datos en save_card endpoint
+- [x] 7. app.py: Añadir validación de permisos en get_card endpoint
+- [x] 8. app.py: Corregir get_color de ColorThief (convertir tuple a list)
+- [x] 9. app.py: Añadir validación de Content-Type para requests JSON
 
-### 2. Incluir nombre de tarjeta en URL para legibilidad
-- [x] Generar URLs con nombre de tarjeta incluido (ej: #card-nombre-tarjeta-compressed-data)
-- [x] Actualizar updateCustomURL para mostrar URL real con nombre
-- [x] Asegurar que URLs sean compatibles con móviles y desktop
+## Mejoras Adicionales:
+- [x] Sincronización de base de datos mejorada (soporte para carpeta instance)
+- [x] Endpoint de API base relativo para mayor portabilidad
+- [x] Refactorización de modelos con __tablename__ explícito
 
-### 3. Verificar compatibilidad cross-device
-- [x] Sistema implementado con URLs comprimidas independientes de dispositivo
-- [x] URLs compatibles con móviles, tablets y desktop (formato universal)
-- [x] Datos mantenidos íntegros mediante compresión/descompresión LZString
+## Estado: COMPLETADO 100% 🚀

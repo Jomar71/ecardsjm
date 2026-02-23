@@ -1,588 +1,668 @@
-// CONFIGURACIÓN GLOBAL
-const CONFIG = {
-    PASSWORD: 'admin123',
-    SESSION_KEY: 'ecardsjm_session',
-    CARDS_KEY: 'ecardsjm_cards'
+/**
+ * EliteCards Pro - Executive Intelligence Kernel
+ * Multi-User Platform Engine 2026
+ */
+
+"use strict";
+
+const state = {
+    user: null,
+    cardId: null,
+    isPublicView: false,
+    logoPath: null,
+    profilePath: null,
+    bgImagePath: null,
+    fontFilePath: null,
+    archives: [],
+    API_BASE: ''
 };
 
-let currentUser = null;
-let cards = []; // Almacena la lista de tarjetas del usuario logueado (LOCALSTORAGE)
-let editingCardId = null; // ID de la tarjeta que se está editando
+const Router = {
+    go(path) {
+        console.log(`Router: Navigating to [${path}]`);
+        window.history.pushState({}, '', path);
+        this.render(path);
+    },
 
-// ----------------------------------------------------
-// INICIALIZACIÓN Y MANEJO DE EVENTOS
-// ----------------------------------------------------
+    render(path) {
+        const root = document.getElementById('app-root');
+        const pub = document.getElementById('public-view');
+        const header = document.getElementById('main-header');
 
-document.addEventListener('DOMContentLoaded', function() {
-    initializeApp();
-    window.addEventListener('hashchange', debounce(handleRoute, 100));
-    handleRoute(); // Manejar la ruta actual al cargar
-});
+        document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
 
-function initializeApp() {
-    checkSession();
-    loadCards(); // Cargar tarjetas al inicio
-    setupEventListeners();
-    setupDefaultDesign();
-    updateCardPreview();
-}
-
-function setupEventListeners() {
-    // 1. Navegación
-    document.querySelectorAll('.nav-link').forEach(link => {
-        link.addEventListener('click', (e) => {
-            e.preventDefault();
-            const target = link.dataset.target;
-            window.location.hash = target;
-        });
-    });
-    
-    // 2. Login/Logout
-    document.getElementById('loginForm').addEventListener('submit', login);
-    document.getElementById('logoutBtn').addEventListener('click', logout);
-    
-    // 3. Formulario
-    document.getElementById('cardForm').addEventListener('submit', saveCard);
-    document.getElementById('cancelEditButton').addEventListener('click', resetForm);
-    document.getElementById('startCreatingBtn').addEventListener('click', () => {
-        document.getElementById('creationSection').style.display = 'block';
-        document.getElementById('startCreatingBtn').style.display = 'none';
-        // Desplazarse al formulario
-        document.getElementById('creationSection').scrollIntoView({ behavior: 'smooth' });
-    });
-    
-    // 4. Vista Previa
-    document.querySelectorAll('#cardForm input, #cardForm textarea, #cardForm select').forEach(element => {
-        element.addEventListener('input', updateCardPreview);
-        element.addEventListener('change', updateCardPreview);
-    });
-
-    // 5. Imágenes (Simplificado, se asume que existe la lógica de base64)
-    document.getElementById('logoUpload').addEventListener('change', (e) => handleImageUpload(e, 'logo'));
-    document.getElementById('profileImageUpload').addEventListener('change', (e) => handleImageUpload(e, 'profile'));
-    
-    // 6. Botón de copiar URL
-    document.getElementById('copyUrlBtn').addEventListener('click', copyCardUrl);
-}
-
-
-// ----------------------------------------------------
-// MANEJO DE SESIÓN Y VISTAS
-// ----------------------------------------------------
-
-function checkSession() {
-    const session = sessionStorage.getItem(CONFIG.SESSION_KEY);
-    currentUser = session ? JSON.parse(session) : { loggedIn: false };
-
-    if (currentUser.loggedIn) {
-        showApp();
-    } else {
-        showLogin();
-    }
-}
-
-function login(e) {
-    e.preventDefault();
-    const password = document.getElementById('password').value;
-
-    if (password === CONFIG.PASSWORD) {
-        currentUser = { loggedIn: true };
-        sessionStorage.setItem(CONFIG.SESSION_KEY, JSON.stringify(currentUser));
-        showApp();
-        showNotification('Acceso concedido. ¡Bienvenido!', 'success');
-        handleRoute();
-    } else {
-        showNotification('Contraseña incorrecta.', 'error');
-    }
-}
-
-function logout() {
-    sessionStorage.removeItem(CONFIG.SESSION_KEY);
-    currentUser = { loggedIn: false };
-    showLogin();
-    window.location.hash = '';
-    showNotification('Sesión cerrada.', 'info');
-}
-
-function showLogin() {
-    document.getElementById('loginScreen').style.display = 'flex';
-    document.getElementById('app').style.display = 'none';
-    document.getElementById('card-view').style.display = 'none';
-}
-
-function showApp() {
-    document.getElementById('loginScreen').style.display = 'none';
-    document.getElementById('app').style.display = 'block';
-    document.getElementById('card-view').style.display = 'none';
-}
-
-function showAdminSection(sectionId) {
-    document.querySelectorAll('.section').forEach(section => section.style.display = 'none');
-    document.getElementById(sectionId).style.display = 'block';
-    
-    document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
-    document.querySelector(`[data-target="${sectionId.replace('my-cards', 'my-cards')}"]`).classList.add('active'); // Ajuste para el link de navegación
-    
-    // Si se está en Mis Tarjetas, cargar la tabla
-    if (sectionId === 'my-cards') {
-        loadCards();
-        updateCardsTable();
-    }
-    
-    document.getElementById('card-view').style.display = 'none';
-    showApp();
-}
-
-// ----------------------------------------------------
-// MANEJO DE RUTAS Y LINKS (SOLUCIÓN DE COMPATIBILIDAD)
-// ----------------------------------------------------
-
-function handleRoute() {
-    const hash = window.location.hash.substring(1);
-    const cardView = document.getElementById('card-view');
-    const appView = document.getElementById('app');
-
-    if (hash.startsWith('card-')) {
-        // Modo Vista Pública de Tarjeta
-        const card = findCardByUrl(hash);
-        if (card) {
-            document.getElementById('loginScreen').style.display = 'none';
-            appView.style.display = 'none';
-            cardView.style.display = 'block';
-            renderCardForIndividualView(card);
+        if (path.startsWith('/card/')) {
+            state.isPublicView = true;
+            if (pub) pub.classList.remove('hidden');
+            if (root) root.classList.add('hidden');
+            if (header) header.classList.add('hidden');
+            const id = path.split('/').pop();
+            UI.loadPublicCard(id);
             return;
+        }
+
+        state.isPublicView = false;
+        if (root) root.classList.remove('hidden');
+        if (pub) pub.classList.add('hidden');
+        if (header) header.classList.remove('hidden');
+        document.body.style.backgroundColor = ''; // Restore default
+
+        if (path === '/admin') {
+            document.getElementById('view-admin')?.classList.remove('hidden');
+            const delBtn = document.getElementById('btn-delete-card');
+            if (state.cardId) delBtn?.classList.remove('hidden');
+            else delBtn?.classList.add('hidden');
+        } else if (path === '/dashboard') {
+            document.getElementById('view-dashboard')?.classList.remove('hidden');
+            UI.loadDashboard();
         } else {
-             // Si el link es inválido, redirigir a la página principal
-             window.location.hash = 'home';
+            document.getElementById('view-home')?.classList.remove('hidden');
         }
     }
-    
-    // Modo Administración
-    if (currentUser && currentUser.loggedIn) {
-        if (!hash || hash === 'home' || hash.startsWith('card-')) {
-            showAdminSection('home');
-        } else if (hash === 'my-cards') {
-            showAdminSection('my-cards');
-        }
-    } else {
-        showLogin();
+};
+
+const Auth = {
+    async check() {
+        try {
+            const res = await fetch(`${state.API_BASE}/api/auth/me`, { credentials: 'include' });
+            if (res.ok) {
+                const data = await res.json();
+                this.onLogin(data.user);
+            }
+        } catch (e) { console.log("Auth: Runtime Guest Mode."); }
+    },
+
+    async handleLogin(e) {
+        e.preventDefault();
+        const user = document.getElementById('login-user').value;
+        const pass = document.getElementById('login-pass').value;
+        try {
+            const res = await fetch(`${state.API_BASE}/api/auth/login`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ username: user, password: pass })
+            });
+            if (res.ok) {
+                const data = await res.json();
+                this.onLogin(data.user);
+                UI.hideAuth();
+                Router.go('/dashboard');
+            } else { alert("CREDENCIALES INVÁLIDAS."); }
+        } catch (err) { alert("SISTEMA AUTH OFFLINE."); }
+    },
+
+    async handleRegister(e) {
+        e.preventDefault();
+        const user = document.getElementById('reg-user').value;
+        const pass = document.getElementById('reg-pass').value;
+        try {
+            const res = await fetch(`${state.API_BASE}/api/auth/register`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                credentials: 'include',
+                body: JSON.stringify({ username: user, password: pass })
+            });
+            if (res.ok) {
+                alert("REGISTRO EXITOSO. INICIA SESIÓN.");
+                UI.showAuth('login');
+            } else { alert("USUARIO EXISTENTE."); }
+        } catch (err) { alert("ERROR DE REGISTRO."); }
+    },
+
+    async logout() {
+        await fetch(`${state.API_BASE}/api/auth/logout`, { credentials: 'include' });
+        state.user = null;
+        document.getElementById('auth-nav-guest').classList.remove('hidden');
+        document.getElementById('auth-nav-user').classList.add('hidden');
+        Router.go('/');
+    },
+
+    onLogin(user) {
+        state.user = user;
+        document.getElementById('auth-nav-guest').classList.add('hidden');
+        document.getElementById('auth-nav-user').classList.remove('hidden');
+        document.getElementById('nav-username').textContent = user.username.toUpperCase();
     }
-}
+};
 
-function findCardByUrl(url) {
-    if (!url || !url.startsWith('card-')) return null;
-
-    try {
-        // La URL debe ser #card-nombre-tarjeta__DATOSCOMPRIMIDOS
-        const parts = url.substring(5).split('__');
-        
-        if (parts.length !== 2) {
-             // La parte de datos comprimidos es esencial
-            return null;
-        }
-
-        const compressedData = parts[1];
-        if (!compressedData) return null;
-
-        // Descomprimir datos con LZString
-        const decompressed = LZString.decompressFromEncodedURIComponent(compressedData);
-        if (!decompressed) return null;
-
-        const decoded = JSON.parse(decompressed);
-        return decoded;
-
-    } catch (e) {
-        console.error('Error al cargar tarjeta desde URL comprimida:', e);
-        showNotification('Error: El link de la tarjeta está corrupto o es inválido.', 'error', 5000);
-        return null;
-    }
-}
-
-// ----------------------------------------------------
-// FUNCIONES DE GESTIÓN DE TARJETAS (CRUD LOCAL - SOLUCIÓN BOTONES)
-// ----------------------------------------------------
-
-function loadCards() {
-    const storedCards = localStorage.getItem(CONFIG.CARDS_KEY);
-    try {
-        cards = storedCards ? JSON.parse(storedCards) : [];
-        if (!Array.isArray(cards)) cards = [];
-    } catch (e) {
-        console.error('Error al cargar tarjetas de localStorage:', e);
-        cards = [];
-    }
-}
-
-function saveCard(e) {
-    e.preventDefault();
-    const formData = getFormData();
-    
-    // 1. Validar nombre
-    if (!formData.name) {
-        showNotification('El nombre es obligatorio para crear la tarjeta.', 'error');
-        return;
-    }
-    
-    const now = new Date().toISOString();
-    let cardData = { ...formData };
-    
-    if (editingCardId) {
-        // MODO EDICIÓN
-        cardData.id = editingCardId;
-        const existingCard = cards.find(c => c.id === editingCardId);
-        if (existingCard) {
-            // Mantener datos originales de imágenes y fecha de creación si existen
-            cardData.logo = cardData.logo || existingCard.logo;
-            cardData.profileImage = cardData.profileImage || existingCard.profileImage;
-            cardData.addedAt = existingCard.addedAt; 
-        }
-        cardData.lastUpdated = now;
-
-        cards = cards.map(c => c.id === editingCardId ? cardData : c);
-        showNotification('Tarjeta actualizada correctamente. ¡Link listo para compartir!', 'success');
-    } else {
-        // MODO CREACIÓN
-        cardData.id = Date.now().toString(); // ID único simple
-        cardData.addedAt = now;
-        cardData.lastUpdated = now;
-        cards.push(cardData);
-        showNotification('Tarjeta creada correctamente. ¡Link listo para compartir!', 'success');
-    }
-    
-    // 2. Guardar en localStorage
-    localStorage.setItem(CONFIG.CARDS_KEY, JSON.stringify(cards));
-    
-    // 3. Generar URL compartible
-    const compressedData = LZString.compressToEncodedURIComponent(JSON.stringify(cardData));
-    const urlName = cardData.name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
-    const fullUrl = `${window.location.origin}${window.location.pathname}#card-${urlName}__${compressedData}`;
-    
-    // 4. Mostrar URL generada y botón de copiar (MEJORA VISUAL)
-    document.getElementById('customUrlDisplay').textContent = `${window.location.origin}${window.location.pathname}#card-${urlName}... (Link largo)`;
-    document.getElementById('copyUrlBtn').style.display = 'inline-block';
-    document.getElementById('copyUrlBtn').dataset.url = fullUrl; // Almacenar el link completo
-
-    resetForm(); 
-    updateCardsTable(); // Actualizar la tabla de Mis Tarjetas
-    
-    // Volver al modo edición si se actualizó, para que el usuario pueda copiar el link
-    if (editingCardId) {
-        editCard(cardData.id, false); // Vuelve al formulario, sin notificación, para mostrar el link
-        document.getElementById('formTitle').textContent = 'Tarjeta Actualizada';
-    }
-}
-
-
-function updateCardsTable() {
-    const tableBody = document.getElementById('cardsTableBody');
-    if (!tableBody) return;
-
-    loadCards(); 
-
-    if (cards.length === 0) {
-        tableBody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 20px;">No tienes tarjetas creadas.</td></tr>';
-        return;
-    }
-
-    let rowsHtml = '';
-    cards.forEach(card => {
-        if (!card.id) return; 
-        
-        // 1. Generar el URL COMPLETO
-        const compressedData = LZString.compressToEncodedURIComponent(JSON.stringify(card));
-        const urlName = (card.name || 'tarjeta').toLowerCase().replace(/\s+/g, '-').replace(/[^\w-]+/g, '');
-        const fullUrl = `${window.location.origin}${window.location.pathname}#card-${urlName}__${compressedData}`;
-
-        // 2. Generar el link "limpio" para mostrar en la tabla (SOLUCIÓN VISUAL)
-        const displayUrl = `${window.location.origin}${window.location.pathname}#card-${urlName}`;
-
-        rowsHtml += `
-            <tr>
-                <td>${card.name || 'Sin Nombre'}</td>
-                <td>
-                    <a href="${fullUrl}" target="_blank" title="Link completo: ${fullUrl}">
-                        ${displayUrl}
-                    </a>
-                </td>
-                <td>${card.addedAt ? new Date(card.addedAt).toLocaleDateString() : 'N/A'}</td>
-                <td>${card.lastUpdated ? new Date(card.lastUpdated).toLocaleDateString() : 'N/A'}</td>
-                <td>
-                    <button class="btn btn-secondary btn-sm" onclick="window.editCard('${card.id}')">
-                        Editar
-                    </button>
-                    <button class="btn btn-danger btn-sm" onclick="window.deleteCard('${card.id}')">
-                        Eliminar
-                    </button>
-                </td>
-            </tr>
-        `;
-    });
-
-    tableBody.innerHTML = rowsHtml;
-}
-
-// Función para cargar los datos de una tarjeta en el formulario (para editar)
-function editCard(id, notify = true) {
-    const cardToEdit = cards.find(card => card.id === id);
-    if (!cardToEdit) {
-        if (notify) showNotification('Tarjeta no encontrada para editar.', 'error');
-        return;
-    }
-
-    // 1. Mostrar la sección de Inicio (formulario)
-    showAdminSection('home'); 
-    document.getElementById('creationSection').style.display = 'block';
-    
-    // 2. Llenar el formulario con los datos de la tarjeta
-    document.getElementById('name').value = cardToEdit.name || '';
-    document.getElementById('title').value = cardToEdit.title || '';
-    document.getElementById('company').value = cardToEdit.company || '';
-    document.getElementById('description').value = cardToEdit.description || '';
-    document.getElementById('phone').value = cardToEdit.phone || '';
-    document.getElementById('mobile').value = cardToEdit.mobile || '';
-    document.getElementById('email').value = cardToEdit.email || '';
-    document.getElementById('address').value = cardToEdit.address || '';
-    document.getElementById('website').value = cardToEdit.website || '';
-    document.getElementById('linkedin').value = cardToEdit.linkedin || '';
-    document.getElementById('facebook').value = cardToEdit.facebook || '';
-    document.getElementById('instagram').value = cardToEdit.instagram || ''; 
-
-    // Llenar datos de diseño
-    if (cardToEdit.design) {
-        document.getElementById('cardBackground').value = cardToEdit.design.cardBackground || '#ffffff';
-        document.getElementById('accentColor').value = cardToEdit.design.accentColor || '#3498db';
-        document.getElementById('textPrimary').value = cardToEdit.design.textPrimary || '#2c3e50';
-        document.getElementById('textSecondary').value = cardToEdit.design.textSecondary || '#7f8c8d';
-        document.getElementById('profileShape').value = cardToEdit.design.profileShape || 'circular';
-        document.getElementById('fontFamily').value = cardToEdit.design.fontFamily || "'Roboto', sans-serif";
-    }
-    
-    // Nota: La lógica para cargar las imágenes (logo y perfil) de base64 está omitida por ser compleja y no la fuente del error.
-    // Asume que si cardToEdit.logo o cardToEdit.profileImage tienen un valor base64, se carga en el preview.
-
-    // 3. Establecer el ID de edición
-    editingCardId = id;
-    
-    // 4. Ajustar la UI para el modo edición
-    document.getElementById('formTitle').textContent = 'Editar Tarjeta Existente';
-    document.getElementById('submitButton').textContent = 'Actualizar Tarjeta'; // Aparecerá como "Actualizar"
-    document.getElementById('cancelEditButton').style.display = 'inline-block';
-    
-    // 5. Actualizar vista previa
-    updateCardPreview();
-    
-    if (notify) showNotification(`Cargando tarjeta "${cardToEdit.name}" para edición.`, 'info');
-}
-
-// Función para eliminar una tarjeta (SOLUCIÓN BOTONES)
-function deleteCard(id) {
-    if (confirm('¿Estás seguro de que quieres eliminar esta tarjeta? Esta acción es irreversible.')) {
-        cards = cards.filter(card => card.id !== id);
-        localStorage.setItem(CONFIG.CARDS_KEY, JSON.stringify(cards));
-        updateCardsTable();
-        showNotification('Tarjeta eliminada correctamente.', 'success');
-        
-        // Si se estaba editando la tarjeta eliminada, limpiar el formulario
-        if (editingCardId === id) {
-            resetForm();
-        }
-    }
-}
-
-// ----------------------------------------------------
-// FUNCIONES AUXILIARES Y DE UI (Se asume su existencia y se incluye la básica)
-// ----------------------------------------------------
-
-function getFormData() {
-    // FUNCIÓN ASUMIDA: Recopila los datos del formulario y los devuelve como un objeto.
-    const data = {
-        // Datos principales
-        name: document.getElementById('name').value,
-        title: document.getElementById('title').value,
-        company: document.getElementById('company').value,
-        description: document.getElementById('description').value,
-        // Contacto
-        phone: document.getElementById('phone').value,
-        mobile: document.getElementById('mobile').value,
-        email: document.getElementById('email').value,
-        address: document.getElementById('address').value,
-        // Redes
-        website: document.getElementById('website').value,
-        linkedin: document.getElementById('linkedin').value,
-        facebook: document.getElementById('facebook').value,
-        instagram: document.getElementById('instagram').value,
-        // Imágenes (se asume que se almacenan en variables o en el DOM)
-        logo: document.getElementById('logoPreview').querySelector('img')?.src || null,
-        profileImage: document.getElementById('profilePreview').querySelector('img')?.src || null,
-        // Diseño
-        design: {
-            cardBackground: document.getElementById('cardBackground').value,
-            accentColor: document.getElementById('accentColor').value,
-            textPrimary: document.getElementById('textPrimary').value,
-            textSecondary: document.getElementById('textSecondary').value,
-            profileShape: document.getElementById('profileShape').value,
-            fontFamily: document.getElementById('fontFamily').value,
-        }
-    };
-    return data;
-}
-
-function updateCardPreview() {
-    // FUNCIÓN ASUMIDA: Actualiza la vista previa de la tarjeta con los datos del formulario.
-    const data = getFormData();
-    const preview = document.getElementById('liveCardPreview');
-    
-    // Aplicar estilos de diseño
-    preview.style.backgroundColor = data.design.cardBackground;
-    preview.style.fontFamily = data.design.fontFamily;
-    preview.style.setProperty('--accentColor', data.design.accentColor);
-    preview.style.setProperty('--textPrimary', data.design.textPrimary);
-    preview.style.setProperty('--textSecondary', data.design.textSecondary);
-    
-    preview.className = `card-preview ${data.design.profileShape}`;
-    
-    // Contenido HTML de la vista previa
-    let htmlContent = `
-        ${data.logo ? `<img src="${data.logo}" class="logo-image" alt="Logo">` : ''}
-        ${data.profileImage ? `<img src="${data.profileImage}" class="profile-image" alt="Profile">` : ''}
-        
-        <h2>${data.name || 'Nombre Apellido'}</h2>
-        <h3>${data.title || 'Título / Cargo'}</h3>
-        <p>${data.company || 'Empresa'}</p>
-        <p style="font-size: 0.8rem; margin-top: 10px; padding: 0 10px;">${data.description || 'Aquí puedes poner una breve descripción de tu empresa o servicios.'}</p>
-        
-        <div class="contact-buttons">
-            ${data.phone ? `<a href="https://wa.me/${data.phone.replace(/[^\d+]/g, '')}" target="_blank">WhatsApp</a>` : ''}
-            ${data.email ? `<a href="mailto:${data.email}">Email</a>` : ''}
-            ${data.address ? `<a href="https://maps.google.com/?q=${encodeURIComponent(data.address)}" target="_blank">Ubicación</a>` : ''}
-        </div>
-        
-        <div class="social-icons">
-            ${data.website ? `<a href="${data.website}" target="_blank">Web</a>` : ''}
-            ${data.linkedin ? `<a href="${data.linkedin}" target="_blank">LinkedIn</a>` : ''}
-            ${data.facebook ? `<a href="${data.facebook}" target="_blank">Facebook</a>` : ''}
-            ${data.instagram ? `<a href="${data.instagram}" target="_blank">Instagram</a>` : ''}
-        </div>
-    `;
-    
-    preview.innerHTML = htmlContent;
-}
-
-
-function renderCardForIndividualView(cardData) {
-    // FUNCIÓN ASUMIDA: Renderiza la tarjeta en la vista pública (#card-view).
-    const container = document.getElementById('cardDisplayContainer');
-    // ... Código para generar el HTML final de la tarjeta pública con cardData ...
-    
-    // Por simplicidad, usamos la misma función de preview pero ajustamos los estilos globales
-    const cardHtml = `<div class="card-preview public-view" id="publicCard"></div>`;
-    container.innerHTML = cardHtml;
-    const publicCard = document.getElementById('publicCard');
-    
-    // Reaplicar estilos de diseño y contenido de cardData en publicCard...
-    
-    // Estilos para la vista pública (para simular el look final)
-    publicCard.style.width = '350px';
-    publicCard.style.height = 'auto'; 
-    publicCard.style.padding = '30px 20px';
-    publicCard.style.marginTop = '20px'; 
-    publicCard.style.boxShadow = '0 15px 30px rgba(0,0,0,0.2)';
-    
-    // Se llama a updateCardPreview con los datos de la tarjeta para renderizar
-    // Nota: Esto requiere que adaptes tu función de preview para aceptar un objeto de datos.
-}
-
-function setupDefaultDesign() {
-    // FUNCIÓN ASUMIDA: Establece los valores de diseño por defecto al cargar/resetear.
-    // Esto se hace automáticamente con .reset() y los valores iniciales de los inputs.
-}
-
-function handleImageUpload(e, type) {
-    // FUNCIÓN ASUMIDA: Maneja la carga de imágenes y las convierte a Base64.
-    const file = e.target.files[0];
-    if (file) {
-        const reader = new FileReader();
-        reader.onload = function(event) {
-            const previewId = type === 'logo' ? 'logoPreview' : 'profilePreview';
-            const preview = document.getElementById(previewId);
-            
-            preview.querySelector('img').src = event.target.result;
-            preview.style.display = 'block';
-            updateCardPreview();
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function removeImage(type) {
-    // FUNCIÓN ASUMIDA: Elimina la imagen y limpia el input/preview.
-    const inputId = type === 'logo' ? 'logoUpload' : 'profileImageUpload';
-    const previewId = type === 'logo' ? 'logoPreview' : 'profilePreview';
-    
-    document.getElementById(inputId).value = ''; // Limpiar el input file
-    document.getElementById(previewId).style.display = 'none';
-    document.getElementById(previewId).querySelector('img').src = '';
-    updateCardPreview();
-}
-
-function resetForm() {
-    document.getElementById('cardForm').reset();
-    editingCardId = null;
-    
-    setupDefaultDesign(); // Restablecer diseño por defecto
-    
-    // Ocultar vistas previas de imágenes
-    document.getElementById('logoPreview').style.display = 'none';
-    document.getElementById('profilePreview').style.display = 'none';
-    
-    // Restablecer UI
-    document.getElementById('formTitle').textContent = 'Crear Nueva Tarjeta';
-    document.getElementById('cancelEditButton').style.display = 'none';
-    document.getElementById('submitButton').textContent = 'Crear Tarjeta';
-    document.getElementById('customUrlDisplay').textContent = 'URL aparecerá aquí';
-    document.getElementById('copyUrlBtn').style.display = 'none';
-    
-    updateCardPreview();
-}
-
-function showNotification(message, type = 'info', duration = 4000) {
-    const notification = document.createElement('div');
-    notification.className = `notification ${type}`;
-    notification.textContent = message;
-    document.body.appendChild(notification);
-
-    setTimeout(() => {
-        notification.style.opacity = '0';
-        setTimeout(() => notification.remove(), 300);
-    }, duration);
-}
-
-function copyCardUrl() {
-    const url = document.getElementById('copyUrlBtn').dataset.url;
-    if (url) {
-        navigator.clipboard.writeText(url).then(() => {
-            showNotification('URL copiada al portapapeles. ¡Lista para compartir!', 'success');
-        }).catch(err => {
-            console.error('Error al copiar URL:', err);
-            showNotification('Error al copiar. Copia manualmente la URL de abajo.', 'error');
+const UI = {
+    init() {
+        this.cacheDOM();
+        this.setupEventListeners();
+        Auth.check().finally(() => {
+            Router.render(window.location.pathname);
+            if (!state.isPublicView) this.updatePreview();
+            if (this.loader) this.loader.classList.add('hidden');
         });
-    }
-}
+    },
 
-function debounce(func, wait) {
-    let timeout;
-    return function executedFunction(...args) {
-        const later = () => {
-            clearTimeout(timeout);
-            func(...args);
+    cacheDOM() {
+        this.form = document.getElementById('cardForm');
+        this.preview = document.getElementById('card-preview');
+        this.loader = document.getElementById('loader');
+        this.qrContainer = document.getElementById('preview-qr');
+        this.contactsBox = document.getElementById('preview-contacts');
+        this.socialBox = document.getElementById('preview-social');
+        this.publicView = document.getElementById('public-view');
+        this.dashboardGrid = document.getElementById('dashboard-grid');
+        const delBtn = document.getElementById('btn-delete-card');
+        if (state.cardId) delBtn?.classList.remove('hidden');
+        else delBtn?.classList.add('hidden');
+
+        this.successBanner = document.getElementById('save-success');
+    },
+
+    setupEventListeners() {
+        window.addEventListener('popstate', () => Router.render(window.location.pathname));
+        if (this.form) {
+            this.form.addEventListener('input', () => this.updatePreview());
+            this.form.onsubmit = (e) => this.handleSubmit(e);
+        }
+        document.getElementById('logo')?.addEventListener('change', (e) => this.handleFileUpload(e, 'logoPath'));
+        document.getElementById('profile')?.addEventListener('change', (e) => this.handleFileUpload(e, 'profilePath'));
+        document.getElementById('bg_image')?.addEventListener('change', (e) => this.handleFileUpload(e, 'bgImagePath'));
+        document.getElementById('font_file')?.addEventListener('change', (e) => this.handleFontFile(e));
+    },
+
+    showTab(event, tabId) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+        document.getElementById(tabId)?.classList.remove('hidden');
+        if (event) event.currentTarget.classList.add('active');
+    },
+
+    showAuth(mode) {
+        document.getElementById('auth-modal').classList.remove('hidden');
+        document.getElementById('auth-login').classList.toggle('hidden', mode === 'register');
+        document.getElementById('auth-register').classList.toggle('hidden', mode === 'login');
+    },
+
+    hideAuth() { document.getElementById('auth-modal').classList.add('hidden'); },
+
+    clearStudio() {
+        state.cardId = null;
+        state.logoPath = null;
+        if (this.form) this.form.reset();
+        this.updatePreview();
+        if (this.qrContainer) this.qrContainer.innerHTML = `
+            <div style="text-align:center; opacity:0.3;">
+                <i class="fas fa-qrcode" style="font-size: 1.5rem; display:block; margin-bottom: 5px;"></i>
+                <span style="font-size: 8px; font-weight:800;">GUARDAR PARA QR</span>
+            </div>`;
+    },
+
+    async loadDashboard() {
+        if (!this.dashboardGrid) return;
+        this.dashboardGrid.innerHTML = '<p style="opacity:0.5; padding: 2rem; text-align: center;">Sincronizando...</p>';
+        try {
+            const res = await fetch(`${state.API_BASE}/api/cards`, { credentials: 'include' });
+            const cards = await res.json();
+            this.dashboardGrid.innerHTML = '';
+            if (cards.length === 0) {
+                this.dashboardGrid.innerHTML = '<div class="studio-module" style="grid-column: 1/-1; padding: 4rem; text-align: center; opacity: 0.5;">Aún no has creado identidades.</div>';
+                return;
+            }
+            cards.forEach(card => {
+                const item = document.createElement('div');
+                item.className = 'studio-module animate-in';
+                item.style.padding = '1.5rem';
+                const pubLink = `${state.API_BASE}/card/${card.id}`;
+                item.innerHTML = `
+                    <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
+                        <div style="width: 45px; height: 45px; border-radius: 12px; background: ${card.primary_color}; display: flex; align-items: center; justify-content: center; color: white; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);">
+                            ${card.logo_path ? `<img src="${state.API_BASE}/uploads/${card.logo_path}" style="width:100%; height:100%; object-fit:contain;">` : '<i class="fas fa-user-tie"></i>'}
+                        </div>
+                        <div style="flex:1">
+                            <h4 style="margin:0; font-size: 0.8rem; font-weight: 800;">${(card.name || 'SIN NOMBRE').toUpperCase()}</h4>
+                        </div>
+                    </div>
+                    <div style="display: flex; gap: 0.75rem;">
+                        <button class="tab-btn active" style="font-size: 0.6rem; flex: 1; padding: 0.75rem;" onclick="UI.editCard('${card.id}')">EDITAR</button>
+                        <button class="tab-btn" style="font-size: 0.6rem; padding: 0.75rem 1rem;" onclick="UI.copyLink('${pubLink}')"><i class="fas fa-copy"></i></button>
+                        <button class="tab-btn" style="font-size: 0.6rem; padding: 0.75rem 1rem;" onclick="window.open('${pubLink}', '_blank')"><i class="fas fa-external-link-alt"></i></button>
+                    </div>
+                `;
+                this.dashboardGrid.appendChild(item);
+            });
+        } catch (e) { this.dashboardGrid.innerHTML = '<p>SISTEMA OFFLINE</p>'; }
+    },
+
+    async editCard(id) {
+        try {
+            const res = await fetch(`${state.API_BASE}/api/cards/${id}`, { credentials: 'include' });
+            const card = await res.json();
+            state.cardId = card.id;
+            state.logoPath = card.logo_path ? `/uploads/${card.logo_path}` : null;
+            state.profilePath = card.profile_path ? `/uploads/${card.profile_path}` : null;
+            state.bgImagePath = card.bg_image_path ? `/uploads/${card.bg_image_path}` : null;
+            state.fontFilePath = card.font_file_path ? `/uploads/${card.font_file_path}` : null;
+            if (this.form) {
+                Object.entries(card).forEach(([key, val]) => {
+                    const input = this.form.elements[key];
+                    if (input && input.type !== 'file') input.value = val || '';
+                });
+            }
+            this.updatePreview();
+            Router.go('/admin');
+            this.generateQR(`${window.location.origin}/card/${state.cardId}`);
+        } catch (e) { alert("ERROR AL CARGAR."); }
+    },
+
+    async handleSubmit(e) {
+        e.preventDefault();
+        if (this.loader) this.loader.classList.remove('hidden');
+        try {
+            const formData = new FormData(this.form);
+            if (state.cardId) formData.append('id', state.cardId);
+            const res = await fetch(`${state.API_BASE}/api/cards`, { method: 'POST', credentials: 'include', body: formData });
+            const result = await res.json();
+            if (result.status === 'success') {
+                state.cardId = result.card.id;
+                if (this.successBanner) {
+                    this.successBanner.classList.remove('hidden');
+                    setTimeout(() => this.successBanner.classList.add('hidden'), 3500);
+                }
+                this.generateQR(`${window.location.origin}/card/${state.cardId}`);
+                setTimeout(() => Router.go('/dashboard'), 2000);
+            }
+        } catch (err) { alert("ERROR DE DESPLIEGUE."); }
+        finally { if (this.loader) this.loader.classList.add('hidden'); }
+    },
+
+    handleFileUpload(e, targetPath) {
+        const file = e.target.files[0];
+        if (!file) return;
+        state[targetPath] = URL.createObjectURL(file);
+        this.updatePreview();
+    },
+
+    handleFontFile(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+        state.fontFilePath = URL.createObjectURL(file);
+        this.updatePreview();
+    },
+
+    isLightColor(hex) {
+        if (!hex || hex === 'transparent') return false;
+        const r = parseInt(hex.slice(1, 3), 16);
+        const g = parseInt(hex.slice(3, 5), 16);
+        const b = parseInt(hex.slice(5, 7), 16);
+        const brightness = (r * 299 + g * 587 + b * 114) / 1000;
+        return brightness > 155;
+    },
+
+    async deleteCurrentCard() {
+        if (!state.cardId) return;
+        if (!confirm("¿ESTÁS SEGURO DE ELIMINAR ESTA IDENTIDAD? ESTA ACCIÓN ES IRREVERSIBLE.")) return;
+
+        try {
+            const res = await fetch(`${state.API_BASE}/api/cards/${state.cardId}`, { method: 'DELETE', credentials: 'include' });
+            if (res.ok) {
+                alert("IDENTIDAD ELIMINADA.");
+                Router.go('/dashboard');
+            }
+        } catch (e) { alert("ERROR AL ELIMINAR."); }
+    },
+
+    copyLink(url) {
+        navigator.clipboard.writeText(url).then(() => {
+            alert("LINK COPIADO AL PORTAPAPELES");
+        });
+    },
+
+    // --- Core Engine: Multi-Template Hybrid Rendering ---
+    updatePreview(customData = null) {
+        const data = customData || (this.form ? Object.fromEntries(new FormData(this.form).entries()) : {});
+        const n = document.getElementById('preview-name');
+        const t = document.getElementById('preview-title');
+        const c = document.getElementById('preview-company');
+        const d = document.getElementById('preview-description');
+        const preview = document.getElementById('card-preview');
+
+        if (n) n.textContent = (data.name || 'NOMBRE COMPLETO').toUpperCase();
+        if (t) t.textContent = (data.title || 'CARGO O TÍTULO').toUpperCase();
+        if (c) c.textContent = (data.company || 'EMPRESA').toUpperCase();
+        if (d) d.textContent = data.description || 'Esta es tu descripción empresarial profesional.';
+
+        // Apply Custom Branding
+        if (preview) {
+            // Apply Template Class (Preserving layout classes)
+            preview.className = `card-preview animate-in tmpl-${data.template_id || 'corporate'}`;
+
+            if (state.bgImagePath) {
+                preview.style.backgroundImage = `url(${state.bgImagePath})`;
+            } else {
+                // If NO user image, use system template gradient/color
+                preview.style.backgroundImage = '';
+                preview.style.backgroundColor = data.bg_color || '#0B0F19';
+
+                // Only apply default gradient if it's corporate/creative
+                if (!data.template_id || data.template_id === 'corporate') {
+                    preview.style.backgroundImage = `linear-gradient(135deg, ${data.bg_color || '#0B0F19'} 0%, #001A33 100%)`;
+                } else if (data.template_id === 'creative') {
+                    preview.style.backgroundImage = `radial-gradient(circle at top right, ${data.primary_color || '#1A1C2C'} 0%, ${data.bg_color || '#000000'} 100%)`;
+                }
+            }
+            preview.style.color = data.text_color || '#FFFFFF';
+            preview.style.fontFamily = data.font_family || "'Plus Jakarta Sans', sans-serif";
+
+            // Import Template (Apply Custom CSS)
+            let customStyleTag = document.getElementById('runtime-custom-css');
+            if (!customStyleTag) {
+                customStyleTag = document.createElement('style');
+                customStyleTag.id = 'runtime-custom-css';
+                document.head.appendChild(customStyleTag);
+            }
+            customStyleTag.innerHTML = data.custom_css || '';
+
+            // Import Fonts (Dynamic Google Font loading)
+            if (data.custom_fonts && data.custom_fonts.startsWith('http')) {
+                let fontLink = document.getElementById('runtime-custom-font');
+                if (!fontLink) {
+                    fontLink = document.createElement('link');
+                    fontLink.id = 'runtime-custom-font';
+                    fontLink.rel = 'stylesheet';
+                    document.head.appendChild(fontLink);
+                }
+                fontLink.href = data.custom_fonts;
+            }
+
+            // Import Custom Font File (@font-face injection)
+            let fontFaceTag = document.getElementById('runtime-font-face');
+            if (state.fontFilePath) {
+                if (!fontFaceTag) {
+                    fontFaceTag = document.createElement('style');
+                    fontFaceTag.id = 'runtime-font-face';
+                    document.head.appendChild(fontFaceTag);
+                }
+                fontFaceTag.innerHTML = `
+                    @font-face {
+                        font-family: 'UploadedCustomFont';
+                        src: url('${state.fontFilePath}');
+                    }
+                `;
+                preview.style.fontFamily = "'UploadedCustomFont', sans-serif";
+            } else if (!data.custom_fonts) {
+                if (fontFaceTag) fontFaceTag.innerHTML = '';
+            }
+        }
+
+        // Functional Contact Links
+        if (this.contactsBox) {
+            this.contactsBox.innerHTML = '';
+            const items = [
+                { key: 'email', icon: 'envelope', prefix: 'mailto:' },
+                { key: 'phone', icon: 'phone', prefix: 'tel:' },
+                { key: 'website', icon: 'globe', prefix: '' },
+                { key: 'address', icon: 'location-dot', prefix: 'https://www.google.com/maps/search/?api=1&query=' }
+            ];
+            items.forEach(item => {
+                const val = data[item.key];
+                if (val) {
+                    const el = document.createElement('a');
+                    el.className = 'contact-item';
+                    el.href = item.key === 'address' ? item.prefix + encodeURIComponent(val) : item.prefix + val;
+                    el.target = '_blank';
+                    el.style.color = 'inherit';
+                    el.style.textDecoration = 'none';
+
+                    let iconColor = data.primary_color || '#2D5BFF';
+                    if (data.template_id === 'minimal' && this.isLightColor(iconColor)) iconColor = '#0B0F19';
+
+                    el.innerHTML = `<i class="fas fa-${item.icon}" style="color:${iconColor}; font-size: 1.1rem; width:25px;"></i> <span>${val}</span>`;
+                    this.contactsBox.appendChild(el);
+                }
+            });
+        }
+
+        // Social Strip Rendering
+        if (this.socialBox) {
+            this.socialBox.innerHTML = '';
+            const list = ['linkedin', 'whatsapp', 'instagram', 'facebook', 'tiktok', 'youtube', 'twitter', 'github'];
+            list.forEach(key => {
+                const val = data[key];
+                if (val) {
+                    const link = document.createElement('a');
+                    link.href = this.getSocialLink(key, val);
+                    link.target = '_blank';
+                    const icon = document.createElement('i');
+                    icon.className = (key === 'twitter') ? 'fab fa-x-twitter' : `fab fa-${key}`;
+
+                    let iconColor = data.primary_color || '#2D5BFF';
+                    if (data.template_id === 'minimal' && this.isLightColor(iconColor)) iconColor = '#0B0F19';
+                    icon.style.color = iconColor;
+
+                    link.appendChild(icon);
+                    this.socialBox.appendChild(link);
+                }
+            });
+        }
+
+        // Dual Visual Identity (Logo vs Profile)
+        const logoBox = document.getElementById('preview-logo-box'); // Center-right circle
+        const brandBox = document.querySelector('.company-brand-box'); // Top-left logo area
+
+        if (state.profilePath) {
+            if (logoBox) logoBox.innerHTML = `<img src="${state.profilePath}" style="width:100%; height:100%; object-fit:cover;">`;
+        } else {
+            if (logoBox) logoBox.innerHTML = `<i class="fas fa-user" style="opacity: 0.1; font-size: 4rem; color:white;"></i>`;
+        }
+
+        if (state.logoPath) {
+            const brandImg = document.getElementById('preview-logo-brand');
+            const brandIcon = document.getElementById('preview-logo-icon');
+            if (brandImg) {
+                brandImg.src = state.logoPath;
+                brandImg.style.display = 'block';
+            }
+            if (brandIcon) brandIcon.style.display = 'none';
+        }
+    },
+
+    getSocialLink(key, val) {
+        if (!val) return '#';
+        if (val.startsWith('http')) return val;
+        const base = {
+            linkedin: 'https://linkedin.com/in/',
+            whatsapp: 'https://wa.me/',
+            instagram: 'https://instagram.com/',
+            facebook: 'https://facebook.com/',
+            tiktok: 'https://tiktok.com/@',
+            youtube: 'https://youtube.com/@',
+            twitter: 'https://x.com/',
+            github: 'https://github.com/'
         };
-        clearTimeout(timeout);
-        timeout = setTimeout(later, wait);
-    };
-}
+        let clean = val;
+        if (key === 'whatsapp') clean = val.replace(/\D/g, '');
+        return (base[key] || '') + clean;
+    },
 
+    generateQR(url, targetElement = null) {
+        const container = targetElement || this.qrContainer;
+        if (!container) return;
+        container.innerHTML = '';
+        container.style.opacity = '1';
+        const render = () => {
+            if (typeof QRCode !== 'undefined') {
+                new QRCode(container, { text: url, width: 90, height: 90, colorDark: "#003366", colorLight: "#FFFFFF", correctLevel: QRCode.CorrectLevel.H });
+            } else { setTimeout(render, 500); }
+        };
+        setTimeout(render, 300);
+    },
 
-// HACER FUNCIONES GLOBALES PARA EL HTML (ESENCIAL PARA ONCLICK)
-window.editCard = editCard;
-window.deleteCard = deleteCard;
-window.removeImage = removeImage; // Para el HTML de los previews
+    async loadPublicCard(id) {
+        try {
+            const res = await fetch(`${state.API_BASE}/api/cards/${id}`, { credentials: 'include' });
+            const card = await res.json();
+            this.renderPublicCard(card);
+        } catch (e) {
+            if (this.publicView) this.publicView.innerHTML = '<div style="height:100vh; display:flex; align-items:center; justify-content:center; font-weight:800; opacity:0.3;">404 | IDENTITY NOT FOUND</div>';
+        }
+    },
+
+    renderPublicCard(card) {
+        if (!this.publicView) return;
+        document.body.style.backgroundColor = card.bg_color || '#E0E5EC';
+        state.logoPath = card.logo_path ? `/uploads/${card.logo_path}` : null;
+        state.profilePath = card.profile_path ? `/uploads/${card.profile_path}` : null;
+        state.bgImagePath = card.bg_image_path ? `/uploads/${card.bg_image_path}` : null;
+        state.fontFilePath = card.font_file_path ? `/uploads/${card.font_file_path}` : null;
+
+        const wrap = document.createElement('div');
+        wrap.id = 'public-card-container';
+        wrap.className = 'animate-in';
+        wrap.style.cssText = 'width:100%; max-width:450px; margin:0 auto; padding:2rem 1rem; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;';
+
+        const cardEl = document.getElementById('card-preview').cloneNode(true);
+        cardEl.id = 'public-final-card';
+        cardEl.classList.remove('hidden');
+
+        // Apply dynamic styles and Template to clone
+        cardEl.className = `card-preview animate-in tmpl-${card.template_id || 'corporate'}`;
+
+        if (state.bgImagePath) {
+            cardEl.style.backgroundImage = `url(${state.bgImagePath})`;
+        } else {
+            cardEl.style.backgroundImage = '';
+            cardEl.style.backgroundColor = card.bg_color || '#0B0F19';
+            if (!card.template_id || card.template_id === 'corporate') {
+                cardEl.style.backgroundImage = `linear-gradient(135deg, ${card.bg_color || '#0B0F19'} 0%, #001A33 100%)`;
+            } else if (card.template_id === 'creative') {
+                cardEl.style.backgroundImage = `radial-gradient(circle at top right, ${card.primary_color || '#1A1C2C'} 0%, ${card.bg_color || '#000000'} 100%)`;
+            }
+        }
+        cardEl.style.color = card.text_color || '#FFFFFF';
+        cardEl.style.fontFamily = card.font_family || "'Plus Jakarta Sans', sans-serif";
+
+        // Fix icons in Public View
+        const isMin = card.template_id === 'minimal';
+        cardEl.querySelectorAll('.contact-item i, #preview-social i').forEach(ico => {
+            let icoCol = card.primary_color || '#2D5BFF';
+            if (isMin && UI.isLightColor(icoCol)) icoCol = '#0B0F19';
+            ico.style.color = icoCol;
+        });
+
+        // Apply Imported Styles in Public View
+        if (card.custom_css) {
+            const style = document.createElement('style');
+            style.innerHTML = card.custom_css;
+            document.head.appendChild(style);
+        }
+
+        if (card.custom_fonts && card.custom_fonts.startsWith('http')) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = card.custom_fonts;
+            document.head.appendChild(link);
+        }
+
+        if (state.fontFilePath) {
+            const style = document.createElement('style');
+            style.innerHTML = `
+                @font-face {
+                    font-family: 'UploadedCustomFont';
+                    src: url('${state.fontFilePath}');
+                }
+            `;
+            document.head.appendChild(style);
+            cardEl.style.fontFamily = "'UploadedCustomFont', sans-serif";
+        }
+
+        // Update Text
+        const n = cardEl.querySelector('#preview-name'); if (n) n.textContent = (card.name || '').toUpperCase();
+        const t = cardEl.querySelector('#preview-title'); if (t) t.textContent = (card.title || '').toUpperCase();
+        const c = cardEl.querySelector('#preview-company'); if (c) c.textContent = (card.company || '').toUpperCase();
+        const d = cardEl.querySelector('#preview-description'); if (d) d.textContent = card.description || '';
+
+        // Contacts in Clone
+        const contactBox = cardEl.querySelector('.contact-container');
+        if (contactBox) {
+            contactBox.innerHTML = '';
+            const items = [
+                { key: 'email', icon: 'envelope', prefix: 'mailto:' },
+                { key: 'phone', icon: 'phone', prefix: 'tel:' },
+                { key: 'website', icon: 'globe', prefix: '' },
+                { key: 'address', icon: 'location-dot', prefix: 'https://www.google.com/maps/search/?api=1&query=' }
+            ];
+            items.forEach(item => {
+                if (card[item.key]) {
+                    const el = document.createElement('a');
+                    el.className = 'contact-item';
+                    el.href = item.key === 'address' ? item.prefix + encodeURIComponent(card[item.key]) : item.prefix + card[item.key];
+                    el.target = '_blank';
+                    el.style.color = 'inherit';
+                    el.style.textDecoration = 'none';
+                    el.innerHTML = `<i class="fas fa-${item.icon}" style="color:${card.primary_color || 'white'}; font-size: 1.1rem; width:25px;"></i> <span>${card[item.key]}</span>`;
+                    contactBox.appendChild(el);
+                }
+            });
+        }
+
+        // Social Strip in Clone
+        const socialBox = cardEl.querySelector('.social-strip');
+        if (socialBox) {
+            socialBox.innerHTML = '';
+            const list = ['linkedin', 'whatsapp', 'instagram', 'facebook', 'tiktok', 'youtube', 'twitter', 'github'];
+            list.forEach(key => {
+                if (card[key]) {
+                    const link = this.getSocialLink(key, card[key]);
+                    const iconClass = (key === 'twitter') ? 'fab fa-x-twitter' : `fab fa-${key}`;
+                    socialBox.innerHTML += `<a href="${link}" target="_blank" style="text-decoration:none;"><i class="${iconClass}" style="color:${card.primary_color || '#00ff88'}; font-size:1.8rem;"></i></a>`;
+                }
+            });
+        }
+
+        // Visual Identity in Clone
+        const logoBox = cardEl.querySelector('#preview-logo-box');
+        if (state.profilePath && logoBox) logoBox.innerHTML = `<img src="${state.profilePath}" style="width:100%; height:100%; object-fit:cover;">`;
+
+        const brandImg = cardEl.querySelector('#preview-logo-brand');
+        const brandIcon = cardEl.querySelector('#preview-logo-icon');
+        if (state.logoPath && brandImg) {
+            brandImg.src = state.logoPath;
+            brandImg.style.display = 'block';
+            if (brandIcon) brandIcon.style.display = 'none';
+        }
+
+        wrap.appendChild(cardEl);
+
+        // Interactive Footer Buttons
+        const grid = document.createElement('div');
+        grid.style.cssText = 'display:grid; grid-template-columns: 1fr 1fr; gap:1rem; width:100%; max-width:380px; margin-top:2rem;';
+
+        const vBtn = document.createElement('button');
+        vBtn.className = 'studio-module';
+        vBtn.style.cssText = `background:${card.primary_color || '#003366'}; color:white; border:none; padding:1rem; font-weight:800; cursor:pointer; font-size: 0.8rem; border-radius:50px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);`;
+        vBtn.innerHTML = 'GUARDAR CONTACTO';
+        vBtn.onclick = () => this.downloadVCard(card);
+        grid.appendChild(vBtn);
+
+        const mBtn = document.createElement('button');
+        mBtn.className = 'studio-module';
+        mBtn.style.cssText = 'background:#FFFFFF; color:#003366; border:none; padding:1rem; font-weight:800; cursor:pointer; font-size: 0.8rem; border-radius:50px; box-shadow: 0 10px 20px rgba(0,0,0,0.05);';
+        mBtn.innerHTML = 'COMPARTIR LINK';
+        mBtn.onclick = () => this.copyLink(window.location.href);
+        grid.appendChild(mBtn);
+
+        wrap.appendChild(grid);
+        this.publicView.innerHTML = '';
+        this.publicView.appendChild(wrap);
+
+        // Generate QR in public view footer
+        const qrF = document.createElement('div');
+        qrF.style.cssText = 'background:white; padding:1rem; border-radius:12px; margin-top:2rem;';
+        wrap.appendChild(qrF);
+        this.generateQR(window.location.href, qrF);
+    },
+
+    downloadVCard(card) {
+        const v = `BEGIN:VCARD\nVERSION:3.0\nFN:${card.name}\nORG:${card.company}\nTITLE:${card.title}\nTEL;TYPE=WORK,VOICE:${card.phone}\nEMAIL;TYPE=PREF,INTERNET:${card.email}\nURL:${card.website}\nADR;TYPE=WORK:;;${card.address || ''}\nEND:VCARD`;
+        const b = new Blob([v], { type: 'text/vcard' });
+        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `${card.name}.vcf`; a.click();
+    }
+};
+
+window.UI = UI; window.Auth = Auth; window.Router = Router;
+document.addEventListener('DOMContentLoaded', () => UI.init());

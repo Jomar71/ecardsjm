@@ -1,0 +1,15 @@
+instance/
+uploads/*
+!uploads/default_logo.png
+!uploads/.gitkeep
+__pycache__/
+*.pyc
+.env
+.venv/
+venv/
+.vscode/
+.idea/
+.DS_Store
+node_modules/
+dist/
+build/
