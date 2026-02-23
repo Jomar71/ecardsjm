@@ -106,8 +106,19 @@ def apply_migrations():
     
     db.create_all() # Ensure all tables are created before migrations
     
+    # Ensure directory for sqlite exists
+    db_dir = os.path.dirname(db_path)
+    if db_dir and not os.path.exists(db_dir):
+        print(f"EliteCards: Creating Database Directory at {db_dir}...")
+        os.makedirs(db_dir)
+
     print(f"EliteCards: Syncing Database Schema at {db_path}...")
-    conn = sqlite3.connect(db_path)
+    try:
+        conn = sqlite3.connect(db_path)
+    except Exception as e:
+        print(f"EliteCards: FAILED to connect to database at {db_path}: {e}")
+        return
+
     cursor = conn.cursor()
     
     # Verificar si la tabla business_cards existe
@@ -363,8 +374,10 @@ def handle_404(e):
         
     return render_template("index.html")
 
+# --- PLATFORM INITIALIZATION ---
+with app.app_context():
+    db.create_all()
+    apply_migrations()
+
 if __name__ == "__main__":
-    with app.app_context():
-        db.create_all()
-        apply_migrations()
     app.run(debug=True, port=5000)
