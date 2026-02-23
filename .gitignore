@@ -13,3 +13,5 @@ venv/
 node_modules/
 dist/
 build/
+gh.zip
+gh_installer.msi
