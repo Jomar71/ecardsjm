@@ -15,7 +15,17 @@ os.environ['FLASK_ENV'] = 'development'
 # Platform Config: Nexus Logic 2026
 app = Flask(__name__, static_folder=".", template_folder=".", static_url_path="")
 app.secret_key = "elite_identity_secret_key_2026" # TODO: Mover a una variable de entorno
-CORS(app, resources={r"/api/*": {"origins": "*", "supports_credentials": True}}, supports_credentials=True) # TODO: Restringir a orígenes específicos para producción
+
+# Security Config for Cross-Domain Identity (GitHub Pages -> Render)
+app.config.update(
+    SESSION_COOKIE_SAMESITE="None",
+    SESSION_COOKIE_SECURE=True,
+)
+
+CORS(app, resources={r"/api/*": {
+    "origins": ["https://jomar71.github.io", "http://127.0.0.1:5000"],
+    "supports_credentials": True
+}}, supports_credentials=True)
 
 # Database Configuration
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///ecards.db"

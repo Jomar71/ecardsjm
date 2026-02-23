@@ -14,7 +14,7 @@ const state = {
     bgImagePath: null,
     fontFilePath: null,
     archives: [],
-    API_BASE: ''
+    API_BASE: window.location.hostname === 'jomar71.github.io' ? 'https://ecardsjm.onrender.com' : ''
 };
 
 const Router = {
@@ -239,10 +239,10 @@ const UI = {
             const res = await fetch(`${state.API_BASE}/api/cards/${id}`, { credentials: 'include' });
             const card = await res.json();
             state.cardId = card.id;
-            state.logoPath = card.logo_path ? `/uploads/${card.logo_path}` : null;
-            state.profilePath = card.profile_path ? `/uploads/${card.profile_path}` : null;
-            state.bgImagePath = card.bg_image_path ? `/uploads/${card.bg_image_path}` : null;
-            state.fontFilePath = card.font_file_path ? `/uploads/${card.font_file_path}` : null;
+            state.logoPath = card.logo_path ? `${state.API_BASE}/uploads/${card.logo_path}` : null;
+            state.profilePath = card.profile_path ? `${state.API_BASE}/uploads/${card.profile_path}` : null;
+            state.bgImagePath = card.bg_image_path ? `${state.API_BASE}/uploads/${card.bg_image_path}` : null;
+            state.fontFilePath = card.font_file_path ? `${state.API_BASE}/uploads/${card.font_file_path}` : null;
             if (this.form) {
                 Object.entries(card).forEach(([key, val]) => {
                     const input = this.form.elements[key];
@@ -511,10 +511,10 @@ const UI = {
     renderPublicCard(card) {
         if (!this.publicView) return;
         document.body.style.backgroundColor = card.bg_color || '#E0E5EC';
-        state.logoPath = card.logo_path ? `/uploads/${card.logo_path}` : null;
-        state.profilePath = card.profile_path ? `/uploads/${card.profile_path}` : null;
-        state.bgImagePath = card.bg_image_path ? `/uploads/${card.bg_image_path}` : null;
-        state.fontFilePath = card.font_file_path ? `/uploads/${card.font_file_path}` : null;
+        state.logoPath = card.logo_path ? `${state.API_BASE}/uploads/${card.logo_path}` : null;
+        state.profilePath = card.profile_path ? `${state.API_BASE}/uploads/${card.profile_path}` : null;
+        state.bgImagePath = card.bg_image_path ? `${state.API_BASE}/uploads/${card.bg_image_path}` : null;
+        state.fontFilePath = card.font_file_path ? `${state.API_BASE}/uploads/${card.font_file_path}` : null;
 
         const wrap = document.createElement('div');
         wrap.id = 'public-card-container';
