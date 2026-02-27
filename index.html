@@ -4,8 +4,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EliteCards | Nexus for Digital Identity</title>
+    <title>Ecards3 | Tu Identidad Digital de Élite</title>
+    <meta name="description"
+        content="Crea, gestiona y comparte tarjetas digitales de negocio premium. Diseños exclusivos, personalización total y QR instantáneo.">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
     <link rel="stylesheet" href="styles.css">
 </head>
 
@@ -16,172 +19,317 @@
         <div class="premium-loader"></div>
     </div>
 
-    <!-- Navigation Header -->
-    <header id="main-header" class="studio-module"
-        style="position: fixed; top: 0; left: 0; right: 0; z-index: 1000; border-radius: 0; display: flex; justify-content: space-between; align-items: center; padding: 1rem 2.5rem; backdrop-filter: blur(10px); background: rgba(255,255,255,0.8);">
-        <h1 style="font-size: 1.25rem; font-weight: 800; margin:0; cursor: pointer;" onclick="Router.go('/')">ELITE<span
-                style="color:var(--accent)">CARDS.</span></h1>
+    <!-- ── HEADER ─────────────────────────────────────────────── -->
+    <header id="main-header">
+        <a class="logo" onclick="Router.go('/')">
+            <span>Ecards</span><span class="logo-accent">3</span>
+        </a>
 
-        <nav id="top-nav" style="display: flex; gap: 2rem; align-items: center;">
-            <a href="#" class="nav-link" onclick="Router.go('/')">INICIO</a>
-            <div id="auth-nav-guest" style="display: flex; gap: 1rem;">
-                <button class="nav-link" style="border:none; background:none; cursor:pointer;"
-                    onclick="UI.showAuth('login')">LOGIN</button>
-                <button class="tab-btn active" style="padding: 0.5rem 1.5rem;"
-                    onclick="UI.showAuth('register')">REGISTRO</button>
+        <nav id="top-nav">
+            <a href="#" class="nav-link" onclick="Router.go('/')">Inicio</a>
+
+            <!-- Guest Nav -->
+            <div id="auth-nav-guest" style="display:flex; gap:0.75rem; align-items:center;">
+                <button class="btn btn-ghost" onclick="UI.showAuth('login')">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <button class="btn btn-primary" onclick="UI.showAuth('register')">
+                    Crear Cuenta
+                </button>
             </div>
-            <div id="auth-nav-user" class="hidden" style="display: flex; gap: 1.5rem; align-items: center;">
-                <a href="#" class="nav-link" onclick="Router.go('/dashboard')">MIS TARJETAS</a>
-                <span id="nav-username" style="font-size: 0.7rem; font-weight: 800; opacity: 0.5;">USUARIO</span>
-                <button class="tab-btn" style="padding: 0.5rem 1.5rem;" onclick="Auth.logout()">SALIR</button>
+
+            <!-- User Nav -->
+            <div id="auth-nav-user" class="hidden">
+                <a href="#" class="nav-link" onclick="Router.go('/dashboard')">Mis Tarjetas</a>
+                <div class="user-badge">
+                    <div class="user-avatar" id="nav-avatar">U</div>
+                    <span id="nav-username">USUARIO</span>
+                </div>
+                <button class="btn btn-ghost" onclick="Auth.logout()">
+                    <i class="fas fa-sign-out-alt"></i> Salir
+                </button>
             </div>
         </nav>
     </header>
 
-    <!-- Content Engine -->
-    <main id="app-root" style="padding-top: 80px;">
+    <!-- ── APP ROOT ───────────────────────────────────────────── -->
+    <main id="app-root">
 
-        <!-- Module: Landing Page -->
+        <!-- ─── LANDING PAGE ─────────────────────────────────── -->
         <section id="view-home" class="view-content animate-in">
-            <div style="max-width: 1200px; margin: 0 auto; padding: 4rem 2rem; text-align: center;">
-                <h1 style="font-size: 5rem; margin-bottom: 2rem; line-height: 1;">Tu Identidad Digital de <span
-                        style="color:var(--accent)">Élite.</span></h1>
-                <p style="font-size: 1.25rem; color: var(--text-secondary); max-width: 700px; margin: 0 auto 3rem;">
-                    Crea, gestiona y despliega perfiles profesionales de alto impacto con un solo clic. La herramienta
-                    definitiva para ejecutivos modernos.</p>
-                <div style="display: flex; gap: 1.5rem; justify-content: center; flex-wrap: wrap; margin-bottom: 5rem;">
-                    <button class="studio-module"
-                        style="background: var(--text-primary); color: white; padding: 1.5rem 4rem; font-size: 1rem; cursor: pointer; border: none; font-weight: 800; letter-spacing: 0.1em; border-radius: 50px;"
-                        onclick="Router.go('/admin')">PROBAR ESTUDIO</button>
-                    <button class="studio-module"
-                        style="background: var(--accent); color: white; padding: 1.5rem 4rem; font-size: 1rem; cursor: pointer; border: none; font-weight: 800; letter-spacing: 0.1em; border-radius: 50px;"
-                        onclick="UI.showAuth('register')">CREAR CUENTA EJECUTIVA</button>
-                </div>
 
-                <!-- Showcase Section: Tarjetas de Presentación Profesional -->
-                <div class="showcase-grid"
-                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; text-align: left;">
-                    <div class="studio-module">
-                        <div
-                            style="height: 200px; background: #f0f4f8; border-radius: 12px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                            <img src="https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=500"
-                                style="width: 100%; height: 100%; object-fit: cover;">
+            <!-- Hero -->
+            <div class="hero-section">
+                <div class="hero-eyebrow">
+                    <span class="hero-eyebrow-dot"></span>
+                    Plataforma de Identidad Digital Premium
+                </div>
+                <h1 class="hero-title">
+                    Crea Tu Tarjeta Digital<br>
+                    <span class="gradient-text">de Élite</span>
+                </h1>
+                <p class="hero-subtitle">
+                    La identidad digital que te diferencia del resto. Diseños profesionales,
+                    personalización total y networking sin fronteras.
+                </p>
+                <div class="hero-cta">
+                    <button class="btn btn-primary btn-lg" onclick="Router.go('/admin')">
+                        <i class="fas fa-magic"></i> Probar Gratis
+                    </button>
+                    <button class="btn btn-outline btn-lg" onclick="UI.showAuth('register')">
+                        <i class="fas fa-rocket"></i> Crear Cuenta
+                    </button>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="features-section">
+                <p class="section-label">CARACTERÍSTICAS</p>
+                <h2 class="section-title">Todo lo que necesitas</h2>
+                <p class="section-subtitle">Herramientas de élite para tu identidad digital</p>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-palette"></i>
                         </div>
-                        <h4 style="font-weight: 800; margin-bottom: 0.5rem;">Presentación Corporativa</h4>
-                        <p style="font-size: 0.8rem; opacity: 0.7;">Identidad unificada para equipos ejecutivos,
-                            enfocada en la seriedad y el valor de marca.</p>
+                        <h3>Plantillas Premium</h3>
+                        <p>Accede a diseños exclusivos: Corporate Blue, Minimal White y Creative Dark. Personaliza
+                            colores, fuentes y estilos a tu medida.</p>
                     </div>
-                    <div class="studio-module">
-                        <div
-                            style="height: 200px; background: #f0f4f8; border-radius: 12px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                            <img src="https://images.unsplash.com/photo-1557804506-669a67965ba0?auto=format&fit=crop&q=80&w=500"
-                                style="width: 100%; height: 100%; object-fit: cover;">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-qrcode"></i>
                         </div>
-                        <h4 style="font-weight: 800; margin-bottom: 0.5rem;">Perfiles de Consultoría</h4>
-                        <p style="font-size: 0.8rem; opacity: 0.7;">Optimizado para transmitir confianza y experiencia
-                            técnica a primer golpe de vista.</p>
+                        <h3>Comparte con QR</h3>
+                        <p>Tu perfil disponible instantáneamente con un escaneo. Sin apps extra — funciona en cualquier
+                            cámara moderna.</p>
                     </div>
-                    <div class="studio-module">
-                        <div
-                            style="height: 200px; background: #f0f4f8; border-radius: 12px; margin-bottom: 1.5rem; display: flex; align-items: center; justify-content: center; overflow: hidden;">
-                            <img src="https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&q=80&w=500"
-                                style="width: 100%; height: 100%; object-fit: cover;">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-sliders-h"></i>
                         </div>
-                        <h4 style="font-weight: 800; margin-bottom: 0.5rem;">Vanguardia Creativa</h4>
-                        <p style="font-size: 0.8rem; opacity: 0.7;">Para quienes rompen el molde: integración multimedia
-                            y diseño dinámico.</p>
+                        <h3>Personalización Total</h3>
+                        <p>Control absoluto: sube tu logo, foto, fuente personalizada y CSS custom. Tu tarjeta, tus
+                            reglas, tu estilo único.</p>
                     </div>
                 </div>
             </div>
+
+            <!-- Showcase -->
+            <div class="showcase-section">
+                <p class="section-label">SHOWCASE</p>
+                <h2 class="section-title">Elige tu estilo</h2>
+                <p class="section-subtitle">Diseños que representan tu esencia profesional</p>
+                <div class="showcase-grid">
+                    <div class="showcase-item" onclick="UI.showAuth('register')">
+                        <div class="showcase-card-wrap">
+                            <div class="mini-card corporate" style="height:100%;">
+                                <div
+                                    style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.5rem;">
+                                    <div class="deco-circle c1" style="width:120px;height:120px;top:-30px;right:-20px;">
+                                    </div>
+                                    <div class="deco-circle c2" style="width:80px;height:80px;bottom:10px;left:-20px;">
+                                    </div>
+                                    <div class="mini-card-avatar corporate-av"><i class="fas fa-user-tie"></i></div>
+                                    <div style="text-align:center;">
+                                        <div class="mini-card-name">Carlos Méndez</div>
+                                        <div class="mini-card-title">CEO & Fundador</div>
+                                        <div
+                                            style="margin-top:0.5rem; display:flex; gap:0.3rem; justify-content:center;">
+                                            <span
+                                                style="width:20px;height:20px;border-radius:4px;background:rgba(124,58,237,0.4);display:flex;align-items:center;justify-content:center;font-size:0.55rem;"><i
+                                                    class="fab fa-linkedin-in"></i></span>
+                                            <span
+                                                style="width:20px;height:20px;border-radius:4px;background:rgba(124,58,237,0.4);display:flex;align-items:center;justify-content:center;font-size:0.55rem;"><i
+                                                    class="fab fa-whatsapp"></i></span>
+                                            <span
+                                                style="width:20px;height:20px;border-radius:4px;background:rgba(124,58,237,0.4);display:flex;align-items:center;justify-content:center;font-size:0.55rem;"><i
+                                                    class="fas fa-envelope"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bottom-wave"></div>
+                            </div>
+                        </div>
+                        <p class="showcase-label">CORPORATE BLUE</p>
+                    </div>
+
+                    <div class="showcase-item" onclick="UI.showAuth('register')">
+                        <div class="showcase-card-wrap">
+                            <div class="mini-card minimal" style="height:100%;">
+                                <div
+                                    style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.5rem;">
+                                    <div class="mini-card-avatar minimal-av"><i class="fas fa-pencil-ruler"></i></div>
+                                    <div style="text-align:center;">
+                                        <div class="mini-card-name" style="color:#0F172A;">Ana García</div>
+                                        <div class="mini-card-title" style="color:#64748B;">Diseñadora UX</div>
+                                        <div
+                                            style="margin-top:0.5rem; display:flex; gap:0.3rem; justify-content:center;">
+                                            <span
+                                                style="width:20px;height:20px;border-radius:4px;background:rgba(59,130,246,0.15);display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#3B82F6;"><i
+                                                    class="fab fa-dribbble"></i></span>
+                                            <span
+                                                style="width:20px;height:20px;border-radius:4px;background:rgba(59,130,246,0.15);display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#3B82F6;"><i
+                                                    class="fab fa-instagram"></i></span>
+                                            <span
+                                                style="width:20px;height:20px;border-radius:4px;background:rgba(59,130,246,0.15);display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#3B82F6;"><i
+                                                    class="fas fa-globe"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="showcase-label">MINIMAL WHITE</p>
+                    </div>
+
+                    <div class="showcase-item" onclick="UI.showAuth('register')">
+                        <div class="showcase-card-wrap">
+                            <div class="mini-card creative" style="height:100%;">
+                                <div
+                                    style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.5rem;">
+                                    <div class="deco-circle c3"
+                                        style="width:80px;height:80px;top:-20px;left:-20px;background:rgba(6,182,212,0.2);">
+                                    </div>
+                                    <div class="mini-card-avatar creative-av"><i class="fas fa-code"></i></div>
+                                    <div style="text-align:center;">
+                                        <div class="mini-card-name">Luis Torres</div>
+                                        <div class="mini-card-title">Developer Full Stack</div>
+                                        <div
+                                            style="margin-top:0.5rem; display:flex; gap:0.3rem; justify-content:center;">
+                                            <span
+                                                style="width:20px;height:20px;border-radius:4px;background:rgba(6,182,212,0.2);display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#06B6D4;"><i
+                                                    class="fab fa-github"></i></span>
+                                            <span
+                                                style="width:20px;height:20px;border-radius:4px;background:rgba(6,182,212,0.2);display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#06B6D4;"><i
+                                                    class="fab fa-twitter"></i></span>
+                                            <span
+                                                style="width:20px;height:20px;border-radius:4px;background:rgba(6,182,212,0.2);display:flex;align-items:center;justify-content:center;font-size:0.55rem;color:#06B6D4;"><i
+                                                    class="fas fa-terminal"></i></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="bottom-wave"
+                                    style="background:linear-gradient(90deg,#06B6D4,#7C3AED,#06B6D4);"></div>
+                            </div>
+                        </div>
+                        <p class="showcase-label">CREATIVE DARK</p>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="landing-footer">
+                <p>© 2026 <span>Ecards3</span> · Tu Identidad Digital de Élite</p>
+            </footer>
         </section>
 
-        <!-- Module: Dashboard (My Cards) -->
+        <!-- ─── DASHBOARD ─────────────────────────────────────── -->
         <section id="view-dashboard" class="view-content hidden animate-in">
-            <div class="bento-container">
-                <header class="studio-module"
-                    style="grid-column: span 12; display: flex; justify-content: space-between; align-items: center;">
-                    <h2 style="font-size: 1.5rem; margin:0;">Centro de Comando</h2>
-                    <button class="tab-btn active" onclick="UI.clearStudio(); Router.go('/admin')"><i
-                            class="fas fa-plus mr-2"></i> NUEVA TARJETA</button>
-                </header>
-                <div id="dashboard-grid"
-                    style="grid-column: span 12; display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 1.5rem;">
-                    <!-- Injected via Script -->
+            <div id="view-dashboard-inner">
+                <div class="dashboard-header">
+                    <div>
+                        <h2>Centro de Comando</h2>
+                        <p>Gestiona tus identidades digitales</p>
+                    </div>
+                    <button class="btn btn-primary" onclick="UI.clearStudio(); Router.go('/admin')">
+                        <i class="fas fa-plus"></i> Nueva Tarjeta
+                    </button>
+                </div>
+                <div id="dashboard-grid">
+                    <!-- Injected via script.js -->
                 </div>
             </div>
         </section>
 
-        <!-- Module: Studio (Editor) -->
+        <!-- ─── CARD EDITOR ───────────────────────────────────── -->
         <section id="view-admin" class="view-content hidden">
-            <div class="bento-container animate-in">
-                <!-- Editor Left Rail -->
-                <div class="bento-editor">
-                    <form id="cardForm">
-                        <div class="studio-module" style="margin-bottom: 1.5rem;">
+            <div id="view-admin-inner">
+                <div class="studio-header">
+                    <button class="breadcrumb" onclick="Router.go('/dashboard')">
+                        <i class="fas fa-arrow-left"></i> Mis Tarjetas
+                    </button>
+                    <span style="color:var(--text-muted)">/</span>
+                    <span style="font-size:0.8rem; font-weight:600;">Editor de Tarjeta</span>
+                </div>
+
+                <div class="studio-layout">
+                    <!-- LEFT: Editor -->
+                    <div class="studio-panel">
+                        <form id="cardForm">
+                            <!-- Tabs -->
                             <nav class="studio-tabs">
                                 <button type="button" class="tab-btn active"
-                                    onclick="UI.showTab(event, 'tab-info')">DATOS</button>
+                                    onclick="UI.showTab(event,'tab-info')">DATOS</button>
                                 <button type="button" class="tab-btn"
-                                    onclick="UI.showTab(event, 'tab-contact')">CONECTOR</button>
+                                    onclick="UI.showTab(event,'tab-contact')">CONECTOR</button>
                                 <button type="button" class="tab-btn"
-                                    onclick="UI.showTab(event, 'tab-design')">ESTILO</button>
+                                    onclick="UI.showTab(event,'tab-design')">ESTILO</button>
                             </nav>
 
-                            <div id="tab-info" class="tab-content">
+                            <!-- DATOS TAB -->
+                            <div id="tab-info" class="tab-content active">
                                 <div class="input-group"><label>Nombre Completo</label><input type="text" name="name"
-                                        required></div>
+                                        required placeholder="Ej: Carlos Méndez"></div>
                                 <div class="input-group"><label>Cargo / Título</label><input type="text" name="title"
-                                        required>
-                                </div>
+                                        placeholder="Ej: CEO & Fundador"></div>
                                 <div class="input-group"><label>Compañía / Marca</label><input type="text"
-                                        name="company"></div>
+                                        name="company" placeholder="Ej: Nexus Corp"></div>
                                 <div class="input-group"><label>Descripción de la Empresa</label>
                                     <textarea name="description" rows="3"
-                                        placeholder="Describe brevemente tu empresa o servicios..."></textarea>
+                                        placeholder="Describe brevemente tus servicios o lo que te hace único..."></textarea>
                                 </div>
-                                <div class="input-group"><label>Dirección física / Oficina</label><input type="text"
+                                <div class="input-group"><label>Dirección Física / Oficina</label><input type="text"
                                         name="address" placeholder="Ej: Calle 123, Ciudad"></div>
                             </div>
 
-                            <div id="tab-contact" class="tab-content hidden">
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-                                    <div class="input-group"><label>Email</label><input type="email" name="email"></div>
-                                    <div class="input-group"><label>Teléfono</label><input type="tel" name="phone">
-                                    </div>
+                            <!-- CONECTOR TAB -->
+                            <div id="tab-contact" class="tab-content">
+                                <div class="input-row-2">
+                                    <div class="input-group"><label>Email</label><input type="email" name="email"
+                                            placeholder="tu@empresa.com"></div>
+                                    <div class="input-group"><label>Teléfono</label><input type="tel" name="phone"
+                                            placeholder="+1 234 567 890"></div>
                                 </div>
-                                <div class="input-group"><label>Website</label><input type="url" name="website"></div>
+                                <div class="input-group"><label>Website</label><input type="url" name="website"
+                                        placeholder="https://tuempresa.com"></div>
 
-                                <span
-                                    style="font-size: 0.6rem; font-weight: 800; opacity: 0.3; letter-spacing: 0.2em; display: block; margin: 1rem 0;">REDES
-                                    SOCIALES</span>
+                                <span class="form-divider">REDES SOCIALES</span>
 
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-                                    <div class="input-group"><label>LinkedIn</label><input type="text" name="linkedin"
-                                            placeholder="usuario"></div>
-                                    <div class="input-group"><label>WhatsApp</label><input type="text" name="whatsapp"
-                                            placeholder="número"></div>
+                                <div class="input-row-2">
+                                    <div class="input-group"><label><i class="fab fa-linkedin"
+                                                style="color:#0A66C2;margin-right:0.3rem;"></i>LinkedIn</label><input
+                                            type="text" name="linkedin" placeholder="usuario"></div>
+                                    <div class="input-group"><label><i class="fab fa-whatsapp"
+                                                style="color:#25D366;margin-right:0.3rem;"></i>WhatsApp</label><input
+                                            type="text" name="whatsapp" placeholder="número"></div>
                                 </div>
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-                                    <div class="input-group"><label>Instagram</label><input type="text" name="instagram"
-                                            placeholder="usuario"></div>
-                                    <div class="input-group"><label>Facebook</label><input type="text" name="facebook"
-                                            placeholder="usuario"></div>
+                                <div class="input-row-2">
+                                    <div class="input-group"><label><i class="fab fa-instagram"
+                                                style="color:#E1306C;margin-right:0.3rem;"></i>Instagram</label><input
+                                            type="text" name="instagram" placeholder="usuario"></div>
+                                    <div class="input-group"><label><i class="fab fa-facebook"
+                                                style="color:#1877F2;margin-right:0.3rem;"></i>Facebook</label><input
+                                            type="text" name="facebook" placeholder="usuario"></div>
                                 </div>
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-                                    <div class="input-group"><label>TikTok</label><input type="text" name="tiktok"
-                                            placeholder="usuario"></div>
-                                    <div class="input-group"><label>YouTube</label><input type="text" name="youtube"
-                                            placeholder="canal"></div>
+                                <div class="input-row-2">
+                                    <div class="input-group"><label><i class="fab fa-tiktok"
+                                                style="color:#FFF;margin-right:0.3rem;"></i>TikTok</label><input
+                                            type="text" name="tiktok" placeholder="usuario"></div>
+                                    <div class="input-group"><label><i class="fab fa-youtube"
+                                                style="color:#FF0000;margin-right:0.3rem;"></i>YouTube</label><input
+                                            type="text" name="youtube" placeholder="canal"></div>
                                 </div>
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
-                                    <div class="input-group"><label>Twitter (X)</label><input type="text" name="twitter"
-                                            placeholder="usuario"></div>
-                                    <div class="input-group"><label>GitHub</label><input type="text" name="github"
-                                            placeholder="usuario"></div>
+                                <div class="input-row-2">
+                                    <div class="input-group"><label><i class="fab fa-twitter"
+                                                style="color:#1DA1F2;margin-right:0.3rem;"></i>Twitter&nbsp;(X)</label><input
+                                            type="text" name="twitter" placeholder="usuario"></div>
+                                    <div class="input-group"><label><i class="fab fa-github"
+                                                style="margin-right:0.3rem;"></i>GitHub</label><input type="text"
+                                            name="github" placeholder="usuario"></div>
                                 </div>
                             </div>
 
-                            <div id="tab-design" class="tab-content hidden">
+                            <!-- ESTILO TAB -->
+                            <div id="tab-design" class="tab-content">
                                 <div class="input-group">
                                     <label>Plantilla de Sistema</label>
                                     <select name="template_id" id="template_id">
@@ -192,12 +340,12 @@
                                 </div>
 
                                 <div class="input-group">
-                                    <label>O Subir Fondo como Plantilla (Imagen)</label>
+                                    <label>Imagen de Fondo Personalizada</label>
                                     <input type="file" id="bg_image" name="bg_image" accept="image/*">
                                 </div>
 
                                 <div class="input-group">
-                                    <label>Fuente (Tipografía)</label>
+                                    <label>Tipografía</label>
                                     <select name="font_family">
                                         <option value="'Plus Jakarta Sans', sans-serif">Jakarta Sans (Default)</option>
                                         <option value="'Inter', sans-serif">Inter (Modern)</option>
@@ -207,93 +355,89 @@
                                 </div>
 
                                 <div class="input-group">
-                                    <label>Importar Fuentes (Google Font URL)</label>
+                                    <label>Importar Google Font (URL)</label>
                                     <input type="text" name="custom_fonts"
                                         placeholder="https://fonts.googleapis.com/css2?family=...">
                                 </div>
 
                                 <div class="input-group">
-                                    <label>O Subir Archivo de Fuente (OTF, TTF)</label>
+                                    <label>Archivo de Fuente (OTF, TTF, WOFF)</label>
                                     <input type="file" id="font_file" name="font_file" accept=".otf,.ttf,.woff,.woff2">
                                 </div>
 
                                 <div class="input-group">
-                                    <label>Importar Plantilla (Custom CSS)</label>
+                                    <label>CSS Personalizado</label>
                                     <textarea name="custom_css" rows="3"
-                                        placeholder=".card-preview { border: 5px solid red; } ..."></textarea>
+                                        placeholder=".card-preview { border: 2px solid gold; }"></textarea>
                                 </div>
 
-                                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:1rem;">
-                                    <div class="input-group">
-                                        <label>Logo Empresa</label>
-                                        <input type="file" id="logo" name="logo" accept="image/*">
-                                    </div>
-                                    <div class="input-group">
-                                        <label>Foto de Perfil</label>
-                                        <input type="file" id="profile" name="profile" accept="image/*">
-                                    </div>
+                                <div class="input-row-2">
+                                    <div class="input-group"><label>Logo Empresa</label><input type="file" id="logo"
+                                            name="logo" accept="image/*"></div>
+                                    <div class="input-group"><label>Foto de Perfil</label><input type="file"
+                                            id="profile" name="profile" accept="image/*"></div>
                                 </div>
 
-                                <div style="display:grid; grid-template-columns:1fr 1fr 1fr; gap:1rem;">
-                                    <div class="input-group"><label>Marca</label><input type="color"
-                                            name="primary_color" id="primary_color" value="#2D5BFF"></div>
+                                <div class="input-row-3">
+                                    <div class="input-group"><label>Color Marca</label><input type="color"
+                                            name="primary_color" id="primary_color" value="#7C3AED"></div>
                                     <div class="input-group"><label>Fondo</label><input type="color" name="bg_color"
                                             value="#0B0F19"></div>
                                     <div class="input-group"><label>Texto</label><input type="color" name="text_color"
                                             value="#FFFFFF"></div>
                                 </div>
                             </div>
-                        </div>
-                        <div style="display:grid; grid-template-columns: 2fr 1fr; gap:1rem;">
-                            <button type="submit" class="studio-module"
-                                style="width: 100%; cursor: pointer; background: var(--accent); color: white; border: none; font-weight: 800; padding: 1.5rem;">GUARDAR
-                                Y DESPLEGAR</button>
-                            <button type="button" id="btn-delete-card" class="studio-module hidden"
-                                style="width: 100%; cursor: pointer; background: #ff4444; color: white; border: none; font-weight: 800; padding: 1.5rem;"
-                                onclick="UI.deleteCurrentCard()">ELIMINAR</button>
-                        </div>
-                    </form>
-                </div>
 
-                <!-- Live Preview Rail -->
-                <div class="bento-preview-box">
-                    <div class="studio-module"
-                        style="min-height: 700px; display: flex; flex-direction: column; align-items: center; justify-content: center; position: relative; overflow: hidden;">
-                        <span
-                            style="position: absolute; top: 1.5rem; left: 1.5rem; font-size: 0.6rem; font-weight: 800; letter-spacing: 0.3em; opacity: 0.5;">LIVE
-                            ENGINE</span>
+                            <!-- Action Buttons -->
+                            <div style="display:grid; grid-template-columns:2fr 1fr; gap:0.75rem; margin-top:1.25rem;">
+                                <button type="submit" class="btn btn-primary btn-full"
+                                    style="border-radius:8px; padding:1rem;">
+                                    <i class="fas fa-rocket"></i> Guardar y Desplegar
+                                </button>
+                                <button type="button" id="btn-delete-card" class="btn btn-danger btn-full hidden"
+                                    style="border-radius:8px; padding:1rem;" onclick="UI.deleteCurrentCard()">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </div>
+                        </form>
+                    </div>
 
-                        <!-- Success Feedback -->
-                        <div id="save-success" class="hidden animate-in"
-                            style="position: absolute; top: 4rem; left: 1.5rem; right: 1.5rem; background: var(--accent); color: white; padding: 1rem; border-radius: 12px; font-size: 0.7rem; font-weight: 800; text-align: center; z-index: 10;">
-                            ¡IDENTIDAD ACTUALIZADA EXITOSAMENTE!
+                    <!-- RIGHT: Live Preview -->
+                    <div class="preview-panel">
+                        <div class="preview-label">
+                            <span></span>LIVE ENGINE
                         </div>
 
-                        <div id="card-preview" class="card-preview animate-in">
-                            <!-- Decorative Elements -->
+                        <!-- Success Banner -->
+                        <div id="save-success" class="hidden animate-in">
+                            <i class="fas fa-check-circle"></i> ¡IDENTIDAD ACTUALIZADA EXITOSAMENTE!
+                        </div>
+
+                        <!-- Card Preview -->
+                        <div id="card-preview" class="card-preview template-corporate animate-in">
                             <div class="deco-circle c1"></div>
                             <div class="deco-circle c2"></div>
                             <div class="deco-circle c3"></div>
                             <div class="deco-circle c4"></div>
 
                             <div class="card-content">
-                                <!-- Company Brand (Top Left) -->
-                                <div class="company-brand-box">
-                                    <div
-                                        style="width:40px; height:40px; background:white; border-radius:50%; display:flex; align-items:center; justify-content:center; overflow:hidden;">
-                                        <img id="preview-logo-brand" src="/uploads/default_logo.png"
-                                            style="width:100%; height:100%; object-fit:cover; display:none;">
-                                        <i id="preview-logo-icon" class="fas fa-building"
-                                            style="color:var(--accent); font-size:1rem;"></i>
+                                <!-- Top bar -->
+                                <div class="card-top-bar">
+                                    <div class="company-brand-box">
+                                        <div class="company-logo-ring">
+                                            <img id="preview-logo-brand" src="" alt="Logo">
+                                            <i id="preview-logo-icon" class="fas fa-building"
+                                                style="color:var(--accent-light); font-size:0.9rem;"></i>
+                                        </div>
+                                        <div class="brand-text" id="preview-brand-text">EMPRESA<br>DIGITAL</div>
                                     </div>
-                                    <div class="brand-text">HOLDING<br>EMPRESARIAL</div>
                                 </div>
 
-                                <!-- Photo Container (Top Right/Center) -->
+                                <!-- Profile Photo -->
                                 <div class="profile-container">
                                     <div id="preview-logo-box">
                                         <i class="fas fa-user"
-                                            style="opacity: 0.1; font-size: 4rem; color:var(--accent);"></i>
+                                            style="opacity:0.15; font-size:2rem; color:var(--accent-light);"></i>
                                     </div>
                                 </div>
 
@@ -301,73 +445,75 @@
                                     <p id="preview-company">EMPRESA EJEMPLO</p>
                                     <h2 id="preview-name">NOMBRE COMPLETO</h2>
                                     <p id="preview-title">CARGO O TÍTULO</p>
+                                    <p id="preview-description" class="card-desc">Esta es tu descripción. Resalta tus
+                                        valores y servicios.</p>
 
-                                    <p id="preview-description" class="card-desc">Esta es tu descripción empresarial.
-                                        Aquí puedes resaltar tus valores, servicios y lo que te hace único en el
-                                        mercado.</p>
-
-                                    <div id="preview-contacts" class="contact-container">
-                                        <!-- Functional links will be injected here -->
-                                    </div>
+                                    <div id="preview-contacts" class="contact-container"></div>
                                     <div id="preview-social" class="social-strip"></div>
                                 </div>
                             </div>
 
-                            <!-- Bottom Wave Decoration -->
                             <div class="bottom-wave"></div>
                         </div>
 
-                        <div id="preview-qr" class="studio-module"
-                            style="position: absolute; bottom: 1.5rem; right: 1.5rem; padding: 0.5rem; width: 90px; height: 90px; display: flex; align-items: center; justify-content: center;">
-                            <!-- QR placeholder -->
-                            <div style="text-align:center; opacity:0.3;">
-                                <i class="fas fa-qrcode"
-                                    style="font-size: 1.5rem; display:block; margin-bottom: 5px;"></i>
-                                <span style="font-size: 8px; font-weight:800;">GUARDAR PARA QR</span>
-                            </div>
+                        <!-- QR Box -->
+                        <div id="preview-qr">
+                            <i class="fas fa-qrcode"></i>
+                            <span>GUARDAR PARA QR</span>
                         </div>
                     </div>
                 </div>
             </div>
         </section>
+
     </main>
 
-    <!-- Module: Auth Dialogs -->
-    <div id="auth-modal" class="hidden auth-overlay">
-        <div class="studio-module auth-box">
+    <!-- ── AUTH MODAL ─────────────────────────────────────────── -->
+    <div id="auth-modal" class="auth-overlay hidden">
+        <div class="auth-box">
+            <div class="auth-logo">
+                <span class="logo-text">Ecards<span style="color:var(--accent-light);">3</span></span>
+            </div>
+
+            <!-- Login Form -->
             <div id="auth-login">
-                <h3 style="margin-bottom: 2rem;">Acceso Ejecutivo</h3>
+                <h3>Bienvenido de vuelta</h3>
+                <p class="auth-subtitle">Accede a tu identidad digital</p>
                 <form id="loginForm" onsubmit="Auth.handleLogin(event)">
-                    <div class="input-group"><label>Usuario</label><input type="text" id="login-user" required></div>
-                    <div class="input-group"><label>Contraseña</label><input type="password" id="login-pass" required>
-                    </div>
-                    <button type="submit" class="studio-module"
-                        style="width: 100%; background: var(--accent); color: white; border:none; cursor: pointer; padding: 1rem;">ENTRAR</button>
-                    <p style="margin-top: 2rem; font-size: 0.8rem; text-align: center; opacity: 0.5;">¿Sin cuenta? <a
-                            href="#" onclick="UI.showAuth('register')">Registrarse</a></p>
+                    <div class="input-group"><label>Usuario</label><input type="text" id="login-user" required
+                            placeholder="Tu nombre de usuario"></div>
+                    <div class="input-group"><label>Contraseña</label><input type="password" id="login-pass" required
+                            placeholder="••••••••"></div>
+                    <button type="submit" class="btn btn-primary btn-full"
+                        style="border-radius:8px; padding:0.9rem; margin-top:0.5rem;">
+                        <i class="fas fa-sign-in-alt"></i> Entrar
+                    </button>
                 </form>
+                <p class="auth-switch">¿Sin cuenta? <a onclick="UI.showAuth('register')">Crear una ahora</a></p>
             </div>
+
+            <!-- Register Form -->
             <div id="auth-register" class="hidden">
-                <h3 style="margin-bottom: 2rem;">Registrar Identidad</h3>
+                <h3>Crear Identidad</h3>
+                <p class="auth-subtitle">Únete a la plataforma de élite</p>
                 <form id="registerForm" onsubmit="Auth.handleRegister(event)">
-                    <div class="input-group"><label>Nombre de Usuario</label><input type="text" id="reg-user" required>
-                    </div>
-                    <div class="input-group"><label>Contraseña</label><input type="password" id="reg-pass" required>
-                    </div>
-                    <button type="submit" class="studio-module"
-                        style="width: 100%; background: var(--text-primary); color: white; border:none; cursor: pointer; padding: 1rem;">CREAR
-                        CUENTA</button>
-                    <p style="margin-top: 2rem; font-size: 0.8rem; text-align: center; opacity: 0.5;">¿Ya tienes cuenta?
-                        <a href="#" onclick="UI.showAuth('login')">Volver al Login</a>
-                    </p>
+                    <div class="input-group"><label>Nombre de Usuario</label><input type="text" id="reg-user" required
+                            placeholder="Ej: carlos_mendez"></div>
+                    <div class="input-group"><label>Contraseña</label><input type="password" id="reg-pass" required
+                            placeholder="Mínimo 6 caracteres"></div>
+                    <button type="submit" class="btn btn-primary btn-full"
+                        style="border-radius:8px; padding:0.9rem; margin-top:0.5rem;">
+                        <i class="fas fa-user-plus"></i> Crear Cuenta
+                    </button>
                 </form>
+                <p class="auth-switch">¿Ya tienes cuenta? <a onclick="UI.showAuth('login')">Iniciar sesión</a></p>
             </div>
-            <button onclick="UI.hideAuth()"
-                style="position: absolute; top: 1rem; right: 1rem; background:none; border:none; cursor: pointer; font-size: 1.25rem; opacity: 0.3;">&times;</button>
+
+            <button class="auth-close" onclick="UI.hideAuth()">&times;</button>
         </div>
     </div>
 
-    <!-- Standalone View (Public) -->
+    <!-- Public Card View (standalone) -->
     <div id="public-view" class="hidden"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>

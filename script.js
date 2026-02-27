@@ -128,7 +128,10 @@ const Auth = {
         state.user = user;
         document.getElementById('auth-nav-guest').classList.add('hidden');
         document.getElementById('auth-nav-user').classList.remove('hidden');
-        document.getElementById('nav-username').textContent = user.username.toUpperCase();
+        const navUsername = document.getElementById('nav-username');
+        if (navUsername) navUsername.textContent = user.username.toUpperCase();
+        const navAvatar = document.getElementById('nav-avatar');
+        if (navAvatar) navAvatar.textContent = user.username.charAt(0).toUpperCase();
     }
 };
 
@@ -172,9 +175,13 @@ const UI = {
     },
 
     showTab(event, tabId) {
-        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+        document.querySelectorAll('.tab-content').forEach(el => {
+            el.classList.remove('active');
+            el.style.display = '';
+        });
         document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-        document.getElementById(tabId)?.classList.remove('hidden');
+        const target = document.getElementById(tabId);
+        if (target) target.classList.add('active');
         if (event) event.currentTarget.classList.add('active');
     },
 
@@ -192,10 +199,8 @@ const UI = {
         if (this.form) this.form.reset();
         this.updatePreview();
         if (this.qrContainer) this.qrContainer.innerHTML = `
-            <div style="text-align:center; opacity:0.3;">
-                <i class="fas fa-qrcode" style="font-size: 1.5rem; display:block; margin-bottom: 5px;"></i>
-                <span style="font-size: 8px; font-weight:800;">GUARDAR PARA QR</span>
-            </div>`;
+            <i class="fas fa-qrcode"></i>
+            <span>GUARDAR PARA QR</span>`;
     },
 
     async loadDashboard() {
@@ -206,32 +211,53 @@ const UI = {
             const cards = await res.json();
             this.dashboardGrid.innerHTML = '';
             if (cards.length === 0) {
-                this.dashboardGrid.innerHTML = '<div class="studio-module" style="grid-column: 1/-1; padding: 4rem; text-align: center; opacity: 0.5;">Aún no has creado identidades.</div>';
+                this.dashboardGrid.innerHTML = `
+                    <div class="add-card-btn" onclick="UI.clearStudio(); Router.go('/admin')" style="grid-column: 1/-1;">
+                        <i class="fas fa-plus-circle"></i>
+                        <span>Crea tu primera tarjeta digital</span>
+                    </div>`;
                 return;
             }
             cards.forEach(card => {
                 const item = document.createElement('div');
-                item.className = 'studio-module animate-in';
-                item.style.padding = '1.5rem';
+                item.className = 'card-item animate-in';
                 const pubLink = `${state.API_BASE}/card/${card.id}`;
+                const templateClass = card.template_id || 'corporate';
+                const avatarIcons = { corporate: 'fa-user-tie', minimal: 'fa-pencil-ruler', creative: 'fa-code' };
+                const icon = avatarIcons[templateClass] || 'fa-user-tie';
                 item.innerHTML = `
-                    <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1.5rem;">
-                        <div style="width: 45px; height: 45px; border-radius: 12px; background: ${card.primary_color}; display: flex; align-items: center; justify-content: center; color: white; overflow: hidden; border: 1px solid rgba(0,0,0,0.05);">
-                            ${card.logo_path ? `<img src="${state.API_BASE}/uploads/${card.logo_path}" style="width:100%; height:100%; object-fit:contain;">` : '<i class="fas fa-user-tie"></i>'}
-                        </div>
-                        <div style="flex:1">
-                            <h4 style="margin:0; font-size: 0.8rem; font-weight: 800;">${(card.name || 'SIN NOMBRE').toUpperCase()}</h4>
+                    <div class="card-item-thumb">
+                        <div class="mini-card ${templateClass}" style="width:100%; height:100%;">
+                            <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.4rem;">
+                                <div class="mini-card-avatar ${templateClass}-av">
+                                    ${card.profile_path
+                        ? `<img src="${state.API_BASE}/uploads/${card.profile_path}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+                        : `<i class="fas ${icon}"></i>`}
+                                </div>
+                                <div class="mini-card-name" style="${templateClass === 'minimal' ? 'color:#0F172A;' : ''}">${(card.name || 'Sin Nombre')}</div>
+                                <div class="mini-card-title" style="${templateClass === 'minimal' ? 'color:#64748B;' : ''}">${card.title || ''}</div>
+                            </div>
+                            ${templateClass !== 'minimal' ? '<div class="bottom-wave"></div>' : ''}
                         </div>
                     </div>
-                    <div style="display: flex; gap: 0.75rem;">
-                        <button class="tab-btn active" style="font-size: 0.6rem; flex: 1; padding: 0.75rem;" onclick="UI.editCard('${card.id}')">EDITAR</button>
-                        <button class="tab-btn" style="font-size: 0.6rem; padding: 0.75rem 1rem;" onclick="UI.copyLink('${pubLink}')"><i class="fas fa-copy"></i></button>
-                        <button class="tab-btn" style="font-size: 0.6rem; padding: 0.75rem 1rem;" onclick="window.open('${pubLink}', '_blank')"><i class="fas fa-external-link-alt"></i></button>
+                    <div class="card-item-actions">
+                        <span class="card-name">${(card.name || 'Sin Nombre').toUpperCase()}</span>
+                        <button class="btn btn-primary" style="font-size:0.7rem; padding:0.4rem 0.9rem; border-radius:6px;" onclick="UI.editCard('${card.id}')"><i class="fas fa-pen"></i> Editar</button>
+                        <button class="btn-icon" title="Copiar Link" onclick="UI.copyLink('${pubLink}')"><i class="fas fa-copy"></i></button>
+                        <button class="btn-icon" title="Ver Tarjeta" onclick="window.open('${pubLink}', '_blank')"><i class="fas fa-external-link-alt"></i></button>
                     </div>
                 `;
                 this.dashboardGrid.appendChild(item);
             });
-        } catch (e) { this.dashboardGrid.innerHTML = '<p>SISTEMA OFFLINE</p>'; }
+
+            // Add new card button at the end
+            const addBtn = document.createElement('div');
+            addBtn.className = 'add-card-btn';
+            addBtn.onclick = () => { UI.clearStudio(); Router.go('/admin'); };
+            addBtn.innerHTML = '<i class="fas fa-plus"></i><span>Nueva Tarjeta</span>';
+            this.dashboardGrid.appendChild(addBtn);
+
+        } catch (e) { this.dashboardGrid.innerHTML = '<p style="opacity:0.5; padding:2rem;">SISTEMA OFFLINE</p>'; }
     },
 
     async editCard(id) {
@@ -335,7 +361,7 @@ const UI = {
         // Apply Custom Branding
         if (preview) {
             // Apply Template Class (Preserving layout classes)
-            preview.className = `card-preview animate-in tmpl-${data.template_id || 'corporate'}`;
+            preview.className = `card-preview animate-in template-${data.template_id || 'corporate'}`;
 
             if (state.bgImagePath) {
                 preview.style.backgroundImage = `url(${state.bgImagePath})`;
@@ -526,7 +552,7 @@ const UI = {
         cardEl.classList.remove('hidden');
 
         // Apply dynamic styles and Template to clone
-        cardEl.className = `card-preview animate-in tmpl-${card.template_id || 'corporate'}`;
+        cardEl.className = `card-preview animate-in template-${card.template_id || 'corporate'}`;
 
         if (state.bgImagePath) {
             cardEl.style.backgroundImage = `url(${state.bgImagePath})`;
@@ -639,15 +665,15 @@ const UI = {
         grid.style.cssText = 'display:grid; grid-template-columns: 1fr 1fr; gap:1rem; width:100%; max-width:380px; margin-top:2rem;';
 
         const vBtn = document.createElement('button');
-        vBtn.className = 'studio-module';
-        vBtn.style.cssText = `background:${card.primary_color || '#003366'}; color:white; border:none; padding:1rem; font-weight:800; cursor:pointer; font-size: 0.8rem; border-radius:50px; box-shadow: 0 10px 20px rgba(0,0,0,0.1);`;
+        vBtn.className = 'btn btn-primary btn-lg';
+        vBtn.style.cssText = `background:${card.primary_color || '#7C3AED'}; color:white; border:none; padding:1rem; font-weight:800; cursor:pointer; font-size: 0.8rem; border-radius:50px; box-shadow: 0 10px 20px rgba(0,0,0,0.3);`;
         vBtn.innerHTML = 'GUARDAR CONTACTO';
         vBtn.onclick = () => this.downloadVCard(card);
         grid.appendChild(vBtn);
 
         const mBtn = document.createElement('button');
-        mBtn.className = 'studio-module';
-        mBtn.style.cssText = 'background:#FFFFFF; color:#003366; border:none; padding:1rem; font-weight:800; cursor:pointer; font-size: 0.8rem; border-radius:50px; box-shadow: 0 10px 20px rgba(0,0,0,0.05);';
+        mBtn.className = 'btn btn-outline btn-lg';
+        mBtn.style.cssText = 'background:rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.3); padding:1rem; font-weight:800; cursor:pointer; font-size: 0.8rem; border-radius:50px;';
         mBtn.innerHTML = 'COMPARTIR LINK';
         mBtn.onclick = () => this.copyLink(window.location.href);
         grid.appendChild(mBtn);
