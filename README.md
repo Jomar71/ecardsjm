@@ -1,16 +1,16 @@
 # ecards JM - Tarjetas de Presentación Digital
 
-Aplicación web completa para crear y gestionar tarjetas de presentación digital optimizadas para dispositivos móviles.
+Aplicación web frontend-only para crear y gestionar tarjetas de presentación digital optimizadas para dispositivos móviles.
 
 ## Características
 
-- ✅ Sistema de autenticación seguro
+- ✅ Sistema de autenticación seguro (cliente)
 - ✅ Creación de tarjetas digitales personalizables
 - ✅ Personalización de colores corporativos
 - ✅ Personalización de tipografía
 - ✅ Subida de logos y fotos de perfil
 - ✅ URLs únicas para cada tarjeta
-- ✅ Gestión completa de tarjetas (CRUD)
+- ✅ Gestión completa de tarjetas (CRUD local)
 - ✅ Diseño 100% responsive
 
 ## Instalación
@@ -54,6 +54,13 @@ Aplicación web completa para crear y gestionar tarjetas de presentación digita
 - Familia de fuente (Arial, Georgia, Courier New, etc.)
 - Tamaños personalizables para nombre, título y descripción
 
+## Tecnología
+
+- HTML5, CSS3 y JavaScript ES6+
+- Persistencia local usando localStorage
+- Serialización de datos con lz-string
+- No requiere servidor backend para funcionamiento básico
+
 ## Soporte
 
 Si tienes problemas para acceder:
@@ -61,7 +68,7 @@ Si tienes problemas para acceder:
 2. Verifica que JavaScript esté habilitado en tu navegador
 3. Si persiste el problema, abre la consola (F12) y revisa si hay errores
 
-## Archivos
+## Archivos Principales
 
 - `index.html` - Estructura principal
 - `styles.css` - Estilos y diseño responsive

@@ -1,0 +1,5 @@
+{
+    "python.defaultInterpreterPath": "f:/PROGRAMADOR FULLSTACK/PROYECTOS DE PROGRAMACIÓN/PROYECTOS PARA MI USO/ecards3/.venv/Scripts/python.exe",
+    "python.terminal.activateEnvInCurrentTerminal": true,
+    "python.analysis.typeCheckingMode": "basic"
+}
