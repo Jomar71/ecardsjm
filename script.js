@@ -1,12 +1,12 @@
 /**
  * EliteCards Pro - Executive Intelligence Kernel
- * Multi-User Platform Engine 2026
+ * Frontend-only Implementation
  */
 
 "use strict";
 
 const state = {
-    user: null,
+    user: { id: 'local_user', username: 'guest' }, // Usuario local predeterminado
     cardId: null,
     isPublicView: false,
     logoPath: null,
@@ -14,7 +14,7 @@ const state = {
     bgImagePath: null,
     fontFilePath: null,
     archives: [],
-    API_BASE: window.location.hostname === 'jomar71.github.io' ? 'https://ecardsjm.onrender.com' : ''
+    API_BASE: '' // No necesitamos backend
 };
 
 const Router = {
@@ -63,62 +63,51 @@ const Router = {
 
 const Auth = {
     async check() {
-        try {
-            const res = await fetch(`${state.API_BASE}/api/auth/me`, { credentials: 'include' });
-            if (res.ok) {
-                const data = await res.json();
-                this.onLogin(data.user);
-            }
-        } catch (e) { console.log("Auth: Runtime Guest Mode."); }
+        // Verificar si hay un usuario guardado en localStorage
+        const savedUser = localStorage.getItem('ecards_user');
+        if (savedUser) {
+            this.onLogin(JSON.parse(savedUser));
+        } else {
+            // Por defecto, creamos un usuario local
+            this.onLogin(state.user);
+        }
     },
 
     async handleLogin(e) {
         e.preventDefault();
         const user = document.getElementById('login-user').value;
         const pass = document.getElementById('login-pass').value;
-        try {
-            const res = await fetch(`${state.API_BASE}/api/auth/login`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ username: user, password: pass })
-            });
-            if (res.ok) {
-                const data = await res.json();
-                this.onLogin(data.user);
-                UI.hideAuth();
-                Router.go('/dashboard');
-            } else {
-                const errData = await res.json().catch(() => ({}));
-                alert(errData.error === "DENIED" ? "CREDENCIALES INVÁLIDAS." : "ERROR: No se pudo conectar con el servidor backend.");
-            }
-        } catch (err) { alert("SISTEMA AUTH OFFLINE."); }
+        
+        // Validar credenciales (contraseña por defecto admin123)
+        if (pass === 'admin123') {
+            const userData = { id: 'local_user_' + Date.now(), username: user || 'Usuario' };
+            localStorage.setItem('ecards_user', JSON.stringify(userData));
+            this.onLogin(userData);
+            UI.hideAuth();
+            Router.go('/dashboard');
+        } else {
+            alert("CREDENCIALES INVÁLIDAS.");
+        }
     },
 
     async handleRegister(e) {
         e.preventDefault();
         const user = document.getElementById('reg-user').value;
         const pass = document.getElementById('reg-pass').value;
-        try {
-            const res = await fetch(`${state.API_BASE}/api/auth/register`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                credentials: 'include',
-                body: JSON.stringify({ username: user, password: pass })
-            });
-            if (res.ok) {
-                alert("REGISTRO EXITOSO. INICIA SESIÓN.");
-                UI.showAuth('login');
-            } else {
-                const errData = await res.json().catch(() => ({}));
-                alert(errData.error === "EXECUTIVE_EXISTS" ? "USUARIO EXISTENTE." : "ERROR: El servidor backend no está configurado en GitHub Pages.");
-            }
-        } catch (err) { alert("ERROR DE REGISTRO."); }
+        
+        if (pass === 'admin123') {
+            const userData = { id: 'local_user_' + Date.now(), username: user || 'Usuario' };
+            localStorage.setItem('ecards_user', JSON.stringify(userData));
+            alert("REGISTRO EXITOSO. INICIA SESIÓN.");
+            UI.showAuth('login');
+        } else {
+            alert("ERROR: Contraseña inválida. Use 'admin123'");
+        }
     },
 
     async logout() {
-        await fetch(`${state.API_BASE}/api/auth/logout`, { credentials: 'include' });
-        state.user = null;
+        localStorage.removeItem('ecards_user');
+        state.user = { id: 'local_user', username: 'guest' };
         document.getElementById('auth-nav-guest').classList.remove('hidden');
         document.getElementById('auth-nav-user').classList.add('hidden');
         Router.go('/');
@@ -205,115 +194,190 @@ const UI = {
 
     async loadDashboard() {
         if (!this.dashboardGrid) return;
-        this.dashboardGrid.innerHTML = '<p style="opacity:0.5; padding: 2rem; text-align: center;">Sincronizando...</p>';
-        try {
-            const res = await fetch(`${state.API_BASE}/api/cards`, { credentials: 'include' });
-            const cards = await res.json();
-            this.dashboardGrid.innerHTML = '';
-            if (cards.length === 0) {
-                this.dashboardGrid.innerHTML = `
-                    <div class="add-card-btn" onclick="UI.clearStudio(); Router.go('/admin')" style="grid-column: 1/-1;">
-                        <i class="fas fa-plus-circle"></i>
-                        <span>Crea tu primera tarjeta digital</span>
-                    </div>`;
-                return;
+        
+        // Limpiar dashboard
+        this.dashboardGrid.innerHTML = '';
+        
+        // Obtener tarjetas de localStorage
+        const cards = this.getLocalCards();
+        
+        if (cards.length === 0) {
+            this.dashboardGrid.innerHTML = `
+                <div class="add-card-btn" onclick="UI.clearStudio(); Router.go('/admin')" style="grid-column: 1/-1;">
+                    <i class="fas fa-plus-circle"></i>
+                    <span>Crea tu primera tarjeta digital</span>
+                </div>`;
+            return;
+        }
+        
+        cards.forEach(card => {
+            const item = document.createElement('div');
+            item.className = 'card-item animate-in';
+            // Generar URL para compartir la tarjeta
+            const pubLink = window.location.origin + window.location.pathname + `#card/${card.id}`;
+            const templateClass = card.template_id || 'corporate';
+            const avatarIcons = { corporate: 'fa-user-tie', minimal: 'fa-pencil-ruler', creative: 'fa-code' };
+            const icon = avatarIcons[templateClass] || 'fa-user-tie';
+            
+            // Preparar la ruta de la imagen de perfil
+            let profilePath = null;
+            if (card.profile_path) {
+                // Si la imagen está en base64 o ya es una URL válida
+                profilePath = card.profile_path;
             }
-            cards.forEach(card => {
-                const item = document.createElement('div');
-                item.className = 'card-item animate-in';
-                const pubLink = `${state.API_BASE}/card/${card.id}`;
-                const templateClass = card.template_id || 'corporate';
-                const avatarIcons = { corporate: 'fa-user-tie', minimal: 'fa-pencil-ruler', creative: 'fa-code' };
-                const icon = avatarIcons[templateClass] || 'fa-user-tie';
-                item.innerHTML = `
-                    <div class="card-item-thumb">
-                        <div class="mini-card ${templateClass}" style="width:100%; height:100%;">
-                            <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.4rem;">
-                                <div class="mini-card-avatar ${templateClass}-av">
-                                    ${card.profile_path
-                        ? `<img src="${state.API_BASE}/uploads/${card.profile_path}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-                        : `<i class="fas ${icon}"></i>`}
-                                </div>
-                                <div class="mini-card-name" style="${templateClass === 'minimal' ? 'color:#0F172A;' : ''}">${(card.name || 'Sin Nombre')}</div>
-                                <div class="mini-card-title" style="${templateClass === 'minimal' ? 'color:#64748B;' : ''}">${card.title || ''}</div>
+            
+            item.innerHTML = `
+                <div class="card-item-thumb">
+                    <div class="mini-card ${templateClass}" style="width:100%; height:100%;">
+                        <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.4rem;">
+                            <div class="mini-card-avatar ${templateClass}-av">
+                                ${profilePath
+                    ? `<img src="${profilePath}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
+                    : `<i class="fas ${icon}"></i>`}
                             </div>
-                            ${templateClass !== 'minimal' ? '<div class="bottom-wave"></div>' : ''}
+                            <div class="mini-card-name" style="${templateClass === 'minimal' ? 'color:#0F172A;' : ''}">${(card.name || 'Sin Nombre')}</div>
+                            <div class="mini-card-title" style="${templateClass === 'minimal' ? 'color:#64748B;' : ''}">${card.title || ''}</div>
                         </div>
+                        ${templateClass !== 'minimal' ? '<div class="bottom-wave"></div>' : ''}
                     </div>
-                    <div class="card-item-actions">
-                        <span class="card-name">${(card.name || 'Sin Nombre').toUpperCase()}</span>
-                        <button class="btn btn-primary" style="font-size:0.7rem; padding:0.4rem 0.9rem; border-radius:6px;" onclick="UI.editCard('${card.id}')"><i class="fas fa-pen"></i> Editar</button>
-                        <button class="btn-icon" title="Copiar Link" onclick="UI.copyLink('${pubLink}')"><i class="fas fa-copy"></i></button>
-                        <button class="btn-icon" title="Ver Tarjeta" onclick="window.open('${pubLink}', '_blank')"><i class="fas fa-external-link-alt"></i></button>
-                    </div>
-                `;
-                this.dashboardGrid.appendChild(item);
-            });
+                </div>
+                <div class="card-item-actions">
+                    <span class="card-name">${(card.name || 'Sin Nombre').toUpperCase()}</span>
+                    <button class="btn btn-primary" style="font-size:0.7rem; padding:0.4rem 0.9rem; border-radius:6px;" onclick="UI.editCard('${card.id}')"><i class="fas fa-pen"></i> Editar</button>
+                    <button class="btn-icon" title="Copiar Link" onclick="UI.copyLink('${pubLink}')"><i class="fas fa-copy"></i></button>
+                    <button class="btn-icon" title="Ver Tarjeta" onclick="window.open('${pubLink}', '_blank')"><i class="fas fa-external-link-alt"></i></button>
+                </div>
+            `;
+            this.dashboardGrid.appendChild(item);
+        });
 
-            // Add new card button at the end
-            const addBtn = document.createElement('div');
-            addBtn.className = 'add-card-btn';
-            addBtn.onclick = () => { UI.clearStudio(); Router.go('/admin'); };
-            addBtn.innerHTML = '<i class="fas fa-plus"></i><span>Nueva Tarjeta</span>';
-            this.dashboardGrid.appendChild(addBtn);
+        // Add new card button at the end
+        const addBtn = document.createElement('div');
+        addBtn.className = 'add-card-btn';
+        addBtn.onclick = () => { UI.clearStudio(); Router.go('/admin'); };
+        addBtn.innerHTML = '<i class="fas fa-plus"></i><span>Nueva Tarjeta</span>';
+        this.dashboardGrid.appendChild(addBtn);
+    },
 
-        } catch (e) { this.dashboardGrid.innerHTML = '<p style="opacity:0.5; padding:2rem;">SISTEMA OFFLINE</p>'; }
+    getLocalCards() {
+        const cardsStr = localStorage.getItem('ecards_cards');
+        return cardsStr ? JSON.parse(cardsStr) : [];
+    },
+
+    saveLocalCard(card) {
+        const cards = this.getLocalCards();
+        const existingIndex = cards.findIndex(c => c.id === card.id);
+        
+        if (existingIndex >= 0) {
+            cards[existingIndex] = card;
+        } else {
+            // Si es nueva tarjeta, asegurarse de que tenga un ID
+            if (!card.id) {
+                card.id = 'card_' + Date.now();
+            }
+            cards.push(card);
+        }
+        
+        localStorage.setItem('ecards_cards', JSON.stringify(cards));
+        return card;
     },
 
     async editCard(id) {
-        try {
-            const res = await fetch(`${state.API_BASE}/api/cards/${id}`, { credentials: 'include' });
-            const card = await res.json();
-            state.cardId = card.id;
-            state.logoPath = card.logo_path ? `${state.API_BASE}/uploads/${card.logo_path}` : null;
-            state.profilePath = card.profile_path ? `${state.API_BASE}/uploads/${card.profile_path}` : null;
-            state.bgImagePath = card.bg_image_path ? `${state.API_BASE}/uploads/${card.bg_image_path}` : null;
-            state.fontFilePath = card.font_file_path ? `${state.API_BASE}/uploads/${card.font_file_path}` : null;
-            if (this.form) {
-                Object.entries(card).forEach(([key, val]) => {
-                    const input = this.form.elements[key];
-                    if (input && input.type !== 'file') input.value = val || '';
-                });
-            }
-            this.updatePreview();
-            Router.go('/admin');
-            this.generateQR(`${window.location.origin}/card/${state.cardId}`);
-        } catch (e) { alert("ERROR AL CARGAR."); }
+        const cards = this.getLocalCards();
+        const card = cards.find(c => c.id === id);
+        
+        if (!card) {
+            alert("ERROR AL CARGAR.");
+            return;
+        }
+        
+        state.cardId = card.id;
+        state.logoPath = card.logo_path || null;
+        state.profilePath = card.profile_path || null;
+        state.bgImagePath = card.bg_image_path || null;
+        state.fontFilePath = card.font_file_path || null;
+        
+        if (this.form) {
+            Object.entries(card).forEach(([key, val]) => {
+                const input = this.form.elements[key];
+                if (input && input.type !== 'file') input.value = val || '';
+            });
+        }
+        
+        this.updatePreview();
+        Router.go('/admin');
+        
+        // Generar QR con la URL local
+        const cardUrl = window.location.origin + window.location.pathname + `#card/${state.cardId}`;
+        this.generateQR(cardUrl);
     },
 
     async handleSubmit(e) {
         e.preventDefault();
         if (this.loader) this.loader.classList.remove('hidden');
+        
         try {
+            // Recoger los datos del formulario
             const formData = new FormData(this.form);
-            if (state.cardId) formData.append('id', state.cardId);
-            const res = await fetch(`${state.API_BASE}/api/cards`, { method: 'POST', credentials: 'include', body: formData });
-            const result = await res.json();
-            if (result.status === 'success') {
-                state.cardId = result.card.id;
-                if (this.successBanner) {
-                    this.successBanner.classList.remove('hidden');
-                    setTimeout(() => this.successBanner.classList.add('hidden'), 3500);
-                }
-                this.generateQR(`${window.location.origin}/card/${state.cardId}`);
-                setTimeout(() => Router.go('/dashboard'), 2000);
+            const cardData = {};
+            
+            // Convertir FormData a objeto
+            for (let [key, value] of formData.entries()) {
+                cardData[key] = value;
             }
-        } catch (err) { alert("ERROR DE DESPLIEGUE."); }
-        finally { if (this.loader) this.loader.classList.add('hidden'); }
+            
+            // Agregar IDs y paths de imágenes
+            if (state.cardId) cardData.id = state.cardId;
+            if (state.logoPath) cardData.logo_path = state.logoPath;
+            if (state.profilePath) cardData.profile_path = state.profilePath;
+            if (state.bgImagePath) cardData.bg_image_path = state.bgImagePath;
+            if (state.fontFilePath) cardData.font_file_path = state.fontFilePath;
+            
+            // Guardar la tarjeta
+            const savedCard = this.saveLocalCard(cardData);
+            state.cardId = savedCard.id;
+            
+            if (this.successBanner) {
+                this.successBanner.classList.remove('hidden');
+                setTimeout(() => this.successBanner.classList.add('hidden'), 3500);
+            }
+            
+            // Generar QR con la URL local
+            const cardUrl = window.location.origin + window.location.pathname + `#card/${state.cardId}`;
+            this.generateQR(cardUrl);
+            
+            setTimeout(() => Router.go('/dashboard'), 2000);
+        } catch (err) {
+            alert("ERROR AL GUARDAR.");
+            console.error(err);
+        } finally {
+            if (this.loader) this.loader.classList.add('hidden');
+        }
     },
 
     handleFileUpload(e, targetPath) {
         const file = e.target.files[0];
         if (!file) return;
-        state[targetPath] = URL.createObjectURL(file);
-        this.updatePreview();
+        
+        // Convertir archivo a URL de objeto o base64
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            state[targetPath] = event.target.result;
+            this.updatePreview();
+        };
+        reader.readAsDataURL(file);
     },
 
     handleFontFile(e) {
         const file = e.target.files[0];
         if (!file) return;
-        state.fontFilePath = URL.createObjectURL(file);
-        this.updatePreview();
+        
+        const reader = new FileReader();
+        reader.onload = (event) => {
+            state.fontFilePath = event.target.result;
+            this.updatePreview();
+        };
+        reader.readAsDataURL(file);
     },
 
     isLightColor(hex) {
@@ -329,19 +393,25 @@ const UI = {
         if (!state.cardId) return;
         if (!confirm("¿ESTÁS SEGURO DE ELIMINAR ESTA IDENTIDAD? ESTA ACCIÓN ES IRREVERSIBLE.")) return;
 
-        try {
-            const res = await fetch(`${state.API_BASE}/api/cards/${state.cardId}`, { method: 'DELETE', credentials: 'include' });
-            if (res.ok) {
-                alert("IDENTIDAD ELIMINADA.");
-                Router.go('/dashboard');
-            }
-        } catch (e) { alert("ERROR AL ELIMINAR."); }
+        // Eliminar tarjeta de localStorage
+        let cards = this.getLocalCards();
+        cards = cards.filter(card => card.id !== state.cardId);
+        localStorage.setItem('ecards_cards', JSON.stringify(cards));
+        
+        alert("IDENTIDAD ELIMINADA.");
+        state.cardId = null;
+        Router.go('/dashboard');
     },
 
     copyLink(url) {
-        navigator.clipboard.writeText(url).then(() => {
-            alert("LINK COPIADO AL PORTAPAPELES");
-        });
+        // En lugar de navigator.clipboard, usar un método compatible más ampliamente
+        const textarea = document.createElement('textarea');
+        textarea.value = url;
+        document.body.appendChild(textarea);
+        textarea.select();
+        document.execCommand('copy');
+        document.body.removeChild(textarea);
+        alert("LINK COPIADO AL PORTAPAPELES");
     },
 
     // --- Core Engine: Multi-Template Hybrid Rendering ---
@@ -525,11 +595,13 @@ const UI = {
     },
 
     async loadPublicCard(id) {
-        try {
-            const res = await fetch(`${state.API_BASE}/api/cards/${id}`, { credentials: 'include' });
-            const card = await res.json();
+        // Buscar la tarjeta en localStorage
+        const cards = this.getLocalCards();
+        const card = cards.find(c => c.id === id);
+        
+        if (card) {
             this.renderPublicCard(card);
-        } catch (e) {
+        } else {
             if (this.publicView) this.publicView.innerHTML = '<div style="height:100vh; display:flex; align-items:center; justify-content:center; font-weight:800; opacity:0.3;">404 | IDENTITY NOT FOUND</div>';
         }
     },
@@ -537,10 +609,10 @@ const UI = {
     renderPublicCard(card) {
         if (!this.publicView) return;
         document.body.style.backgroundColor = card.bg_color || '#E0E5EC';
-        state.logoPath = card.logo_path ? `${state.API_BASE}/uploads/${card.logo_path}` : null;
-        state.profilePath = card.profile_path ? `${state.API_BASE}/uploads/${card.profile_path}` : null;
-        state.bgImagePath = card.bg_image_path ? `${state.API_BASE}/uploads/${card.bg_image_path}` : null;
-        state.fontFilePath = card.font_file_path ? `${state.API_BASE}/uploads/${card.font_file_path}` : null;
+        state.logoPath = card.logo_path || null;
+        state.profilePath = card.profile_path || null;
+        state.bgImagePath = card.bg_image_path || null;
+        state.fontFilePath = card.font_file_path || null;
 
         const wrap = document.createElement('div');
         wrap.id = 'public-card-container';
@@ -679,12 +751,37 @@ const UI = {
         grid.appendChild(mBtn);
 
         wrap.appendChild(grid);
+
+        // Add share buttons for mobile
+        const shareDiv = document.createElement('div');
+        shareDiv.style.cssText = 'display:flex; gap:1rem; margin-top:1rem;';
+        const shareLabel = document.createElement('span');
+        shareLabel.textContent = 'Compartir en:';
+        shareLabel.style.marginRight = '10px';
+        
+        const platforms = [
+            { name: 'WhatsApp', icon: 'fab fa-whatsapp', color: '#25D366', url: `https://wa.me/?text=${encodeURIComponent(window.location.href)}` },
+            { name: 'LinkedIn', icon: 'fab fa-linkedin', color: '#0A66C2', url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}` },
+            { name: 'Twitter', icon: 'fab fa-x-twitter', color: '#1DA1F2', url: `https://twitter.com/intent/tweet?text=${encodeURIComponent('Mira esta tarjeta de presentación digital:&url=')}${encodeURIComponent(window.location.href)}` }
+        ];
+        
+        platforms.forEach(platform => {
+            const btn = document.createElement('a');
+            btn.href = platform.url;
+            btn.target = '_blank';
+            btn.innerHTML = `<i class="${platform.icon}"></i> ${platform.name}`;
+            btn.style.cssText = `padding: 0.5rem; border-radius: 0.5rem; color: white; background-color: ${platform.color}; text-decoration: none; flex: 1; text-align: center;`;
+            shareDiv.appendChild(btn);
+        });
+        
+        wrap.appendChild(shareDiv);
+
         this.publicView.innerHTML = '';
         this.publicView.appendChild(wrap);
 
         // Generate QR in public view footer
         const qrF = document.createElement('div');
-        qrF.style.cssText = 'background:white; padding:1rem; border-radius:12px; margin-top:2rem;';
+        qrF.style.cssText = 'background:white; padding:1rem; border-radius:12px; margin-top:2rem; max-width: 200px; margin-left: auto; margin-right: auto;';
         wrap.appendChild(qrF);
         this.generateQR(window.location.href, qrF);
     },
@@ -692,9 +789,28 @@ const UI = {
     downloadVCard(card) {
         const v = `BEGIN:VCARD\nVERSION:3.0\nFN:${card.name}\nORG:${card.company}\nTITLE:${card.title}\nTEL;TYPE=WORK,VOICE:${card.phone}\nEMAIL;TYPE=PREF,INTERNET:${card.email}\nURL:${card.website}\nADR;TYPE=WORK:;;${card.address || ''}\nEND:VCARD`;
         const b = new Blob([v], { type: 'text/vcard' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `${card.name}.vcf`; a.click();
+        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `${card.name || 'contact'}.vcf`; a.click();
     }
 };
 
 window.UI = UI; window.Auth = Auth; window.Router = Router;
-document.addEventListener('DOMContentLoaded', () => UI.init());
+
+// Manejar la navegación basada en el hash para ver tarjetas públicas
+window.addEventListener('hashchange', function() {
+    const hash = window.location.hash.substring(1);
+    if (hash.startsWith('card/')) {
+        const cardId = hash.split('/')[1];
+        Router.go(`/card/${cardId}`);
+    }
+});
+
+// Verificar si hay una tarjeta específica en el hash al cargar
+document.addEventListener('DOMContentLoaded', () => {
+    const hash = window.location.hash.substring(1);
+    if (hash.startsWith('card/')) {
+        const cardId = hash.split('/')[1];
+        Router.go(`/card/${cardId}`);
+    } else {
+        UI.init();
+    }
+});

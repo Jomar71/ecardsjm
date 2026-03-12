@@ -1,10 +1,27 @@
 {
+  "name": "ecards-jm",
+  "version": "1.0.0",
+  "description": "Aplicación frontend-only para crear y gestionar tarjetas de presentación digital",
+  "main": "script.js",
+  "scripts": {
+    "start": "npx serve .",
+    "dev": "npx serve ."
+  },
   "dependencies": {
+    "serve": "^14.2.0",
     "lz-string": "^1.5.0"
   },
-  "description": "Aplicación frontend-only para crear y gestionar tarjetas de presentación digital",
   "repository": {
     "type": "git",
     "url": "https://github.com/Jomar71/ecardsjm.git"
-  }
+  },
+  "keywords": [
+    "frontend",
+    "digital-business-cards",
+    "javascript",
+    "html",
+    "css"
+  ],
+  "author": "Jomar71",
+  "license": "MIT"
 }

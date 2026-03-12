@@ -4,13 +4,13 @@ Aplicación web frontend-only para crear y gestionar tarjetas de presentación d
 
 ## Características
 
-- ✅ Sistema de autenticación seguro (cliente)
+- ✅ Sistema de autenticación local (sin servidor requerido)
 - ✅ Creación de tarjetas digitales personalizables
 - ✅ Personalización de colores corporativos
 - ✅ Personalización de tipografía
 - ✅ Subida de logos y fotos de perfil
 - ✅ URLs únicas para cada tarjeta
-- ✅ Gestión completa de tarjetas (CRUD local)
+- ✅ Gestión completa de tarjetas (almacenamiento local)
 - ✅ Diseño 100% responsive
 
 ## Instalación
@@ -34,7 +34,7 @@ Aplicación web frontend-only para crear y gestionar tarjetas de presentación d
    - Tipografía preferida
    - Logo y foto de perfil
 3. Ve la previsualización en tiempo real
-4. Haz clic en "Crear Tarjeta"
+4. Haz clic en "Guardar y Desplegar"
 
 ### Gestionar Tarjetas
 - Ve a "Mis Tarjetas" para ver todas tus tarjetas
@@ -59,14 +59,15 @@ Aplicación web frontend-only para crear y gestionar tarjetas de presentación d
 - HTML5, CSS3 y JavaScript ES6+
 - Persistencia local usando localStorage
 - Serialización de datos con lz-string
-- No requiere servidor backend para funcionamiento básico
+- No requiere servidor backend para funcionamiento
 
 ## Soporte
 
-Si tienes problemas para acceder:
+Si tienes problemas:
 1. Asegúrate de usar la contraseña: `admin123`
 2. Verifica que JavaScript esté habilitado en tu navegador
-3. Si persiste el problema, abre la consola (F12) y revisa si hay errores
+3. Confirma que localStorage esté habilitado
+4. Si persiste el problema, abre la consola (F12) y revisa si hay errores
 
 ## Archivos Principales
 
