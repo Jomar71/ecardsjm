@@ -370,20 +370,11 @@ def handle_404(e):
     if request.path.startswith("/api/"):
         return jsonify({"error": "NOT_FOUND"}), 404
     
-    # Check if it's a file request (has an extension like .css, .js, .png)
-    # If the browser is on /card/123 and asks for 'styles.css', 
-    # it might come as /card/styles.css if using relative links.
+    # Check if the file exists in the static folder
     static_folder = app.static_folder or "."
-    filename = request.path.split("/")[-1]
-    
-    # Try the exact path first
     file_path = os.path.join(static_folder, request.path.lstrip("/"))
     if os.path.isfile(file_path):
         return send_from_directory(static_folder, request.path.lstrip("/"))
-        
-    # Try to find the file in the root if it has an extension (likely an asset)
-    if "." in filename and os.path.isfile(os.path.join(static_folder, filename)):
-        return send_from_directory(static_folder, filename)
         
     return render_template("index.html")
 

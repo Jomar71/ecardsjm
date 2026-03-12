@@ -4,24 +4,19 @@
     <meta charset="utf-8">
     <title>ecardsJM - Redireccionando...</title>
     <script>
-        sessionStorage.redirect = location.href;
-        // Redirigir al index.html manteniendo el hash
-        var url = window.location.href;
-        if (!url.endsWith('/')) {
-            // Extraer el hash y redirigir a index.html manteniendo el hash
-            var hash = window.location.hash;
-            if (hash) {
-                sessionStorage.storedHash = hash;
-            }
-            window.location.href = './';
-        } else {
-            // Si estamos en la raíz, restaurar el hash si existe
-            var storedHash = sessionStorage.storedHash;
-            if (storedHash) {
-                window.location.hash = storedHash;
-                sessionStorage.removeItem('storedHash');
-            }
+        // Capturar la URL actual
+        var location = window.location;
+        var path = location.pathname;
+        
+        // Si estamos en una subruta (como /card/ID), guardarla para el index.html
+        if (path.includes('/card/')) {
+            var cardId = path.split('/card/')[1];
+            sessionStorage.setItem('storedHash', '#card/' + cardId);
         }
+        
+        // Redirigir siempre a la raíz del proyecto
+        // Para GitHub Pages en subcarpetas, esto asegura volver al index.html
+        window.location.replace(location.origin + path.split('/').slice(0, path.indexOf('/ecardsjm') === -1 ? 1 : 2).join('/') + '/');
     </script>
 </head>
 <body>

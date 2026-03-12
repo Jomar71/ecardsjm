@@ -20,23 +20,27 @@ const state = {
 const Router = {
     go(path) {
         console.log(`Router: Navigating to [${path}]`);
-        window.history.pushState({}, '', path);
-        this.render(path);
+        // Force hash-based routing for static hosts like GitHub Pages
+        const hashPath = path.startsWith('#') ? path : `#${path}`;
+        window.location.hash = hashPath;
     },
 
-    render(path) {
+    render(hash) {
+        const rawPath = hash.replace(/^#/, '') || '/';
+        const path = rawPath.startsWith('/') ? rawPath : '/' + rawPath;
+        
         const root = document.getElementById('app-root');
         const pub = document.getElementById('public-view');
         const header = document.getElementById('main-header');
 
         document.querySelectorAll('.view-content').forEach(el => el.classList.add('hidden'));
 
-        if (path.startsWith('#card/') || window.location.hash.startsWith('#card/')) {
+        if (path.startsWith('/card/')) {
             state.isPublicView = true;
             if (pub) pub.classList.remove('hidden');
             if (root) root.classList.add('hidden');
             if (header) header.classList.add('hidden');
-            const id = (path.startsWith('#card/') ? path : window.location.hash).split('/').pop();
+            const id = path.split('/').pop();
             UI.loadPublicCard(id);
             return;
         }
@@ -60,6 +64,19 @@ const Router = {
         }
     }
 };
+
+// Initial routing setup
+window.addEventListener('hashchange', () => Router.render(window.location.hash));
+window.addEventListener('load', () => {
+    // Check if there's a stored hash from a 404 redirect
+    const stored = sessionStorage.getItem('storedHash');
+    if (stored) {
+        sessionStorage.removeItem('storedHash');
+        Router.go(stored);
+    } else {
+        Router.render(window.location.hash || '#/');
+    }
+});
 
 const Auth = {
     async check() {
