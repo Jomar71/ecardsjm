@@ -35,3 +35,9 @@ __pycache__/
 env/
 venv/
 .venv/
+
+# Archivos de desarrollo
+.vscode/
+.bin/
+gh.zip
+gh_installer.msi

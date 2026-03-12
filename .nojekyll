@@ -1,0 +1,2 @@
+# .nojekyll file to prevent GitHub Pages from processing the site
+# This allows SPA routing to work correctly
