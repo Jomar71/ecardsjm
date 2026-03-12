@@ -806,11 +806,14 @@ window.addEventListener('hashchange', function() {
 
 // Verificar si hay una tarjeta específica en el hash al cargar
 document.addEventListener('DOMContentLoaded', () => {
-    const hash = window.location.hash.substring(1);
-    if (hash.startsWith('card/')) {
-        const cardId = hash.split('/')[1];
-        Router.go(`/card/${cardId}`);
-    } else {
-        UI.init();
-    }
+    // Primero inicializamos la autenticación
+    Auth.check().finally(() => {
+        const hash = window.location.hash.substring(1);
+        if (hash.startsWith('card/')) {
+            const cardId = hash.split('/')[1];
+            Router.go(`/card/${cardId}`);
+        } else {
+            UI.init();
+        }
+    });
 });
