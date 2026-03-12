@@ -412,7 +412,7 @@ const UI = {
             if (this.loader) this.loader.classList.add('hidden');
         }
     },
-<<<<<<< SEARCH
+
     generateQR(url, targetElement = null) {
         const container = targetElement || this.qrContainer;
         if (!container) return;
@@ -424,58 +424,6 @@ const UI = {
             } else { setTimeout(render, 500); }
         };
         setTimeout(render, 300);
-    },
-    generateQR(url, container) {
-        // Verificar que el contenedor exista
-        if (!container) return;
-        
-        // Limpiar contenedor
-        container.innerHTML = '';
-        
-        // Verificar si la biblioteca QRCode está cargada
-        if (typeof QRCode !== 'undefined') {
-            // Generar código QR con opciones personalizadas
-            new QRCode(container, { 
-                text: url, 
-                width: 120, 
-                height: 120, 
-                colorDark: "#003366", 
-                colorLight: "#FFFFFF", 
-                correctLevel: QRCode.CorrectLevel.H,
-                // Añadir logo en el centro del QR si es posible
-                imageOptions: {
-                    hideBGIllustration: true
-                }
-            });
-            
-            // Añadir estilo al contenedor
-            container.style.cssText = `
-                background: white;
-                padding: 8px;
-                border-radius: 8px;
-                display: inline-block;
-                margin: 10px auto;
-            `;
-        } else {
-            // Fallback si la biblioteca no está disponible
-            const fallback = document.createElement('div');
-            fallback.className = 'qr-fallback';
-            fallback.style.cssText = `
-                padding: 10px;
-                background: #f0f0f0;
-                border-radius: 8px;
-                text-align: center;
-                font-size: 14px;
-                color: #666;
-                margin: 10px auto;
-                max-width: 200px;
-            `;
-            fallback.innerHTML = `
-                <i class="fas fa-qrcode" style="font-size: 24px; margin-bottom: 8px;"></i><br>
-                QR: ${url.substring(0, 20)}...
-            `;
-            container.appendChild(fallback);
-        }
     },
 
     handleFileUpload(e, targetPath) {
@@ -702,19 +650,6 @@ const UI = {
         let clean = val;
         if (key === 'whatsapp') clean = val.replace(/\D/g, '');
         return (base[key] || '') + clean;
-    },
-
-    generateQR(url, targetElement = null) {
-        const container = targetElement || this.qrContainer;
-        if (!container) return;
-        container.innerHTML = '';
-        container.style.opacity = '1';
-        const render = () => {
-            if (typeof QRCode !== 'undefined') {
-                new QRCode(container, { text: url, width: 90, height: 90, colorDark: "#003366", colorLight: "#FFFFFF", correctLevel: QRCode.CorrectLevel.H });
-            } else { setTimeout(render, 500); }
-        };
-        setTimeout(render, 300);
     },
 
     async loadPublicCard(id) {
