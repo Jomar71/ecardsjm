@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ecardsJM - Redireccionando...</title>
+    <script>
+        sessionStorage.redirect = location.href;
+        // Redirigir al index.html manteniendo el hash
+        var url = window.location.href;
+        if (!url.endsWith('/')) {
+            // Extraer el hash y redirigir a index.html manteniendo el hash
+            var hash = window.location.hash;
+            if (hash) {
+                sessionStorage.storedHash = hash;
+            }
+            window.location.href = './';
+        } else {
+            // Si estamos en la raíz, restaurar el hash si existe
+            var storedHash = sessionStorage.storedHash;
+            if (storedHash) {
+                window.location.hash = storedHash;
+                sessionStorage.removeItem('storedHash');
+            }
+        }
+    </script>
+</head>
+<body>
+    <p>Redirigiendo...</p>
+</body>
+</html>
