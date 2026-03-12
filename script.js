@@ -352,8 +352,8 @@ const UI = {
             
             // Generar ID basado en nombre y apellido si no existe
             if (!cardData.id) {
-                const firstName = cardData.name?.split(' ')[0] || '';
-                const firstSurname = cardData.lastname?.split(' ')[0] || '';
+                const firstName = document.getElementById('first-name')?.value || cardData['first-name'] || '';
+                const firstSurname = document.getElementById('last-name')?.value || cardData['last-name'] || '';
                 
                 if (firstName && firstSurname) {
                     // Generar ID a partir del nombre y primer apellido
@@ -371,6 +371,12 @@ const UI = {
                     }
                     
                     cardData.id = uniqueId;
+                } else if (firstName) {
+                    // Si solo tenemos el nombre, usamos solo el nombre
+                    cardData.id = firstName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+                } else {
+                    // Si no tenemos ni nombre ni apellido, generar un ID por defecto
+                    cardData.id = 'card_' + Date.now();
                 }
             }
             
@@ -494,7 +500,12 @@ const UI = {
         const d = document.getElementById('preview-description');
         const preview = document.getElementById('card-preview');
 
-        if (n) n.textContent = (data.name || 'NOMBRE COMPLETO').toUpperCase();
+        // Combinar nombre y apellido para mostrar el nombre completo
+        const firstName = document.getElementById('first-name')?.value || data['first-name'] || '';
+        const lastName = document.getElementById('last-name')?.value || data['last-name'] || '';
+        const fullName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || 'NOMBRE COMPLETO';
+
+        if (n) n.textContent = fullName.toUpperCase();
         if (t) t.textContent = (data.title || 'CARGO O TÍTULO').toUpperCase();
         if (c) c.textContent = (data.company || 'EMPRESA').toUpperCase();
         if (d) d.textContent = data.description || 'Esta es tu descripción empresarial profesional.';
