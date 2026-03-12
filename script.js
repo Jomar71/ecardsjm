@@ -214,7 +214,8 @@ const UI = {
             const item = document.createElement('div');
             item.className = 'card-item animate-in';
             // Generar URL para compartir la tarjeta
-            const pubLink = window.location.origin + `/card/${card.id}`;
+            const urlBase = window.location.pathname.split('/').slice(0, -1).join('/') + '/';
+            const pubLink = window.location.origin + urlBase + `card/${card.id}`;
             const templateClass = card.template_id || 'corporate';
             const avatarIcons = { corporate: 'fa-user-tie', minimal: 'fa-pencil-ruler', creative: 'fa-code' };
             const icon = avatarIcons[templateClass] || 'fa-user-tie';
@@ -308,7 +309,8 @@ const UI = {
         Router.go('/admin');
         
         // Generar QR con la URL local
-        const cardUrl = window.location.origin + `/card/${state.cardId}`;
+        const urlBase = window.location.pathname.split('/').slice(0, -1).join('/') + '/';
+        const cardUrl = window.location.origin + urlBase + `card/${state.cardId}`;
         this.generateQR(cardUrl);
     },
 
@@ -354,7 +356,8 @@ const UI = {
             }
             
             // Generar QR con la URL local
-            const cardUrl = window.location.origin + `/card/${state.cardId}`;
+            const urlBase = window.location.pathname.split('/').slice(0, -1).join('/') + '/';
+            const cardUrl = window.location.origin + urlBase + `card/${state.cardId}`;
             this.generateQR(cardUrl);
             
             setTimeout(() => Router.go('/dashboard'), 2000);
