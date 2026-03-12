@@ -267,29 +267,33 @@
 
                             <!-- DATOS TAB -->
                             <div id="tab-info" class="tab-content active">
-                                <div class="input-group"><label>Nombre Completo</label><input type="text" name="name"
-                                        required placeholder="Ej: Carlos Méndez"></div>
-                                <div class="input-group"><label>Cargo / Título</label><input type="text" name="title"
+                                <div class="input-row-2">
+                                    <div class="input-group"><label>Primer Nombre *</label><input type="text" id="first-name"
+                                        required placeholder="Ej: Carlos"></div>
+                                    <div class="input-group"><label>Primer Apellido *</label><input type="text" id="last-name"
+                                        required placeholder="Ej: Méndez"></div>
+                                </div>
+                                <div class="input-group"><label>Cargo / Título</label><input type="text" id="job-title"
                                         placeholder="Ej: CEO & Fundador"></div>
-                                <div class="input-group"><label>Compañía / Marca</label><input type="text"
-                                        name="company" placeholder="Ej: Nexus Corp"></div>
+                                <div class="input-group"><label>Compañía / Marca</label><input type="text" id="company"
+                                        placeholder="Ej: Nexus Corp"></div>
                                 <div class="input-group"><label>Descripción de la Empresa</label>
                                     <textarea name="description" rows="3"
                                         placeholder="Describe brevemente tus servicios o lo que te hace único..."></textarea>
                                 </div>
-                                <div class="input-group"><label>Dirección Física / Oficina</label><input type="text"
-                                        name="address" placeholder="Ej: Calle 123, Ciudad"></div>
+                                <div class="input-group"><label>Dirección Física / Oficina</label><input type="text" id="address"
+                                        placeholder="Ej: Calle 123, Ciudad"></div>
                             </div>
 
                             <!-- CONECTOR TAB -->
                             <div id="tab-contact" class="tab-content">
                                 <div class="input-row-2">
-                                    <div class="input-group"><label>Email</label><input type="email" name="email"
+                                    <div class="input-group"><label>Email</label><input type="email" id="email"
                                             placeholder="tu@empresa.com"></div>
-                                    <div class="input-group"><label>Teléfono</label><input type="tel" name="phone"
+                                    <div class="input-group"><label>Teléfono</label><input type="tel" id="phone"
                                             placeholder="+1 234 567 890"></div>
                                 </div>
-                                <div class="input-group"><label>Website</label><input type="url" name="website"
+                                <div class="input-group"><label>Website</label><input type="url" id="website"
                                         placeholder="https://tuempresa.com"></div>
 
                                 <span class="form-divider">REDES SOCIALES</span>
@@ -297,34 +301,34 @@
                                 <div class="input-row-2">
                                     <div class="input-group"><label><i class="fab fa-linkedin"
                                                 style="color:#0A66C2;margin-right:0.3rem;"></i>LinkedIn</label><input
-                                            type="text" name="linkedin" placeholder="usuario"></div>
+                                            type="text" id="linkedin" placeholder="usuario"></div>
                                     <div class="input-group"><label><i class="fab fa-whatsapp"
                                                 style="color:#25D366;margin-right:0.3rem;"></i>WhatsApp</label><input
-                                            type="text" name="whatsapp" placeholder="número"></div>
+                                            type="text" id="whatsapp" placeholder="número"></div>
                                 </div>
                                 <div class="input-row-2">
                                     <div class="input-group"><label><i class="fab fa-instagram"
                                                 style="color:#E1306C;margin-right:0.3rem;"></i>Instagram</label><input
-                                            type="text" name="instagram" placeholder="usuario"></div>
+                                            type="text" id="instagram" placeholder="usuario"></div>
                                     <div class="input-group"><label><i class="fab fa-facebook"
                                                 style="color:#1877F2;margin-right:0.3rem;"></i>Facebook</label><input
-                                            type="text" name="facebook" placeholder="usuario"></div>
+                                            type="text" id="facebook" placeholder="usuario"></div>
                                 </div>
                                 <div class="input-row-2">
                                     <div class="input-group"><label><i class="fab fa-tiktok"
                                                 style="color:#FFF;margin-right:0.3rem;"></i>TikTok</label><input
-                                            type="text" name="tiktok" placeholder="usuario"></div>
+                                            type="text" id="tiktok" placeholder="usuario"></div>
                                     <div class="input-group"><label><i class="fab fa-youtube"
                                                 style="color:#FF0000;margin-right:0.3rem;"></i>YouTube</label><input
-                                            type="text" name="youtube" placeholder="canal"></div>
+                                            type="text" id="youtube" placeholder="canal"></div>
                                 </div>
                                 <div class="input-row-2">
                                     <div class="input-group"><label><i class="fab fa-twitter"
                                                 style="color:#1DA1F2;margin-right:0.3rem;"></i>Twitter&nbsp;(X)</label><input
-                                            type="text" name="twitter" placeholder="usuario"></div>
+                                            type="text" id="twitter" placeholder="usuario"></div>
                                     <div class="input-group"><label><i class="fab fa-github"
                                                 style="margin-right:0.3rem;"></i>GitHub</label><input type="text"
-                                            name="github" placeholder="usuario"></div>
+                                            id="github" placeholder="usuario"></div>
                                 </div>
                             </div>
 
@@ -380,7 +384,7 @@
 
                                 <div class="input-row-3">
                                     <div class="input-group"><label>Color Marca</label><input type="color"
-                                            name="primary_color" id="primary_color" value="#7C3AED"></div>
+                                            id="primary-color" name="primary_color" value="#7C3AED"></div>
                                     <div class="input-group"><label>Fondo</label><input type="color" name="bg_color"
                                             value="#0B0F19"></div>
                                     <div class="input-group"><label>Texto</label><input type="color" name="text_color"
@@ -390,14 +394,21 @@
 
                             <!-- Action Buttons -->
                             <div style="display:grid; grid-template-columns:2fr 1fr; gap:0.75rem; margin-top:1.25rem;">
-                                <button type="submit" class="btn btn-primary btn-full"
-                                    style="border-radius:8px; padding:1rem;">
+                                <button type="button" class="btn btn-primary btn-full"
+                                    style="border-radius:8px; padding:1rem;" onclick="UI.saveCard()">
                                     <i class="fas fa-rocket"></i> Guardar y Desplegar
                                 </button>
                                 <button type="button" id="btn-delete-card" class="btn btn-danger btn-full hidden"
                                     style="border-radius:8px; padding:1rem;" onclick="UI.deleteCurrentCard()">
                                     <i class="fas fa-trash"></i> Eliminar
                                 </button>
+                            </div>
+                            
+                            <!-- QR Code Section -->
+                            <div style="margin-top:2rem; text-align:center; padding:1.5rem; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--bg-glass);">
+                                <h3 style="margin-bottom:1rem; color:var(--text-primary);">Código QR de tu Tarjeta</h3>
+                                <div id="preview-qr" style="display:inline-block; background:white; padding:0.75rem; border-radius:8px;"></div>
+                                <p style="margin-top:1rem; font-size:0.85rem; color:var(--text-secondary);">Escanea este código para acceder directamente a tu tarjeta de presentación</p>
                             </div>
                         </form>
                     </div>
@@ -464,6 +475,11 @@
                     </div>
                 </div>
             </div>
+        </section>
+
+        <!-- ── PUBLIC CARD VIEW ─────────────────────────────────── -->
+        <section id="public-view" class="hidden" style="padding:2rem 1rem; max-width:800px; margin:0 auto;">
+            <!-- Content dynamically loaded by script.js -->
         </section>
 
     </main>

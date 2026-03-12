@@ -1,33 +1,71 @@
-# ecards JM - Tarjetas de Presentación Digital
+# ecardsJM - Tarjetas de Presentación Electrónicas
 
-Aplicación web frontend-only para crear y gestionar tarjetas de presentación digital optimizadas para dispositivos móviles.
+Aplicación frontend-only para crear y gestionar tarjetas de presentación digitales con enlaces únicos y códigos QR.
 
 ## Características
 
-- ✅ Sistema de autenticación local (sin servidor requerido)
-- ✅ Creación de tarjetas digitales personalizables
-- ✅ Personalización de colores, tipografía, logo y foto de perfil
-- ✅ URLs únicas para cada tarjeta
-- ✅ Gestión completa de tarjetas (almacenamiento local)
-- ✅ Diseño 100% responsive
+- Creación de tarjetas de presentación electrónicas
+- Generación automática de enlaces únicos basados en nombre y apellido
+- Códigos QR para compartir fácilmente la tarjeta
+- Compatible con móviles, tablets y escritorio
+- Almacenamiento local de datos
+- Plantillas de diseño profesionales
+
+## Funcionalidades
+
+### 1. Crear tarjetas de presentación electrónicas
+
+La aplicación permite crear tarjetas de presentación digitales completas con información profesional como nombre, cargo, empresa, contacto y redes sociales.
+
+### 2. Enlaces únicos basados en nombre y apellido
+
+Cada tarjeta se crea con un enlace único generado a partir del primer nombre y primer apellido del titular. Por ejemplo:
+- Juan Pérez → `#card/juan_perez`
+- María García → `#card/maria_garcia`
+
+Esto facilita el acceso directo a cada tarjeta y permite una identificación clara de quién es el titular.
+
+### 3. Código QR para cualquier dispositivo
+
+Cada tarjeta incluye un código QR que puede ser escaneado desde cualquier dispositivo móvil, permitiendo un acceso rápido y sencillo a la información de contacto.
+
+## Instalación
+
+1. Clonar el repositorio
+2. Abrir `index.html` en un navegador
+3. ¡Listo para comenzar!
+
+También puedes ejecutar localmente con:
+
+```bash
+npm install
+npm start
+```
 
 ## Uso
 
-Para usar esta aplicación, simplemente visita: [https://jomar71.github.io/ecardsjm](https://jomar71.github.io/ecardsjm)
+1. Regístrate o inicia sesión en la aplicación
+2. Ve al editor de tarjetas
+3. Ingresa tu primer nombre y primer apellido
+4. Completa la información adicional
+5. Guarda la tarjeta
+6. Comparte el enlace o código QR generado
 
-### Acceso al Sistema
-- **Contraseña por defecto**: `admin123`
-- Al abrir la aplicación, ingresa la contraseña
-- Haz clic en "Acceder"
+## Compatibilidad
 
-## Tecnología
+La aplicación es completamente responsive y funciona en:
+- Móviles
+- Tablets
+- Escritorio
 
-- HTML5, CSS3 y JavaScript ES6+
-- Persistencia local usando localStorage
-- No requiere servidor backend para funcionamiento
+## Tecnologías
 
-## Archivos Principales
+- HTML5
+- CSS3
+- JavaScript ES6+
+- Librería QRCode
+- Almacenamiento local del navegador
 
-- `index.html` - Estructura principal
-- `styles.css` - Estilos y diseño responsive
-- `script.js` - Lógica y funcionalidades
+## Autor
+
+Jomar71
