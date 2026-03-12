@@ -185,12 +185,7 @@ def apply_migrations():
 
 # --- CORE ROUTING ENGINE ---
 
-@app.route("/card/<id>")
-def public_card(id):
-    """Stand-alone Identity Mirror"""
-    card = db.session.get(BusinessCard, id)
-    if not card: return "404 | IDENTITY SHADOW NOT FOUND", 404
-    return render_template("index.html", card=card.to_dict())
+# SPA Fallback will handle routing for /card/<id>
 
 # --- AUTH API ---
 

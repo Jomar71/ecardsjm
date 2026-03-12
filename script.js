@@ -214,7 +214,7 @@ const UI = {
             const item = document.createElement('div');
             item.className = 'card-item animate-in';
             // Generar URL para compartir la tarjeta
-            const pubLink = window.location.origin + window.location.pathname + `#card/${card.id}`;
+            const pubLink = window.location.origin + `/card/${card.id}`;
             const templateClass = card.template_id || 'corporate';
             const avatarIcons = { corporate: 'fa-user-tie', minimal: 'fa-pencil-ruler', creative: 'fa-code' };
             const icon = avatarIcons[templateClass] || 'fa-user-tie';
@@ -308,7 +308,7 @@ const UI = {
         Router.go('/admin');
         
         // Generar QR con la URL local
-        const cardUrl = window.location.origin + window.location.pathname + `#card/${state.cardId}`;
+        const cardUrl = window.location.origin + `/card/${state.cardId}`;
         this.generateQR(cardUrl);
     },
 
@@ -337,13 +337,24 @@ const UI = {
             const savedCard = this.saveLocalCard(cardData);
             state.cardId = savedCard.id;
             
+            // Guardar en el servidor
+            try {
+                await fetch(`${state.API_BASE}/api/cards`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(cardData)
+                });
+            } catch (apiErr) {
+                console.warn("Could not save to server, using local only:", apiErr);
+            }
+
             if (this.successBanner) {
                 this.successBanner.classList.remove('hidden');
                 setTimeout(() => this.successBanner.classList.add('hidden'), 3500);
             }
             
             // Generar QR con la URL local
-            const cardUrl = window.location.origin + window.location.pathname + `#card/${state.cardId}`;
+            const cardUrl = window.location.origin + `/card/${state.cardId}`;
             this.generateQR(cardUrl);
             
             setTimeout(() => Router.go('/dashboard'), 2000);
@@ -596,8 +607,20 @@ const UI = {
 
     async loadPublicCard(id) {
         // Buscar la tarjeta en localStorage
-        const cards = this.getLocalCards();
-        const card = cards.find(c => c.id === id);
+        const localCards = this.getLocalCards();
+        let card = localCards.find(c => c.id === id);
+        
+        if (!card) {
+            // Intentar buscar en el servidor si no está local
+            try {
+                const response = await fetch(`${state.API_BASE}/api/cards/${id}`);
+                if (response.ok) {
+                    card = await response.json();
+                }
+            } catch (err) {
+                console.error("Error fetching card from server:", err);
+            }
+        }
         
         if (card) {
             this.renderPublicCard(card);
