@@ -52,7 +52,7 @@ const Router = {
         document.body.style.backgroundColor = ''; // Restore default
 
         // Restaurar estado de autenticación
-        Auth.check();
+        Auth.updateAuthUI();
 
         if (path === '/admin') {
             document.getElementById('view-admin')?.classList.remove('hidden');
@@ -142,6 +142,22 @@ const Auth = {
         if (navUsername) navUsername.textContent = user.username.toUpperCase();
         const navAvatar = document.getElementById('nav-avatar');
         if (navAvatar) navAvatar.textContent = user.username.charAt(0).toUpperCase();
+    },
+    
+    updateAuthUI() {
+        const savedUser = localStorage.getItem('ecards_user');
+        if (savedUser) {
+            const user = JSON.parse(savedUser);
+            document.getElementById('auth-nav-guest').classList.add('hidden');
+            document.getElementById('auth-nav-user').classList.remove('hidden');
+            const navUsername = document.getElementById('nav-username');
+            if (navUsername) navUsername.textContent = user.username.toUpperCase();
+            const navAvatar = document.getElementById('nav-avatar');
+            if (navAvatar) navAvatar.textContent = user.username.charAt(0).toUpperCase();
+        } else {
+            document.getElementById('auth-nav-guest').classList.remove('hidden');
+            document.getElementById('auth-nav-user').classList.add('hidden');
+        }
     }
 };
 
