@@ -146,7 +146,7 @@ const UI = {
         this.cacheDOM();
         this.setupEventListeners();
         Auth.check().finally(() => {
-            Router.render(window.location.pathname);
+            Router.render(window.location.hash || '#/');
             if (!state.isPublicView) this.updatePreview();
             if (this.loader) this.loader.classList.add('hidden');
         });
@@ -896,25 +896,10 @@ const UI = {
 
 window.UI = UI; window.Auth = Auth; window.Router = Router;
 
-// Manejar la navegación basada en el hash para ver tarjetas públicas
-window.addEventListener('hashchange', function() {
-    const hash = window.location.hash.substring(1);
-    if (hash.startsWith('card/')) {
-        const cardId = hash.split('/')[1];
-        Router.go(`/card/${cardId}`);
-    }
-});
-
 // Verificar si hay una tarjeta específica en el hash al cargar
 document.addEventListener('DOMContentLoaded', () => {
     // Primero inicializamos la autenticación
     Auth.check().finally(() => {
-        const hash = window.location.hash.substring(1);
-        if (hash.startsWith('card/')) {
-            const cardId = hash.split('/')[1];
-            Router.go(`/card/${cardId}`);
-        } else {
-            UI.init();
-        }
+        UI.init();
     });
 });
