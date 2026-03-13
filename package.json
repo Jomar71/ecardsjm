@@ -4,8 +4,8 @@
   "description": "Aplicación frontend-only para crear y gestionar tarjetas de presentación digital",
   "main": "script.js",
   "scripts": {
-    "start": "npx serve .",
-    "dev": "npx serve ."
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "dependencies": {
     "express": "^4.18.2",
