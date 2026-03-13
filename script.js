@@ -88,9 +88,14 @@ const Auth = {
         if (savedUser) {
             this.onLogin(JSON.parse(savedUser));
         } else {
-            // Mostrar interfaz de invitado si no hay usuario guardado
-            document.getElementById('auth-nav-guest').classList.remove('hidden');
-            document.getElementById('auth-nav-user').classList.add('hidden');
+            // Por defecto, creamos un usuario local y mostramos UI correspondiente
+            state.user = { id: 'local_user', username: 'guest' };
+            document.getElementById('auth-nav-guest').classList.add('hidden');
+            document.getElementById('auth-nav-user').classList.remove('hidden');
+            const navUsername = document.getElementById('nav-username');
+            if (navUsername) navUsername.textContent = 'USUARIO';
+            const navAvatar = document.getElementById('nav-avatar');
+            if (navAvatar) navAvatar.textContent = 'U';
         }
     },
 
@@ -155,8 +160,13 @@ const Auth = {
             const navAvatar = document.getElementById('nav-avatar');
             if (navAvatar) navAvatar.textContent = user.username.charAt(0).toUpperCase();
         } else {
-            document.getElementById('auth-nav-guest').classList.remove('hidden');
-            document.getElementById('auth-nav-user').classList.add('hidden');
+            // Si no hay usuario guardado, mostrar como si fuera un usuario por defecto
+            document.getElementById('auth-nav-guest').classList.add('hidden');
+            document.getElementById('auth-nav-user').classList.remove('hidden');
+            const navUsername = document.getElementById('nav-username');
+            if (navUsername) navUsername.textContent = 'USUARIO';
+            const navAvatar = document.getElementById('nav-avatar');
+            if (navAvatar) navAvatar.textContent = 'U';
         }
     }
 };
