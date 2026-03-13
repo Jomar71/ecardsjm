@@ -1,16 +1,16 @@
-const pool = require('./db');
+const payload = {
+    id: "test_" + Date.now(),
+    "first-name": "Test",
+    "last-name": "User"
+};
 
-async function probarConexion() {
-  try {
-    const resultado = await pool.query('SELECT NOW() as hora_actual');
-    console.log('✅ CONEXIÓN EXITOSA');
-    console.log('Hora del servidor:', resultado.rows[0].hora_actual);
-  } catch (error) {
-    console.log('❌ ERROR DE CONEXIÓN');
-    console.log(error.message);
-  } finally {
-    await pool.end();
-  }
-}
-
-probarConexion();
+fetch('https://ecardsjm.onrender.com/api/cards', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload)
+})
+.then(async (res) => {
+    console.log(res.status, res.statusText);
+    console.log(await res.text());
+})
+.catch(console.error);
