@@ -14,10 +14,10 @@ const state = {
     bgImagePath: null,
     fontFilePath: null,
     archives: [],
-    // CONFIGURACIÓN DE API: Cambia localhost por tu URL de Render cuando despliegues el backend
-    API_BASE: (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') 
-        ? 'http://localhost:3000' 
-        : 'https://ecardsjm.onrender.com' // <-- REEMPLAZA ESTO CON TU URL DE RENDER
+    // CONFIGURACIÓN DE API
+    API_BASE: (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168.')) 
+        ? `http://${window.location.hostname}:3000` 
+        : 'https://ecardsjm.onrender.com' // <-- REEMPLAZA ESTO CON TU URL DE RENDER CUANDO SUBAS EL BACKEND
 };
 
 const Router = {
@@ -247,12 +247,33 @@ const UI = {
         if (!this.dashboardGrid) return;
         
         // Limpiar dashboard
+        this.dashboardGrid.innerHTML = '<div class="loader"></div>';
+        
+        let allCards = [];
+        
+        // 1. Obtener tarjetas locales
+        const localCards = this.getLocalCards();
+        allCards = [...localCards];
+        
+        // 2. Intentar obtener tarjetas del servidor
+        try {
+            const response = await fetch(`${state.API_BASE}/api/cards`);
+            if (response.ok) {
+                const serverCards = await response.json();
+                // Combinar sin duplicados
+                serverCards.forEach(sCard => {
+                    if (!allCards.find(lCard => lCard.id === sCard.id)) {
+                        allCards.push(sCard);
+                    }
+                });
+            }
+        } catch (err) {
+            console.warn("Could not fetch dashboard from server, using local only:", err);
+        }
+
         this.dashboardGrid.innerHTML = '';
         
-        // Obtener tarjetas de localStorage
-        const cards = this.getLocalCards();
-        
-        if (cards.length === 0) {
+        if (allCards.length === 0) {
             this.dashboardGrid.innerHTML = `
                 <div class="add-card-btn" onclick="UI.clearStudio(); Router.go('/admin')" style="grid-column: 1/-1;">
                     <i class="fas fa-plus-circle"></i>
@@ -261,32 +282,22 @@ const UI = {
             return;
         }
         
-        cards.forEach(card => {
+        allCards.forEach(card => {
             const item = document.createElement('div');
             item.className = 'card-item animate-in';
-            // Generar URL para compartir la tarjeta
-            const pubLink = window.location.origin + window.location.pathname + `#card/${card.id}`;
+            // Generar URL para compartir la tarjeta (usamos window.location.origin para que funcione en red local o producción)
+            const pubLink = `${window.location.origin}${window.location.pathname}#card/${card.id}`;
             const templateClass = card.template_id || 'corporate';
-            const avatarIcons = { corporate: 'fa-user-tie', minimal: 'fa-pencil-ruler', creative: 'fa-code' };
-            const icon = avatarIcons[templateClass] || 'fa-user-tie';
             
-            // Preparar la ruta de la imagen de perfil
-            let profilePath = null;
-            if (card.profile_path) {
-                // Si la imagen está en base64 o ya es una URL válida
-                profilePath = card.profile_path;
-            }
+            let profilePath = card.profile_path || null;
             
             item.innerHTML = `
                 <div class="card-item-thumb">
                     <div class="mini-card ${templateClass}" style="width:100%; height:100%;">
                         <div style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:0.4rem;">
                             <div class="mini-card-avatar ${templateClass}-av">
-                                ${profilePath
-                    ? `<img src="${profilePath}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
-                    : `<i class="fas ${icon}"></i>`}
+                                ${profilePath ? `<img src="${profilePath}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">` : '<i class="fas fa-user"></i>'}
                             </div>
-                            <div class="mini-card-name" style="${templateClass === 'minimal' ? 'color:#0F172A;' : ''}">${(card['first-name'] && card['last-name'] ? card['first-name'] + ' ' + card['last-name'] : card.name || 'Sin Nombre')}</div>
                             <div class="mini-card-title" style="${templateClass === 'minimal' ? 'color:#64748B;' : ''}">${card.title || ''}</div>
                         </div>
                         ${templateClass !== 'minimal' ? '<div class="bottom-wave"></div>' : ''}
@@ -302,7 +313,7 @@ const UI = {
             this.dashboardGrid.appendChild(item);
         });
 
-        // Add new card button at the end
+        // Botón de nueva tarjeta al final
         const addBtn = document.createElement('div');
         addBtn.className = 'add-card-btn';
         addBtn.onclick = () => { UI.clearStudio(); Router.go('/admin'); };
@@ -435,7 +446,7 @@ const UI = {
             }
             
             // Generar QR con la URL pública correcta
-            const cardUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}#/card/${state.cardId}`;
+            const cardUrl = `${window.location.origin}${window.location.pathname}#/card/${state.cardId}`;
             this.generateQR(cardUrl, this.qrContainer);
             
             // Actualizar vista pública QR si existe
