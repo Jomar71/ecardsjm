@@ -252,14 +252,14 @@ const UI = {
                     ? `<img src="${profilePath}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`
                     : `<i class="fas ${icon}"></i>`}
                             </div>
-                            <div class="mini-card-name" style="${templateClass === 'minimal' ? 'color:#0F172A;' : ''}">${(card.name || 'Sin Nombre')}</div>
+                            <div class="mini-card-name" style="${templateClass === 'minimal' ? 'color:#0F172A;' : ''}">${(card['first-name'] && card['last-name'] ? card['first-name'] + ' ' + card['last-name'] : card.name || 'Sin Nombre')}</div>
                             <div class="mini-card-title" style="${templateClass === 'minimal' ? 'color:#64748B;' : ''}">${card.title || ''}</div>
                         </div>
                         ${templateClass !== 'minimal' ? '<div class="bottom-wave"></div>' : ''}
                     </div>
                 </div>
                 <div class="card-item-actions">
-                    <span class="card-name">${(card.name || 'Sin Nombre').toUpperCase()}</span>
+                    <span class="card-name">${(card['first-name'] && card['last-name'] ? (card['first-name'] + ' ' + card['last-name']).toUpperCase() : (card.name || 'Sin Nombre').toUpperCase())}</span>
                     <button class="btn btn-primary" style="font-size:0.7rem; padding:0.4rem 0.9rem; border-radius:6px;" onclick="UI.editCard('${card.id}')"><i class="fas fa-pen"></i> Editar</button>
                     <button class="btn-icon" title="Copiar Link" onclick="UI.copyLink('${pubLink}')"><i class="fas fa-copy"></i></button>
                     <button class="btn-icon" title="Ver Tarjeta" onclick="window.open('${pubLink}', '_blank')"><i class="fas fa-external-link-alt"></i></button>
@@ -756,7 +756,11 @@ const UI = {
         }
 
         // Update Text
-        const n = cardEl.querySelector('#preview-name'); if (n) n.textContent = (card.name || '').toUpperCase();
+        // Combinar nombre y apellido para mostrar el nombre completo en la vista pública
+        const firstName = card['first-name'] || card.name || '';
+        const lastName = card['last-name'] || '';
+        const fullName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || '';
+        const n = cardEl.querySelector('#preview-name'); if (n) n.textContent = fullName.toUpperCase();
         const t = cardEl.querySelector('#preview-title'); if (t) t.textContent = (card.title || '').toUpperCase();
         const c = cardEl.querySelector('#preview-company'); if (c) c.textContent = (card.company || '').toUpperCase();
         const d = cardEl.querySelector('#preview-description'); if (d) d.textContent = card.description || '';
@@ -868,9 +872,17 @@ const UI = {
     },
 
     downloadVCard(card) {
-        const v = `BEGIN:VCARD\nVERSION:3.0\nFN:${card.name}\nORG:${card.company}\nTITLE:${card.title}\nTEL;TYPE=WORK,VOICE:${card.phone}\nEMAIL;TYPE=PREF,INTERNET:${card.email}\nURL:${card.website}\nADR;TYPE=WORK:;;${card.address || ''}\nEND:VCARD`;
+        // Combinar nombre y apellido para el vCard
+        const firstName = card['first-name'] || card.name || '';
+        const lastName = card['last-name'] || '';
+        const fullName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || 'Contacto';
+        
+        const v = `BEGIN:VCARD\nVERSION:3.0\nFN:${fullName}\nORG:${card.company}\nTITLE:${card.title}\nTEL;TYPE=WORK,VOICE:${card.phone}\nEMAIL;TYPE=PREF,INTERNET:${card.email}\nURL:${card.website}\nADR;TYPE=WORK:;;${card.address || ''}\nEND:VCARD`;
         const b = new Blob([v], { type: 'text/vcard' });
-        const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = `${card.name || 'contact'}.vcf`; a.click();
+        const a = document.createElement('a'); 
+        a.href = URL.createObjectURL(b); 
+        a.download = `${fullName}.vcf`; 
+        a.click();
     }
 };
 
