@@ -15,7 +15,7 @@ const state = {
     fontFilePath: null,
     archives: [],
     // Cambia esto a la URL de tu backend en Render si es diferente a la del frontend
-    API_BASE: window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' ? 'http://127.0.0.1:5000' : window.location.origin
+    API_BASE: window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' ? 'http://localhost:3000' : window.location.origin
 };
 
 const Router = {
