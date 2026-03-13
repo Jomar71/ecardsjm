@@ -663,6 +663,14 @@ const UI = {
         return (base[key] || '') + clean;
     },
 
+    // Función para el botón de guardar que se llama desde el HTML
+    saveCard() {
+        if (this.form) {
+            // Simular envío del formulario
+            this.form.dispatchEvent(new Event('submit'));
+        }
+    },
+
     async loadPublicCard(id) {
         // Buscar la tarjeta en localStorage
         const localCards = this.getLocalCards();
