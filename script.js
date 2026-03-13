@@ -85,8 +85,9 @@ const Auth = {
         if (savedUser) {
             this.onLogin(JSON.parse(savedUser));
         } else {
-            // Por defecto, creamos un usuario local
-            this.onLogin(state.user);
+            // Mostrar interfaz de invitado si no hay usuario guardado
+            document.getElementById('auth-nav-guest').classList.remove('hidden');
+            document.getElementById('auth-nav-user').classList.add('hidden');
         }
     },
 
