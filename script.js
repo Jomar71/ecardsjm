@@ -286,7 +286,7 @@ const UI = {
             const item = document.createElement('div');
             item.className = 'card-item animate-in';
             // Generar URL para compartir la tarjeta (usamos window.location.origin para que funcione en red local o producción)
-            const pubLink = `${window.location.origin}${window.location.pathname}#card/${card.id}`;
+            const pubLink = `${window.location.origin}${window.location.pathname}#/card/${card.id}`;
             const templateClass = card.template_id || 'corporate';
             
             let profilePath = card.profile_path || null;
@@ -370,7 +370,7 @@ const UI = {
         Router.go('/admin');
         
         // Generar QR con la URL pública correcta
-        const cardUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}#/card/${state.cardId}`;
+        const cardUrl = `${window.location.origin}${window.location.pathname}#/card/${state.cardId}`;
         this.generateQR(cardUrl);
     },
 
