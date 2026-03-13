@@ -14,8 +14,10 @@ const state = {
     bgImagePath: null,
     fontFilePath: null,
     archives: [],
-    // Cambia esto a la URL de tu backend en Render si es diferente a la del frontend
-    API_BASE: window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' ? 'http://localhost:3000' : window.location.origin
+    // CONFIGURACIÓN DE API: Cambia localhost por tu URL de Render cuando despliegues el backend
+    API_BASE: (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost') 
+        ? 'http://localhost:3000' 
+        : 'https://ecardsjm.onrender.com' // <-- REEMPLAZA ESTO CON TU URL DE RENDER
 };
 
 const Router = {
@@ -38,19 +40,20 @@ const Router = {
 
         if (path.startsWith('/card/')) {
             state.isPublicView = true;
-            if (pub) pub.classList.remove('hidden');
-            if (root) root.classList.add('hidden');
             if (header) header.classList.add('hidden');
+            if (root) root.classList.add('hidden');
+            if (pub) pub.classList.remove('hidden');
+            
             const id = path.split('/').pop();
             UI.loadPublicCard(id);
             return;
         }
 
         state.isPublicView = false;
+        if (header) header.classList.remove('hidden');
         if (root) root.classList.remove('hidden');
         if (pub) pub.classList.add('hidden');
-        if (header) header.classList.remove('hidden');
-        document.body.style.backgroundColor = ''; // Restore default
+        document.body.style.backgroundColor = ''; // Restaurar color original
 
         // Restaurar estado de autenticación
         Auth.updateAuthUI();
@@ -722,7 +725,16 @@ const UI = {
         if (card) {
             this.renderPublicCard(card);
         } else {
-            if (this.publicView) this.publicView.innerHTML = '<div style="height:100vh; display:flex; align-items:center; justify-content:center; font-weight:800; opacity:0.3;">404 | IDENTITY NOT FOUND</div>';
+            console.warn(`Card with ID ${id} not found locally or on server.`);
+            if (this.publicView) {
+                this.publicView.innerHTML = `
+                    <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; text-align:center; padding:2rem;">
+                        <h2 style="font-size:3rem; margin-bottom:1rem; opacity:0.5;">404</h2>
+                        <p style="font-size:1.2rem; margin-bottom:2rem; opacity:0.8;">IDENTIDAD NO ENCONTRADA</p>
+                        <button class="btn btn-primary" onclick="Router.go('/')">VOLVER AL INICIO</button>
+                    </div>
+                `;
+            }
         }
     },
 

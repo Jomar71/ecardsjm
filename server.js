@@ -8,7 +8,7 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware para parsear JSON
-app.use(express.json({ limit: '10mb' })); // Aumentamos límite para base64
+app.use(express.json({ limit: '50mb' })); // Aumentamos límite para base64 largos
 app.use(cors());
 
 // Servir archivos estáticos (Frontend)
@@ -46,7 +46,8 @@ app.get('/api/cards', async (req, res) => {
 // Guardar o actualizar tarjeta
 app.post('/api/cards', async (req, res) => {
   const data = req.body;
-  if (!data.name) return res.status(400).json({ error: 'NAME_REQUIRED' });
+  // Validar que al menos tenga un nombre para identificarla
+  if (!data['first-name'] && !data.name) return res.status(400).json({ error: 'NAME_REQUIRED' });
 
   try {
     const columns = Object.keys(data);
