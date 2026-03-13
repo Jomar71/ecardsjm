@@ -51,6 +51,9 @@ const Router = {
         if (header) header.classList.remove('hidden');
         document.body.style.backgroundColor = ''; // Restore default
 
+        // Restaurar estado de autenticación
+        Auth.check();
+
         if (path === '/admin') {
             document.getElementById('view-admin')?.classList.remove('hidden');
             const delBtn = document.getElementById('btn-delete-card');
@@ -263,7 +266,7 @@ const UI = {
                     <span class="card-name">${(card['first-name'] && card['last-name'] ? (card['first-name'] + ' ' + card['last-name']).toUpperCase() : (card.name || 'Sin Nombre').toUpperCase())}</span>
                     <button class="btn btn-primary" style="font-size:0.7rem; padding:0.4rem 0.9rem; border-radius:6px;" onclick="UI.editCard('${card.id}')"><i class="fas fa-pen"></i> Editar</button>
                     <button class="btn-icon" title="Copiar Link" onclick="UI.copyLink('${pubLink}')"><i class="fas fa-copy"></i></button>
-                    <button class="btn-icon" title="Ver Tarjeta" onclick="window.open('${pubLink}', '_blank')"><i class="fas fa-external-link-alt"></i></button>
+                    <button class="btn-icon" title="Ver Tarjeta" onclick="Router.go('/card/${card.id}'); event.stopPropagation();"><i class="fas fa-external-link-alt"></i></button>
                 </div>
             `;
             this.dashboardGrid.appendChild(item);
