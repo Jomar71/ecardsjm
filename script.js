@@ -257,7 +257,12 @@ const UI = {
         
         // 2. Intentar obtener tarjetas del servidor
         try {
-            const response = await fetch(`${state.API_BASE}/api/cards`);
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            
+            const response = await fetch(`${state.API_BASE}/api/cards`, { signal: controller.signal });
+            clearTimeout(timeoutId);
+            
             if (response.ok) {
                 const serverCards = await response.json();
                 // Combinar sin duplicados
@@ -440,13 +445,19 @@ const UI = {
                 state.cardId = cardData.id;
             }
             
-            // Guardar en el servidor
+            // Guardar en el servidor (con timeout)
             try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                
                 await fetch(`${state.API_BASE}/api/cards`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(cardData)
+                    body: JSON.stringify(cardData),
+                    signal: controller.signal
                 });
+                
+                clearTimeout(timeoutId);
             } catch (apiErr) {
                 console.warn("Could not save to server, using local only:", apiErr);
             }
