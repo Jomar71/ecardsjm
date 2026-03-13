@@ -348,11 +348,7 @@ def get_card(id):
     if not card:
         return jsonify({"error": "MISSING"}), 404
     
-    # Verificar permisos: solo el propietario puede ver su tarjeta
-    uid = session.get("user_id")
-    if card.user_id and card.user_id != uid:
-        return jsonify({"error": "FORBIDDEN"}), 403
-    
+    # Public identity cards should be accessible by anyone with the link/QR
     return jsonify(card.to_dict())
 
 @app.route("/uploads/<filename>")

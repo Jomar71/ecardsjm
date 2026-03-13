@@ -14,7 +14,8 @@ const state = {
     bgImagePath: null,
     fontFilePath: null,
     archives: [],
-    API_BASE: '' // No necesitamos backend
+    // Cambia esto a la URL de tu backend en Render si es diferente a la del frontend
+    API_BASE: window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' ? 'http://127.0.0.1:5000' : window.location.origin
 };
 
 const Router = {
@@ -354,8 +355,8 @@ const UI = {
         this.updatePreview();
         Router.go('/admin');
         
-        // Generar QR con la URL local
-        const cardUrl = window.location.origin + window.location.pathname + `#card/${state.cardId}`;
+        // Generar QR con la URL pública correcta
+        const cardUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}#/card/${state.cardId}`;
         this.generateQR(cardUrl);
     },
 
@@ -430,8 +431,8 @@ const UI = {
                 setTimeout(() => this.successBanner.classList.add('hidden'), 3500);
             }
             
-            // Generar QR con la URL local
-            const cardUrl = window.location.origin + window.location.pathname + `#card/${state.cardId}`;
+            // Generar QR con la URL pública correcta
+            const cardUrl = `${window.location.protocol}//${window.location.host}${window.location.pathname}#/card/${state.cardId}`;
             this.generateQR(cardUrl, this.qrContainer);
             
             // Actualizar vista pública QR si existe
