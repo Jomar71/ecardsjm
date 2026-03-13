@@ -429,9 +429,16 @@ const UI = {
                 }
             }
             
-            // Guardar la tarjeta
-            const savedCard = this.saveLocalCard(cardData);
-            state.cardId = savedCard.id;
+            // Guardar la tarjeta localmente (y capturar error si se llena la memoria del navegador)
+            try {
+                const savedCard = this.saveLocalCard(cardData);
+                state.cardId = savedCard.id;
+            } catch (storageErr) {
+                console.warn("Storage quota exceeded in browser, memory is full:", storageErr);
+                // Si la memoria está llena, nos aseguramos de asignar estado y tarjeta manualmente o al menos que el ID no se pierda.
+                if (!cardData.id) cardData.id = 'card_' + Date.now();
+                state.cardId = cardData.id;
+            }
             
             // Guardar en el servidor
             try {
@@ -485,11 +492,40 @@ const UI = {
         const file = e.target.files[0];
         if (!file) return;
         
-        // Convertir archivo a URL de objeto o base64
+        // Convertir y comprimir archivo a base64 (reduce QuotaExceededError)
         const reader = new FileReader();
         reader.onload = (event) => {
-            state[targetPath] = event.target.result;
-            this.updatePreview();
+            const img = new Image();
+            img.onload = () => {
+                const maxDim = 500; // Máximo ancho o alto
+                let width = img.width;
+                let height = img.height;
+                
+                // Redimensionar si excede el máximo
+                if (width > maxDim || height > maxDim) {
+                    if (width > height) {
+                        height *= maxDim / width;
+                        width = maxDim;
+                    } else {
+                        width *= maxDim / height;
+                        height = maxDim;
+                    }
+                }
+                
+                const canvas = document.createElement('canvas');
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                // Mantener PNG para fondo transparente o JPEG para compresión
+                const format = file.type === 'image/jpeg' ? 'image/jpeg' : 'image/png';
+                const quality = format === 'image/jpeg' ? 0.85 : undefined;
+                
+                state[targetPath] = canvas.toDataURL(format, quality);
+                this.updatePreview();
+            };
+            img.src = event.target.result;
         };
         reader.readAsDataURL(file);
     },
