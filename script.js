@@ -379,13 +379,17 @@ const UI = {
         if (this.loader) this.loader.classList.remove('hidden');
         
         try {
-            // Recoger los datos del formulario
-            const formData = new FormData(this.form);
+            // Recoger los datos del formulario (por name o id)
             const cardData = {};
-            
-            // Convertir FormData a objeto
-            for (let [key, value] of formData.entries()) {
-                cardData[key] = value;
+            const formElements = this.form.elements;
+            for (let i = 0; i < formElements.length; i++) {
+                const el = formElements[i];
+                if (el.tagName !== 'BUTTON' && el.type !== 'file') {
+                    const key = el.name || el.id;
+                    if (key) {
+                        cardData[key] = el.value;
+                    }
+                }
             }
             
             // Agregar IDs y paths de imágenes

@@ -49,18 +49,48 @@ app.post('/api/cards', async (req, res) => {
   // Validar que al menos tenga un nombre para identificarla
   if (!data['first-name'] && !data.name) return res.status(400).json({ error: 'NAME_REQUIRED' });
 
+  // ONLY allow keys that exist in the database table
+  const allowedKeys = [
+      'id', 'first-name', 'last-name', 'name', 'title', 'email', 'phone', 
+      'website', 'address', 'company', 'bio', 'facebook', 'instagram', 
+      'linkedin', 'twitter', 'whatsapp', 'github', 'behance', 'youtube', 
+      'tiktok', 'template_id', 'logo_path', 'profile_path', 'bg_image_path', 
+      'font_file_path', 'custom_css', 'custom_fonts', 'bg_color', 'text_color', 'primary_color'
+  ];
+
+  /* Construir tabla limpia */
+  const cleanData = {};
+  
+  // Frontend envia "job-title" y "description", la base de datos espera "title" y "bio"
+  if (data['job-title']) cleanData['title'] = data['job-title'];
+  if (data['title']) cleanData['title'] = data['title']; // si ya venía por name="title"
+  if (data['description']) cleanData['bio'] = data['description'];
+  if (data['bio']) cleanData['bio'] = data['bio'];
+  
+  for (const key in data) {
+      // Evitar sobreescribir los mapeos anteriores si hay duplicados, y asegurar que es una columna permitida
+      if (allowedKeys.includes(key) && key !== 'job-title' && key !== 'description') {
+          cleanData[key] = data[key];
+      }
+  }
+
   try {
-    const columns = Object.keys(data);
-    const values = Object.values(data);
+    const columns = Object.keys(cleanData);
+    const values = Object.values(cleanData);
+    
+    if (columns.length === 0) return res.status(400).json({ error: 'NO_DATA' });
+
     const placeholders = values.map((_, i) => `$${i + 1}`).join(', ');
-    const columnsString = columns.join(', ');
+    
+    // Escapar nombres de columnas con comillas dobles para PostgreSQL y guiones
+    const columnsString = columns.map(c => `"${c}"`).join(', ');
 
     // Intento de "Upsert" (Inserción o Actualización) - Basado en ID
     const query = `
       INSERT INTO business_cards (${columnsString})
       VALUES (${placeholders})
       ON CONFLICT (id) DO UPDATE SET
-      ${columns.map((col, i) => `${col} = EXCLUDED.${col}`).join(', ')}
+      ${columns.map((col, i) => `"${col}" = EXCLUDED."${col}"`).join(', ')}
       RETURNING *
     `;
 
