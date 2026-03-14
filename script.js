@@ -20,6 +20,14 @@ const state = {
         : 'https://ecardsjm.onrender.com' // <-- REEMPLAZA ESTO CON TU URL DE RENDER CUANDO SUBAS EL BACKEND
 };
 
+// Despertar el servidor de Render inmediatamente al cargar
+(async function wakeServer() {
+    try {
+        console.log("Despertando servidor profesional...");
+        fetch(`${state.API_BASE}/api/test-db`).catch(() => {});
+    } catch(e) {}
+})();
+
 const Router = {
     go(path) {
         console.log(`Router: Navigating to [${path}]`);
@@ -247,6 +255,8 @@ const UI = {
         if (!this.dashboardGrid) return;
         
         // Limpiar dashboard
+        const loaderText = document.getElementById('loader-text');
+        if (loaderText) loaderText.textContent = 'Actualizando panel...';
         this.dashboardGrid.innerHTML = '<div class="loader"></div>';
         
         let allCards = [];
@@ -258,7 +268,7 @@ const UI = {
         // 2. Intentar obtener tarjetas del servidor
         try {
             const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 5000);
+            const timeoutId = setTimeout(() => controller.abort(), 25000); // Darle tiempo a Render de despertar
             
             const response = await fetch(`${state.API_BASE}/api/cards`, { signal: controller.signal });
             clearTimeout(timeoutId);
@@ -312,7 +322,7 @@ const UI = {
                     <span class="card-name">${(card['first-name'] && card['last-name'] ? (card['first-name'] + ' ' + card['last-name']).toUpperCase() : (card.name || 'Sin Nombre').toUpperCase())}</span>
                     <button class="btn btn-primary" style="font-size:0.7rem; padding:0.4rem 0.9rem; border-radius:6px;" onclick="UI.editCard('${card.id}')"><i class="fas fa-pen"></i> Editar</button>
                     <button class="btn-icon" title="Copiar Link" onclick="UI.copyLink('${pubLink}')"><i class="fas fa-copy"></i></button>
-                    <button class="btn-icon" title="Ver Tarjeta" onclick="Router.go('/card/${card.id}'); event.stopPropagation();"><i class="fas fa-external-link-alt"></i></button>
+                    <button class="btn-icon" title="Ver Tarjeta" onclick="window.open('${pubLink}', '_blank'); event.stopPropagation();"><i class="fas fa-external-link-alt"></i></button>
                 </div>
             `;
             this.dashboardGrid.appendChild(item);
@@ -374,14 +384,20 @@ const UI = {
         this.updatePreview();
         Router.go('/admin');
         
-        // Generar QR con la URL pública correcta
-        const cardUrl = `${window.location.origin}${window.location.pathname}#/card/${state.cardId}`;
+        // Generar QR con la URL pública correcta (usando la dirección de GitHub Pages si estamos en producción)
+        const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+        const baseUrl = isLocal ? window.location.origin + window.location.pathname : 'https://jomar71.github.io/ecardsjm/';
+        const cardUrl = `${baseUrl}#/card/${state.cardId}`;
         this.generateQR(cardUrl);
     },
 
     async handleSubmit(e) {
         e.preventDefault();
-        if (this.loader) this.loader.classList.remove('hidden');
+        if (this.loader) {
+            this.loader.classList.remove('hidden');
+            const loaderText = document.getElementById('loader-text');
+            if (loaderText) loaderText.textContent = 'Conectando con el servidor profesional (espera 20s)...';
+        }
         
         try {
             // Recoger los datos del formulario (por name o id)
@@ -448,9 +464,9 @@ const UI = {
             // Guardar en el servidor (con timeout)
             try {
                 const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos para despertar a Render
                 
-                await fetch(`${state.API_BASE}/api/cards`, {
+                const response = await fetch(`${state.API_BASE}/api/cards`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(cardData),
@@ -458,8 +474,15 @@ const UI = {
                 });
                 
                 clearTimeout(timeoutId);
+
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+                console.log("Tarjeta sincronizada con la nube correctamente.");
             } catch (apiErr) {
                 console.warn("Could not save to server, using local only:", apiErr);
+                alert("AVISO: La tarjeta se guardó en tu PC, pero el servidor está tardando en despertar. Intenta guardar de nuevo en 10 segundos para que funcione en el celular.");
+                throw apiErr; // Detener flujo para que no piense que todo salió perfecto
             }
 
             if (this.successBanner) {
@@ -467,8 +490,10 @@ const UI = {
                 setTimeout(() => this.successBanner.classList.add('hidden'), 3500);
             }
             
-            // Generar QR con la URL pública correcta
-            const cardUrl = `${window.location.origin}${window.location.pathname}#/card/${state.cardId}`;
+            // Generar QR con la URL pública correcta (usando la dirección de GitHub Pages si estamos en producción)
+            const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+            const baseUrl = isLocal ? window.location.origin + window.location.pathname : 'https://jomar71.github.io/ecardsjm/';
+            const cardUrl = `${baseUrl}#/card/${state.cardId}`;
             this.generateQR(cardUrl, this.qrContainer);
             
             // Actualizar vista pública QR si existe
@@ -768,6 +793,12 @@ const UI = {
     },
 
     async loadPublicCard(id) {
+        const loaderText = document.getElementById('loader-text');
+        if (this.loader) {
+            this.loader.classList.remove('hidden');
+            if (loaderText) loaderText.textContent = 'Buscando identidad en la nube integrada...';
+        }
+        
         // Buscar la tarjeta en localStorage
         const localCards = this.getLocalCards();
         let card = localCards.find(c => c.id === id);
@@ -775,13 +806,28 @@ const UI = {
         if (!card) {
             // Intentar buscar en el servidor si no está local
             try {
-                const response = await fetch(`${state.API_BASE}/api/cards/${id}`);
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s para despertar Render
+                
+                const response = await fetch(`${state.API_BASE}/api/cards/${id}`, { signal: controller.signal });
+                clearTimeout(timeoutId);
+                
                 if (response.ok) {
                     card = await response.json();
                 }
             } catch (err) {
                 console.error("Error fetching card from server:", err);
+                const publicName = document.getElementById('public-name');
+                if (publicName) {
+                    publicName.textContent = 'Servidor aún despertando...';
+                    const publicJob = document.getElementById('public-job');
+                    if (publicJob) publicJob.textContent = 'Por favor, espera unos segundos y recarga la página.';
+                }
+            } finally {
+                if (this.loader) this.loader.classList.add('hidden');
             }
+        } else {
+            if (this.loader) this.loader.classList.add('hidden');
         }
         
         if (card) {
