@@ -619,10 +619,12 @@ const UI = {
                         preview.style.backgroundImage = `linear-gradient(180deg, #1E293B 0%, #0F172A 100%)`;
                     } else if (data.template_id === 'executive') {
                         preview.style.backgroundImage = `linear-gradient(135deg, #1e1e1e 0%, #111 100%)`;
+                    } else if (data.template_id === 'classic') {
+                        preview.style.backgroundImage = `linear-gradient(to bottom, #eeeeee 0%, #dcdcdc 100%)`;
                     }
                 }
             }
-            preview.style.color = data.text_color || '#FFFFFF';
+            preview.style.color = (data.template_id === 'classic') ? (data.text_color || '#333') : (data.text_color || '#FFFFFF');
             preview.style.fontFamily = data.font_family || "'Plus Jakarta Sans', sans-serif";
 
             // Import Template (Apply Custom CSS)
@@ -687,8 +689,12 @@ const UI = {
 
                     let iconColor = data.primary_color || '#2D5BFF';
                     if (data.template_id === 'minimal' && this.isLightColor(iconColor)) iconColor = '#0B0F19';
+                    
+                    // En template classic los iconos tienen color gris oscuro por defecto (desde CSS) 
+                    // a menos que el usuario defina algo muy específico.
+                    const iconStyle = (data.template_id === 'classic') ? '' : `style="color:${iconColor}; font-size: 1.1rem; width:25px;"`;
 
-                    el.innerHTML = `<i class="fas fa-${item.icon}" style="color:${iconColor}; font-size: 1.1rem; width:25px;"></i> <span>${val}</span>`;
+                    el.innerHTML = `<i class="fas fa-${item.icon}" ${iconStyle}></i> <span>${val}</span>`;
                     this.contactsBox.appendChild(el);
                 }
             });
@@ -709,7 +715,11 @@ const UI = {
 
                     let iconColor = data.primary_color || '#2D5BFF';
                     if (data.template_id === 'minimal' && this.isLightColor(iconColor)) iconColor = '#0B0F19';
-                    icon.style.color = iconColor;
+                    
+                    // En classic usamos los colores reales de las redes (manejado por CSS)
+                    if (data.template_id !== 'classic') {
+                        icon.style.color = iconColor;
+                    }
 
                     link.appendChild(icon);
                     this.socialBox.appendChild(link);

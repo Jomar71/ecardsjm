@@ -864,6 +864,171 @@ body::before {
     animation: pulse-glow 2s infinite;
 }
 
+/* ───── TEMPLATE CLASSIC (REFERENCIA) ───── */
+.template-classic {
+    background: #f0f0f0 !important;
+    color: #333 !important;
+    padding: 0 !important;
+    display: flex !important;
+    flex-direction: column !important;
+    border-radius: 8px !important;
+    overflow: hidden !important;
+}
+
+.template-classic .card-glass {
+    background: transparent !important;
+    backdrop-filter: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    padding: 0 !important;
+    height: 100% !important;
+    display: flex !important;
+    flex-direction: column !important;
+}
+
+/* Header Barra Gris */
+.template-classic .card-header {
+    background: #d4d4d4 !important;
+    padding: 0.8rem 1rem !important;
+    border-bottom: 2px solid #bbb !important;
+    margin-bottom: 0 !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+}
+
+.template-classic .brand-text {
+    color: #444 !important;
+    font-weight: 800 !important;
+    font-size: 1.1rem !important;
+    text-shadow: 1px 1px 0 #fff !important;
+}
+
+/* Layout Perfil Lateral */
+.template-classic .card-body-flex {
+    display: flex !important;
+    padding: 1.5rem 1rem !important;
+    gap: 1.2rem !important;
+}
+
+.template-classic .profile-container {
+    margin: 0 !important;
+    width: 140px !important;
+    height: 140px !important;
+    flex-shrink: 0 !important;
+}
+
+.template-classic #preview-logo-box {
+    border-radius: 8px !important;
+    border: 3px solid #fff !important;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1) !important;
+    width: 100% !important;
+    height: 100% !important;
+}
+
+.template-classic .card-text-block {
+    text-align: left !important;
+    padding: 0 !important;
+    flex: 1 !important;
+}
+
+.template-classic #preview-name {
+    font-size: 1.2rem !important;
+    font-weight: 900 !important;
+    color: #111 !important;
+    margin-bottom: 0.3rem !important;
+    text-transform: uppercase !important;
+}
+
+.template-classic #preview-title {
+    font-size: 0.9rem !important;
+    color: #555 !important;
+    margin-bottom: 0.8rem !important;
+    font-weight: 600 !important;
+}
+
+.template-classic .card-desc {
+    font-size: 0.85rem !important;
+    line-height: 1.4 !important;
+    color: #666 !important;
+    border: none !important;
+    padding: 0 !important;
+    margin-bottom: 1rem !important;
+}
+
+/* Botones Estilo Lista */
+.template-classic .contact-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 0.6rem !important;
+    padding: 0 1rem !important;
+    margin-top: 1rem !important;
+}
+
+.template-classic .contact-item {
+    background: linear-gradient(to bottom, #f9f9f9, #e0e0e0) !important;
+    border: 1px solid #ccc !important;
+    border-radius: 10px !important;
+    padding: 0.8rem 1rem !important;
+    display: flex !important;
+    align-items: center !important;
+    color: #333 !important;
+    font-weight: 700 !important;
+    font-size: 0.95rem !important;
+    transition: transform 0.2s !important;
+}
+
+.template-classic .contact-item:hover {
+    transform: scale(1.02) !important;
+}
+
+.template-classic .contact-item i {
+    color: #444 !important;
+    font-size: 1.2rem !important;
+    width: 30px !important;
+    text-align: center !important;
+    margin-right: 0.5rem !important;
+}
+
+.template-classic .contact-item span {
+    flex-grow: 1 !important;
+}
+
+.template-classic .contact-item::after {
+    content: '\f105'; /* FontAwesome chevron-right */
+    font-family: 'Font Awesome 6 Free' !important;
+    font-weight: 900 !important;
+    opacity: 0.5 !important;
+    font-size: 1.1rem !important;
+}
+
+/* Redes Sociales Bottom */
+.template-classic .social-strip {
+    background: #fff !important;
+    padding: 1rem !important;
+    margin-top: auto !important;
+    justify-content: space-around !important;
+    border-top: 1px solid #ddd !important;
+}
+
+.template-classic .social-strip i {
+    font-size: 1.8rem !important;
+}
+
+.template-classic .social-strip a[href*="whatsapp"] i { color: #25D366 !important; }
+.template-classic .social-strip a[href*="facebook"] i { color: #1877F2 !important; }
+.template-classic .social-strip a[href*="instagram"] i { color: #E4405F !important; }
+.template-classic .social-strip a[href*="linkedin"] i { color: #0A66C2 !important; }
+.template-classic .social-strip a[href*="twitter"] i { color: #1DA1F2 !important; }
+.template-classic .social-strip a[href*="youtube"] i { color: #FF0000 !important; }
+
+/* Ocultar elementos no deseados */
+.template-classic .bottom-wave, 
+.template-classic .deco-circle {
+    display: none !important;
+}
+─────────────────────── */
+
 /* ── DIGITAL BUSINESS CARD PREVIEW ──────────────────────────── */
 .card-preview {
     width: 360px;

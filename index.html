@@ -334,6 +334,7 @@
                                 <option value="floating">FLOTANTE (MINIMAL)</option>
                                 <option value="neon">NEON (CREATIVO)</option>
                                 <option value="executive">EJECUTIVO (PREMIUM)</option>
+                                <option value="classic">CLASSIC REFERENCE (FOTO LATERAL)</option>
                             </select>
                                 </div>
 
@@ -436,26 +437,34 @@
                                         </div>
                                         <div class="brand-text" id="preview-brand-text">EMPRESA<br>DIGITAL</div>
                                     </div>
-                                </div>
-
-                                <!-- Profile Photo -->
-                                <div class="profile-container">
-                                    <div id="preview-logo-box">
-                                        <i class="fas fa-user"
-                                            style="opacity:0.15; font-size:2rem; color:var(--accent-light);"></i>
+                                    <!-- Botones barra superior estilo referencia -->
+                                    <div class="header-actions" style="display:flex; gap:0.5rem;">
+                                        <button type="button" class="btn-icon-mini"><i class="fas fa-user-plus"></i></button>
+                                        <button type="button" class="btn-icon-mini"><i class="fas fa-share-alt"></i></button>
                                     </div>
                                 </div>
 
-                                <div class="card-text-block">
-                                    <p id="preview-company">EMPRESA EJEMPLO</p>
-                                    <h2 id="preview-name">NOMBRE COMPLETO</h2>
-                                    <p id="preview-title">CARGO O TÍTULO</p>
-                                    <p id="preview-description" class="card-desc">Esta es tu descripción. Resalta tus
-                                        valores y servicios.</p>
+                                <!-- Body Flex para diseño lateral (Classic) -->
+                                <div class="card-body-flex">
+                                    <!-- Profile Photo -->
+                                    <div class="profile-container">
+                                        <div id="preview-logo-box">
+                                            <i class="fas fa-user"
+                                                style="opacity:0.15; font-size:2rem; color:var(--accent-light);"></i>
+                                        </div>
+                                    </div>
 
-                                    <div id="preview-contacts" class="contact-container"></div>
-                                    <div id="preview-social" class="social-strip"></div>
+                                    <div class="card-text-block">
+                                        <p id="preview-company">EMPRESA EJEMPLO</p>
+                                        <h2 id="preview-name">NOMBRE COMPLETO</h2>
+                                        <p id="preview-title">CARGO O TÍTULO</p>
+                                        <p id="preview-description" class="card-desc">Esta es tu descripción. Resalta tus
+                                            valores y servicios.</p>
+                                    </div>
                                 </div>
+
+                                <div id="preview-contacts" class="contact-container"></div>
+                                <div id="preview-social" class="social-strip"></div>
                             </div>
 
                             <div class="bottom-wave"></div>
