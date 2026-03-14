@@ -33,21 +33,22 @@
         </a>
 
         <nav id="top-nav">
-            <a href="#" class="nav-link" onclick="Router.go('/')">Inicio</a>
-
             <!-- Guest Nav -->
             <div id="auth-nav-guest" style="display:flex; gap:0.75rem; align-items:center;">
+                <button class="nav-link" onclick="Router.go('/')">INICIO</button>
+                <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.1); margin: 0 0.5rem;"></div>
                 <button class="btn btn-ghost" onclick="UI.showAuth('login')">
                     <i class="fas fa-sign-in-alt"></i> Login
                 </button>
                 <button class="btn btn-primary" onclick="UI.showAuth('register')">
-                    Crear Cuenta
+                    Regístrate
                 </button>
             </div>
 
             <!-- User Nav -->
-            <div id="auth-nav-user" class="hidden">
-                <a href="#" class="nav-link" onclick="Router.go('/dashboard')">Mis Tarjetas</a>
+            <div id="auth-nav-user" class="hidden" style="display:flex; gap:0.75rem; align-items:center;">
+                <button class="nav-link" onclick="Router.go('/')">INICIO</button>
+                <button class="nav-link" onclick="Router.go('/admin')">EDITOR</button>
                 <div class="user-badge">
                     <div class="user-avatar" id="nav-avatar">U</div>
                     <span id="nav-username">USUARIO</span>
@@ -229,23 +230,7 @@
             </footer>
         </section>
 
-        <!-- ─── DASHBOARD ─────────────────────────────────────── -->
-        <section id="view-dashboard" class="view-content hidden animate-in">
-            <div id="view-dashboard-inner">
-                <div class="dashboard-header">
-                    <div>
-                        <h2>Centro de Comando</h2>
-                        <p>Gestiona tus identidades digitales</p>
-                    </div>
-                    <button class="btn btn-primary" onclick="UI.clearStudio(); Router.go('/admin')">
-                        <i class="fas fa-plus"></i> Nueva Tarjeta
-                    </button>
-                </div>
-                <div id="dashboard-grid">
-                    <!-- Injected via script.js -->
-                </div>
-            </div>
-        </section>
+        <!-- DASHBOARD REMOVED (Merged into Admin) -->
 
         <!-- ─── CARD EDITOR ───────────────────────────────────── -->
         <section id="view-admin" class="view-content hidden">
@@ -343,11 +328,13 @@
                             <div id="tab-design" class="tab-content">
                                 <div class="input-group">
                                     <label>Plantilla de Sistema</label>
-                                    <select name="template_id" id="template_id">
-                                        <option value="corporate">Corporate Blue (Elegante)</option>
-                                        <option value="minimal">Minimal White (Limpio)</option>
-                                        <option value="creative">Creative Dark (Moderno)</option>
-                                    </select>
+                                    <select id="template_id" name="template_id">
+                                <option value="corporate">CORPORATIVO (HORIZONTAL)</option>
+                                <option value="vertical">MODERNO (VERTICAL)</option>
+                                <option value="floating">FLOTANTE (MINIMAL)</option>
+                                <option value="neon">NEON (CREATIVO)</option>
+                                <option value="executive">EJECUTIVO (PREMIUM)</option>
+                            </select>
                                 </div>
 
                                 <div class="input-group">
@@ -480,6 +467,18 @@
                             <span>GUARDAR PARA QR</span>
                         </div>
                     </div>
+                </div>
+            </div>
+            <!-- TUS TARJETAS (Integrado) -->
+            <div id="admin-cards-list" class="container" style="margin-top: 4rem; padding-top: 4rem; border-top: 1px solid var(--border);">
+                <div class="dashboard-header" style="margin-bottom: 2rem;">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800;">MIS TARJETAS</h2>
+                        <p style="font-size: 0.8rem; opacity: 0.6;">Gestiona y edita tus identidades creadas</p>
+                    </div>
+                </div>
+                <div id="dashboard-grid">
+                    <!-- Injected via script.js -->
                 </div>
             </div>
         </section>

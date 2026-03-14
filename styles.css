@@ -892,6 +892,104 @@ body::before {
     border: 1px solid rgba(6, 182, 212, 0.4);
 }
 
+/* --- Nuevas Plantillas Premium --- */
+
+/* VERTICAL */
+.card-preview.template-vertical {
+    width: 320px;
+    aspect-ratio: 2/3.5;
+    background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+    border: 1px solid var(--border-accent);
+}
+
+.template-vertical .card-content {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2.5rem 1.5rem;
+}
+
+.template-vertical .card-top-bar {
+    width: 100%;
+    justify-content: center;
+    margin-bottom: 2rem;
+}
+
+.template-vertical .profile-container {
+    margin-bottom: 2rem;
+}
+
+.template-vertical #preview-logo-box {
+    width: 120px;
+    height: 120px;
+    border-width: 3px;
+    box-shadow: 0 0 30px var(--accent-glow);
+}
+
+.template-vertical .contact-container {
+    justify-content: center;
+    margin-top: auto;
+}
+
+.template-vertical #preview-qr {
+    position: static;
+    margin: 1.5rem auto 0;
+}
+
+/* FLOATING */
+.card-preview.template-floating {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(25px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+}
+
+.template-floating .deco-circle {
+    display: none;
+}
+
+.template-floating::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, transparent 100%);
+    z-index: 0;
+}
+
+/* NEON */
+.card-preview.template-neon {
+    background: #000;
+    border: 2px solid var(--accent);
+    box-shadow: 0 0 15px var(--accent-glow), inset 0 0 15px var(--accent-glow);
+}
+
+.template-neon * {
+    text-shadow: 0 0 10px var(--accent-glow);
+}
+
+.template-neon .contact-item i, 
+.template-neon .social-strip i {
+    filter: drop-shadow(0 0 5px var(--accent));
+}
+
+/* EXECUTIVE */
+.card-preview.template-executive {
+    background: linear-gradient(135deg, #1e1e1e 0%, #111 100%);
+    border: 1px solid #c0c0c0; /* Silver border */
+}
+
+.template-executive .brand-text {
+    color: #c0c0c0;
+    font-weight: 300;
+}
+
+.template-executive #preview-logo-box {
+    border-radius: 4px;
+    border-color: #c0c0c0;
+}
+
 /* Decorative circles */
 .deco-circle {
     position: absolute;
@@ -1308,6 +1406,23 @@ body::before {
     background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%);
 }
 
+.mini-card.vertical {
+    background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+}
+
+.mini-card.floating {
+    background: #1e1e1e;
+}
+
+.mini-card.neon {
+    background: #000;
+    box-shadow: inset 0 0 10px var(--accent-glow);
+}
+
+.mini-card.executive {
+    background: #111;
+}
+
 .mini-card-content {
     text-align: center;
     padding: 1rem;
@@ -1342,6 +1457,22 @@ body::before {
     background: rgba(6, 182, 212, 0.2);
     border: 2px solid rgba(6, 182, 212, 0.4);
     color: var(--accent-cyan);
+}
+
+.mini-card-avatar.vertical-av {
+    background: rgba(124, 58, 237, 0.2);
+    border: 2px solid var(--accent);
+}
+
+.mini-card-avatar.neon-av {
+    background: #000;
+    border: 1px solid var(--accent);
+    color: var(--accent);
+}
+
+.mini-card-avatar.executive-av {
+    background: #222;
+    border: 1px solid #c0c0c0;
 }
 
 .mini-card-name {

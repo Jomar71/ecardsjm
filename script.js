@@ -65,15 +65,18 @@ const Router = {
 
         // Restaurar estado de autenticación
         Auth.updateAuthUI();
-
-        if (path === '/admin') {
+        if (path === '/admin' || path === '/dashboard') {
             document.getElementById('view-admin')?.classList.remove('hidden');
             const delBtn = document.getElementById('btn-delete-card');
             if (state.cardId) delBtn?.classList.remove('hidden');
             else delBtn?.classList.add('hidden');
-        } else if (path === '/dashboard') {
-            document.getElementById('view-dashboard')?.classList.remove('hidden');
+            
+            // Cargar lista de tarjetas en el admin
             UI.loadDashboard();
+            
+            if (path === '/dashboard') {
+                Router.go('/admin');
+            }
         } else {
             document.getElementById('view-home')?.classList.remove('hidden');
         }
@@ -122,7 +125,7 @@ const Auth = {
             localStorage.setItem('ecards_user', JSON.stringify(userData));
             this.onLogin(userData);
             UI.hideAuth();
-            Router.go('/dashboard');
+            Router.go('/admin');
         } else {
             alert("CREDENCIALES INVÁLIDAS.");
         }
@@ -452,8 +455,11 @@ const UI = {
                 console.warn("Cloud sync delayed, using local copy.");
             });
 
-            // IR AL DASHBOARD
-            setTimeout(() => Router.go('/dashboard'), 1000);
+            // ACTUALIZAR DASHBOARD INTEGRADO
+            this.loadDashboard();
+            
+            // NO REDIRIGIR A DASHBOARD, QUEDARSE EN ADMIN
+            // setTimeout(() => Router.go('/dashboard'), 1000);
 
         } catch (err) {
             console.error("Save error:", err);
@@ -551,7 +557,9 @@ const UI = {
         
         alert("IDENTIDAD ELIMINADA.");
         state.cardId = null;
-        Router.go('/dashboard');
+        this.clearStudio();
+        this.loadDashboard();
+        Router.go('/admin');
     },
 
     copyLink(url) {
@@ -594,13 +602,24 @@ const UI = {
             } else {
                 // If NO user image, use system template gradient/color
                 preview.style.backgroundImage = '';
-                preview.style.backgroundColor = data.bg_color || '#0B0F19';
+                
+                if (data.bg_color && data.bg_color !== '#0B0F19' && data.bg_color !== '#000000') {
+                    preview.style.backgroundColor = data.bg_color;
+                } else {
+                    preview.style.backgroundColor = ''; // Use CSS default
+                }
 
-                // Only apply default gradient if it's corporate/creative
-                if (!data.template_id || data.template_id === 'corporate') {
-                    preview.style.backgroundImage = `linear-gradient(135deg, ${data.bg_color || '#0B0F19'} 0%, #001A33 100%)`;
-                } else if (data.template_id === 'creative') {
-                    preview.style.backgroundImage = `radial-gradient(circle at top right, ${data.primary_color || '#1A1C2C'} 0%, ${data.bg_color || '#000000'} 100%)`;
+                // Apply default gradients for specific templates if no custom background
+                if (!data.bg_color || data.bg_color === '#0B0F19' || data.bg_color === '#000000') {
+                    if (!data.template_id || data.template_id === 'corporate') {
+                        preview.style.backgroundImage = `linear-gradient(135deg, ${data.bg_color || '#0B0F19'} 0%, #001A33 100%)`;
+                    } else if (data.template_id === 'creative') {
+                        preview.style.backgroundImage = `radial-gradient(circle at top right, ${data.primary_color || '#1A1C2C'} 0%, ${data.bg_color || '#000000'} 100%)`;
+                    } else if (data.template_id === 'vertical') {
+                        preview.style.backgroundImage = `linear-gradient(180deg, #1E293B 0%, #0F172A 100%)`;
+                    } else if (data.template_id === 'executive') {
+                        preview.style.backgroundImage = `linear-gradient(135deg, #1e1e1e 0%, #111 100%)`;
+                    }
                 }
             }
             preview.style.color = data.text_color || '#FFFFFF';
