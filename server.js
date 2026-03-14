@@ -127,8 +127,53 @@ app.delete('/api/cards/:id', async (req, res) => {
   }
 });
 
-// Iniciar el servidor
-app.listen(PORT, () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
-  console.log('Base de datos PostgreSQL configurada correctamente');
+// Función para inicializar la base de datos automáticamente
+const initDB = async () => {
+  const queryText = `
+    CREATE TABLE IF NOT EXISTS business_cards (
+        id TEXT PRIMARY KEY,
+        "first-name" TEXT,
+        "last-name" TEXT,
+        name TEXT,
+        title TEXT,
+        email TEXT,
+        phone TEXT,
+        website TEXT,
+        address TEXT,
+        company TEXT,
+        bio TEXT,
+        facebook TEXT,
+        instagram TEXT,
+        linkedin TEXT,
+        twitter TEXT,
+        whatsapp TEXT,
+        github TEXT,
+        behance TEXT,
+        youtube TEXT,
+        tiktok TEXT,
+        template_id TEXT,
+        logo_path TEXT,
+        profile_path TEXT,
+        bg_image_path TEXT,
+        font_file_path TEXT,
+        custom_css TEXT,
+        custom_fonts TEXT,
+        bg_color TEXT,
+        text_color TEXT,
+        primary_color TEXT
+    );
+  `;
+  try {
+    await pool.query(queryText);
+    console.log("✅ Base de datos: Tabla 'business_cards' verificada/creada correctamente");
+  } catch (err) {
+    console.error("❌ Error al inicializar la base de datos:", err);
+  }
+};
+
+// Iniciar inicialización y luego el servidor
+initDB().then(() => {
+  app.listen(PORT, () => {
+    console.log(`Servidor corriendo en puerto ${PORT}`);
+  });
 });
