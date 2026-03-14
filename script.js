@@ -393,123 +393,76 @@ const UI = {
 
     async handleSubmit(e) {
         e.preventDefault();
-        if (this.loader) {
-            this.loader.classList.remove('hidden');
-            const loaderText = document.getElementById('loader-text');
-            if (loaderText) loaderText.textContent = 'Conectando con el servidor profesional (espera 20s)...';
-        }
+        if (this.loader) this.loader.classList.remove('hidden');
         
         try {
-            // Recoger los datos del formulario (por name o id)
+            // Recoger los datos del formulario
             const cardData = {};
             const formElements = this.form.elements;
             for (let i = 0; i < formElements.length; i++) {
                 const el = formElements[i];
                 if (el.tagName !== 'BUTTON' && el.type !== 'file') {
                     const key = el.name || el.id;
-                    if (key) {
-                        cardData[key] = el.value;
-                    }
+                    if (key) cardData[key] = el.value;
                 }
             }
             
-            // Agregar IDs y paths de imágenes
+            // Agregar IDs y paths
             if (state.cardId) cardData.id = state.cardId;
             if (state.logoPath) cardData.logo_path = state.logoPath;
             if (state.profilePath) cardData.profile_path = state.profilePath;
             if (state.bgImagePath) cardData.bg_image_path = state.bgImagePath;
             if (state.fontFilePath) cardData.font_file_path = state.fontFilePath;
             
-            // Generar ID basado en nombre y apellido si no existe
+            // Generar ID si es nueva
             if (!cardData.id) {
                 const firstName = document.getElementById('first-name')?.value || cardData['first-name'] || '';
                 const firstSurname = document.getElementById('last-name')?.value || cardData['last-name'] || '';
-                
                 if (firstName && firstSurname) {
-                    // Generar ID a partir del nombre y primer apellido
-                    let baseId = `${firstName.toLowerCase()}_${firstSurname.toLowerCase()}`;
-                    baseId = baseId.replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-                    
-                    // Asegurar que el ID sea único
-                    let uniqueId = baseId;
-                    let counter = 1;
-                    const cards = this.getLocalCards();
-                    
-                    while (cards.some(c => c.id === uniqueId)) {
-                        uniqueId = `${baseId}_${counter}`;
-                        counter++;
-                    }
-                    
-                    cardData.id = uniqueId;
-                } else if (firstName) {
-                    // Si solo tenemos el nombre, usamos solo el nombre
-                    cardData.id = firstName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
+                    cardData.id = `${firstName.toLowerCase()}_${firstSurname.toLowerCase()}`.replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
                 } else {
-                    // Si no tenemos ni nombre ni apellido, generar un ID por defecto
                     cardData.id = 'card_' + Date.now();
                 }
             }
             
-            // Guardar la tarjeta localmente (y capturar error si se llena la memoria del navegador)
-            try {
-                const savedCard = this.saveLocalCard(cardData);
-                state.cardId = savedCard.id;
-            } catch (storageErr) {
-                console.warn("Storage quota exceeded in browser, memory is full:", storageErr);
-                // Si la memoria está llena, nos aseguramos de asignar estado y tarjeta manualmente o al menos que el ID no se pierda.
-                if (!cardData.id) cardData.id = 'card_' + Date.now();
-                state.cardId = cardData.id;
-            }
-            
-            // Guardar en el servidor (con timeout)
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 segundos para despertar a Render
-                
-                const response = await fetch(`${state.API_BASE}/api/cards`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(cardData),
-                    signal: controller.signal
-                });
-                
-                clearTimeout(timeoutId);
+            // 1. GUARDADO LOCAL (Instantáneo)
+            this.saveLocalCard(cardData);
+            state.cardId = cardData.id;
 
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
-                console.log("Tarjeta sincronizada con la nube correctamente.");
-            } catch (apiErr) {
-                console.warn("Could not save to server, using local only:", apiErr);
-                alert("AVISO: La tarjeta se guardó en tu PC, pero el servidor está tardando en despertar. Intenta guardar de nuevo en 10 segundos para que funcione en el celular.");
-                throw apiErr; // Detener flujo para que no piense que todo salió perfecto
-            }
-
+            // 2. MOSTRAR PREVIEW Y ÉXITO
             if (this.successBanner) {
                 this.successBanner.classList.remove('hidden');
-                setTimeout(() => this.successBanner.classList.add('hidden'), 3500);
+                setTimeout(() => this.successBanner.classList.add('hidden'), 3000);
             }
             
-            // Generar QR con la URL pública correcta (usando la dirección de GitHub Pages si estamos en producción)
+            // 3. GENERAR QR SIEMPRE
             const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
             const baseUrl = isLocal ? window.location.origin + window.location.pathname : 'https://jomar71.github.io/ecardsjm/';
             const cardUrl = `${baseUrl}#/card/${state.cardId}`;
             this.generateQR(cardUrl, this.qrContainer);
-            
-            // Actualizar vista pública QR si existe
-            const publicQrContainer = document.getElementById('public-qr-container');
-            if (publicQrContainer) {
-                this.generateQR(cardUrl, publicQrContainer);
-            }
-            
-            setTimeout(() => Router.go('/dashboard'), 2000);
+
+            // 4. SINCRONIZAR EN SEGUNDO PLANO (Silencioso)
+            fetch(`${state.API_BASE}/api/cards`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(cardData)
+            }).then(() => {
+                console.log("Cloud sync successful");
+            }).catch(() => {
+                console.warn("Cloud sync delayed, using local copy.");
+            });
+
+            // IR AL DASHBOARD
+            setTimeout(() => Router.go('/dashboard'), 1000);
+
         } catch (err) {
-            alert("ERROR AL GUARDAR.");
-            console.error(err);
+            console.error("Save error:", err);
+            alert("Hubo un problema al guardar. Revisa los datos e intenta de nuevo.");
         } finally {
             if (this.loader) this.loader.classList.add('hidden');
         }
     },
+
 
     generateQR(url, targetElement = null) {
         const container = targetElement || this.qrContainer;
