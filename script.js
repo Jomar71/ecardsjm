@@ -318,9 +318,9 @@ const UI = {
                             <div class="mini-card-avatar ${templateClass}-av">
                                 ${profilePath ? `<img src="${profilePath}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">` : '<i class="fas fa-user"></i>'}
                             </div>
-                            <div class="mini-card-title" style="${templateClass === 'minimal' ? 'color:#64748B;' : ''}">${card.title || ''}</div>
+                            <div class="mini-card-title" style="${(templateClass === 'minimal' || templateClass === 'minimal-modern') ? 'color:#64748B;' : ''}">${card.title || ''}</div>
                         </div>
-                        ${templateClass !== 'minimal' ? '<div class="bottom-wave"></div>' : ''}
+                        ${(templateClass !== 'minimal' && templateClass !== 'minimal-modern') ? '<div class="bottom-wave"></div>' : ''}
                     </div>
                 </div>
                 <div class="card-item-actions">
@@ -623,12 +623,12 @@ const UI = {
                         preview.style.backgroundImage = `linear-gradient(135deg, #1e1e1e 0%, #111 100%)`;
                     } else if (data.template_id === 'neotech') {
                         preview.style.backgroundImage = `radial-gradient(circle at 50% 50%, #1a103d 0%, #050505 100%)`;
-                    } else if (data.template_id === 'classic') {
-                        preview.style.backgroundImage = `linear-gradient(to bottom, #eeeeee 0%, #dcdcdc 100%)`;
+                    } else if (data.template_id === 'minimal-modern') {
+                        preview.style.backgroundImage = `linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%)`;
                     }
                 }
             }
-            preview.style.color = (data.template_id === 'classic') ? (data.text_color || '#333') : (data.text_color || '#FFFFFF');
+            preview.style.color = (data.template_id === 'classic' || data.template_id === 'minimal-modern') ? (data.text_color || '#333') : (data.text_color || '#FFFFFF');
             preview.style.fontFamily = data.font_family || "'Plus Jakarta Sans', sans-serif";
 
             // Import Template (Apply Custom CSS)
@@ -900,7 +900,7 @@ const UI = {
         cardEl.style.fontFamily = card.font_family || "'Plus Jakarta Sans', sans-serif";
 
         // Fix icons in Public View
-        const isMin = card.template_id === 'minimal';
+        const isMin = card.template_id === 'minimal' || card.template_id === 'minimal-modern';
         cardEl.querySelectorAll('.contact-item i, #preview-social i').forEach(ico => {
             let icoCol = card.primary_color || '#2D5BFF';
             if (isMin && UI.isLightColor(icoCol)) icoCol = '#0B0F19';

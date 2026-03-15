@@ -1104,6 +1104,77 @@ body::before {
     border: 1px solid rgba(0, 0, 0, 0.1);
 }
 
+.card-preview.template-minimal-modern {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+}
+
+.template-minimal-modern .card-content {
+    padding: 2.5rem 2rem;
+}
+
+.template-minimal-modern #preview-name {
+    color: #1a202c;
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    letter-spacing: -0.025em;
+}
+
+.template-minimal-modern #preview-title {
+    color: var(--accent);
+    font-size: 0.875rem;
+    font-weight: 600;
+    text-transform: none;
+    letter-spacing: normal;
+    opacity: 1;
+}
+
+.template-minimal-modern .card-desc {
+    color: #4a5568;
+    font-size: 0.75rem;
+    margin: 1.5rem 0;
+}
+
+.template-minimal-modern .contact-item {
+    background: #f7fafc;
+    border: 1px solid #edf2f7;
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin-bottom: 0.5rem;
+    color: #2d3748;
+    width: 100%;
+}
+
+.template-minimal-modern .contact-item i {
+    color: var(--accent);
+}
+
+.template-minimal-modern .social-icon-link {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    color: #4a5568;
+}
+
+.template-minimal-modern .social-icon-link:hover {
+    background: var(--accent);
+    color: #ffffff;
+    border-color: var(--accent);
+}
+
+.template-minimal-modern #preview-qr {
+    background: #ffffff;
+    border: 1.5px solid #edf2f7;
+    margin-top: 1.5rem;
+    position: relative;
+    bottom: auto;
+    right: auto;
+    width: 80px;
+    height: 80px;
+    margin-left: auto;
+}
+
 .card-preview.template-creative {
     background: linear-gradient(135deg, #0F172A 0%, #1E1B4B 100%);
     border: 1px solid rgba(6, 182, 212, 0.4);
@@ -1224,16 +1295,22 @@ body::before {
 .template-neotech .deco-circle.c1 { background: rgba(0, 255, 255, 0.2); filter: blur(40px); top: -10%; left: -10%; width: 150px; height: 150px; }
 .template-neotech .deco-circle.c2 { background: rgba(139, 92, 246, 0.2); filter: blur(40px); bottom: -10%; right: -10%; width: 150px; height: 150px; }
 
-.template-neotech .preview-name {
+.template-neotech #preview-name {
     font-family: 'Playfair Display', serif;
     font-size: 1.8rem;
-    background: linear-gradient(90deg, #fff, #0ff);
+    background-image: linear-gradient(90deg, #fff, #0ff);
     -webkit-background-clip: text;
+    background-clip: text;
+    color: white; /* Fallback */
     -webkit-text-fill-color: transparent;
+    display: block;
+    width: fit-content;
+    margin-left: auto;
+    margin-right: auto;
     letter-spacing: -0.5px;
 }
 
-.template-neotech .preview-title {
+.template-neotech #preview-title {
     color: #0ff;
     text-transform: uppercase;
     letter-spacing: 2px;
@@ -1795,6 +1872,11 @@ body::before {
 
 .mini-card.vertical {
     background: linear-gradient(180deg, #1E293B 0%, #0F172A 100%);
+}
+
+.mini-card.minimal-modern {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
 }
 
 .mini-card.floating {
