@@ -3,7 +3,7 @@
    Design System: Dark Navy + Electric Violet (Stitch Design)
    ============================================================ */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Plus+Jakarta+Sans:wght@400;600;700;800&family=Playfair+Display:wght@700&display=swap');
 
 /* ── DESIGN TOKENS ─────────────────────────────────────────── */
 :root {
@@ -1189,6 +1189,82 @@ body::before {
 .template-neon .contact-item i, 
 .template-neon .social-strip i {
     filter: drop-shadow(0 0 5px var(--accent));
+}
+
+/* NEOTECH - FUTURISTA PREMIUM */
+.card-preview.template-neotech {
+    background: radial-gradient(circle at 50% 50%, #1a103d 0%, #050505 100%);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    overflow: hidden;
+}
+
+.template-neotech::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background-image: 
+        linear-gradient(rgba(0, 255, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 255, 255, 0.05) 1px, transparent 1px);
+    background-size: 20px 20px;
+    z-index: 0;
+}
+
+.template-neotech .card-content {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 1.5rem;
+    margin: 1.5rem;
+    padding: 2rem;
+    box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.8);
+    position: relative;
+    z-index: 1;
+}
+
+.template-neotech .deco-circle.c1 { background: rgba(0, 255, 255, 0.2); filter: blur(40px); top: -10%; left: -10%; width: 150px; height: 150px; }
+.template-neotech .deco-circle.c2 { background: rgba(139, 92, 246, 0.2); filter: blur(40px); bottom: -10%; right: -10%; width: 150px; height: 150px; }
+
+.template-neotech .preview-name {
+    font-family: 'Playfair Display', serif;
+    font-size: 1.8rem;
+    background: linear-gradient(90deg, #fff, #0ff);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    letter-spacing: -0.5px;
+}
+
+.template-neotech .preview-title {
+    color: #0ff;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    margin-bottom: 1.5rem;
+    opacity: 0.9;
+}
+
+.template-neotech .contact-item {
+    background: rgba(0, 255, 255, 0.05);
+    border: 1px solid rgba(0, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 0.6rem 1rem;
+    margin-bottom: 0.5rem;
+    transition: all 0.3s ease;
+}
+
+.template-neotech .contact-item:hover {
+    background: rgba(0, 255, 255, 0.15);
+    border-color: #0ff;
+    box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
+.template-neotech #preview-qr {
+    background: #fff;
+    padding: 0.5rem;
+    border-radius: 12px;
+    box-shadow: 0 0 20px rgba(0, 255, 255, 0.4);
+    border: 2px solid #0ff;
 }
 
 /* EXECUTIVE */

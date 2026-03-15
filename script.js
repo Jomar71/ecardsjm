@@ -621,6 +621,8 @@ const UI = {
                         preview.style.backgroundImage = `linear-gradient(180deg, #1E293B 0%, #0F172A 100%)`;
                     } else if (data.template_id === 'executive') {
                         preview.style.backgroundImage = `linear-gradient(135deg, #1e1e1e 0%, #111 100%)`;
+                    } else if (data.template_id === 'neotech') {
+                        preview.style.backgroundImage = `radial-gradient(circle at 50% 50%, #1a103d 0%, #050505 100%)`;
                     } else if (data.template_id === 'classic') {
                         preview.style.backgroundImage = `linear-gradient(to bottom, #eeeeee 0%, #dcdcdc 100%)`;
                     }
