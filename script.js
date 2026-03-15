@@ -201,9 +201,11 @@ const UI = {
         this.form = document.getElementById('cardForm');
         this.preview = document.getElementById('card-preview');
         this.loader = document.getElementById('loader');
-        this.qrContainer = document.getElementById('preview-qr');
+        this.qrContainer = document.getElementById('preview-card-qr'); // Nuevo contenedor integrado
         this.contactsBox = document.getElementById('preview-contacts');
         this.socialBox = document.getElementById('preview-social');
+        this.actionButtons = document.getElementById('preview-action-buttons');
+        this.shareStrip = document.getElementById('preview-share-strip');
         this.publicView = document.getElementById('public-view');
         this.dashboardGrid = document.getElementById('dashboard-grid');
         const delBtn = document.getElementById('btn-delete-card');
@@ -715,7 +717,6 @@ const UI = {
                         const link = document.createElement('a');
                         link.href = this.getSocialLink(key, val);
                         link.target = '_blank';
-                        // Añadimos clase genérica para estilos base
                         link.className = 'social-icon-link';
                         
                         const icon = document.createElement('i');
@@ -737,8 +738,32 @@ const UI = {
             }
         }
 
+        // Action Buttons & Share Integrated
+        if (this.actionButtons) {
+            this.actionButtons.innerHTML = `
+                <button class="btn-card-action primary" style="background:${data.primary_color || '#7C3AED'}">Guardar Contacto</button>
+                <button class="btn-card-action outline">Compartir Link</button>
+            `;
+        }
+        
+        if (this.shareStrip) {
+            const currentUrl = window.location.href;
+            this.shareStrip.innerHTML = `
+                <a href="https://wa.me/?text=${encodeURIComponent(currentUrl)}" target="_blank" class="share-btn-mini" style="background:#25D366"><i class="fab fa-whatsapp"></i></a>
+                <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}" target="_blank" class="share-btn-mini" style="background:#1877F2"><i class="fab fa-facebook"></i></a>
+                <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}" target="_blank" class="share-btn-mini" style="background:#0A66C2"><i class="fab fa-linkedin"></i></a>
+            `;
+        }
+
+        if (this.qrContainer) {
+            const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
+            const baseUrl = isLocal ? window.location.origin + window.location.pathname : 'https://jomar71.github.io/ecardsjm/';
+            const cardUrl = `${baseUrl}#/card/${state.cardId || 'preview'}`;
+            this.generateQR(cardUrl, this.qrContainer);
+        }
+
         // Dual Visual Identity (Logo vs Profile)
-        const logoBox = document.getElementById('preview-logo-box'); // Center-right circle
+        const logoBox = document.getElementById('preview-logo-box');
         const brandBox = document.querySelector('.company-brand-box'); // Top-left logo area
 
         if (state.profilePath) {
@@ -968,58 +993,52 @@ const UI = {
 
         wrap.appendChild(cardEl);
 
-        // Interactive Footer Buttons
-        const grid = document.createElement('div');
-        grid.style.cssText = 'display:grid; grid-template-columns: 1fr 1fr; gap:1rem; width:100%; max-width:380px; margin-top:2rem;';
+        // Populate Integrated Actions in Public View
+        const integratedActions = cardEl.querySelector('#preview-action-buttons');
+        if (integratedActions) {
+            integratedActions.innerHTML = '';
+            
+            const vBtn = document.createElement('button');
+            vBtn.className = 'btn-card-action primary';
+            vBtn.style.background = card.primary_color || '#7C3AED';
+            vBtn.innerHTML = 'Guardar Contacto';
+            vBtn.onclick = () => this.downloadVCard(card);
+            integratedActions.appendChild(vBtn);
 
-        const vBtn = document.createElement('button');
-        vBtn.className = 'btn btn-primary btn-lg';
-        vBtn.style.cssText = `background:${card.primary_color || '#7C3AED'}; color:white; border:none; padding:1rem; font-weight:800; cursor:pointer; font-size: 0.8rem; border-radius:50px; box-shadow: 0 10px 20px rgba(0,0,0,0.3);`;
-        vBtn.innerHTML = 'GUARDAR CONTACTO';
-        vBtn.onclick = () => this.downloadVCard(card);
-        grid.appendChild(vBtn);
+            const mBtn = document.createElement('button');
+            mBtn.className = 'btn-card-action outline';
+            mBtn.innerHTML = 'Compartir Link';
+            mBtn.onclick = () => this.copyLink(window.location.href);
+            integratedActions.appendChild(mBtn);
+        }
 
-        const mBtn = document.createElement('button');
-        mBtn.className = 'btn btn-outline btn-lg';
-        mBtn.style.cssText = 'background:rgba(255,255,255,0.1); color:white; border:1px solid rgba(255,255,255,0.3); padding:1rem; font-weight:800; cursor:pointer; font-size: 0.8rem; border-radius:50px;';
-        mBtn.innerHTML = 'COMPARTIR LINK';
-        mBtn.onclick = () => this.copyLink(window.location.href);
-        grid.appendChild(mBtn);
+        const integratedShare = cardEl.querySelector('#preview-share-strip');
+        if (integratedShare) {
+            integratedShare.innerHTML = '';
+            const currentUrl = window.location.href;
+            const platforms = [
+                { icon: 'fab fa-whatsapp', color: '#25D366', url: `https://wa.me/?text=${encodeURIComponent(currentUrl)}` },
+                { icon: 'fab fa-facebook', color: '#1877F2', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}` },
+                { icon: 'fab fa-linkedin', color: '#0A66C2', url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}` }
+            ];
+            platforms.forEach(p => {
+                const a = document.createElement('a');
+                a.href = p.url;
+                a.target = '_blank';
+                a.className = 'share-btn-mini';
+                a.style.background = p.color;
+                a.innerHTML = `<i class="${p.icon}"></i>`;
+                integratedShare.appendChild(a);
+            });
+        }
 
-        wrap.appendChild(grid);
-
-        // Add share buttons for mobile
-        const shareDiv = document.createElement('div');
-        shareDiv.style.cssText = 'display:flex; gap:1rem; margin-top:1rem;';
-        const shareLabel = document.createElement('span');
-        shareLabel.textContent = 'Compartir en:';
-        shareLabel.style.marginRight = '10px';
-        
-        const platforms = [
-            { name: 'WhatsApp', icon: 'fab fa-whatsapp', color: '#25D366', url: `https://wa.me/?text=${encodeURIComponent(window.location.href)}` },
-            { name: 'LinkedIn', icon: 'fab fa-linkedin', color: '#0A66C2', url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}` },
-            { name: 'Twitter', icon: 'fab fa-x-twitter', color: '#1DA1F2', url: `https://twitter.com/intent/tweet?text=${encodeURIComponent('Mira esta tarjeta de presentación digital:&url=')}${encodeURIComponent(window.location.href)}` }
-        ];
-        
-        platforms.forEach(platform => {
-            const btn = document.createElement('a');
-            btn.href = platform.url;
-            btn.target = '_blank';
-            btn.innerHTML = `<i class="${platform.icon}"></i> ${platform.name}`;
-            btn.style.cssText = `padding: 0.5rem; border-radius: 0.5rem; color: white; background-color: ${platform.color}; text-decoration: none; flex: 1; text-align: center;`;
-            shareDiv.appendChild(btn);
-        });
-        
-        wrap.appendChild(shareDiv);
+        const integratedQR = cardEl.querySelector('#preview-card-qr');
+        if (integratedQR) {
+            this.generateQR(window.location.href, integratedQR);
+        }
 
         this.publicView.innerHTML = '';
         this.publicView.appendChild(wrap);
-
-        // Generate QR in public view footer
-        const qrF = document.createElement('div');
-        qrF.style.cssText = 'background:white; padding:1rem; border-radius:12px; margin-top:2rem; max-width: 200px; margin-left: auto; margin-right: auto;';
-        wrap.appendChild(qrF);
-        this.generateQR(window.location.href, qrF);
     },
 
     downloadVCard(card) {
