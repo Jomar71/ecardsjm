@@ -704,27 +704,37 @@ const UI = {
         if (this.socialBox) {
             this.socialBox.innerHTML = '';
             const list = ['linkedin', 'whatsapp', 'instagram', 'facebook', 'tiktok', 'youtube', 'twitter', 'github'];
-            list.forEach(key => {
-                const val = data[key];
-                if (val) {
-                    const link = document.createElement('a');
-                    link.href = this.getSocialLink(key, val);
-                    link.target = '_blank';
-                    const icon = document.createElement('i');
-                    icon.className = (key === 'twitter') ? 'fab fa-x-twitter' : `fab fa-${key}`;
+            
+            // Solo procesamos si hay al menos un link
+            const hasSocial = list.some(k => data[k] && data[k].trim() !== '');
+            
+            if (hasSocial) {
+                list.forEach(key => {
+                    const val = data[key];
+                    if (val && val.trim() !== '') {
+                        const link = document.createElement('a');
+                        link.href = this.getSocialLink(key, val);
+                        link.target = '_blank';
+                        // Añadimos clase genérica para estilos base
+                        link.className = 'social-icon-link';
+                        
+                        const icon = document.createElement('i');
+                        icon.className = (key === 'twitter') ? 'fab fa-x-twitter' : `fab fa-${key}`;
 
-                    let iconColor = data.primary_color || '#2D5BFF';
-                    if (data.template_id === 'minimal' && this.isLightColor(iconColor)) iconColor = '#0B0F19';
-                    
-                    // En classic usamos los colores reales de las redes (manejado por CSS)
-                    if (data.template_id !== 'classic') {
-                        icon.style.color = iconColor;
+                        if (data.template_id !== 'classic') {
+                            let iconColor = data.primary_color || '#2D5BFF';
+                            if (data.template_id === 'minimal' && this.isLightColor(iconColor)) iconColor = '#0B0F19';
+                            icon.style.color = iconColor;
+                        }
+
+                        link.appendChild(icon);
+                        this.socialBox.appendChild(link);
                     }
-
-                    link.appendChild(icon);
-                    this.socialBox.appendChild(link);
-                }
-            });
+                });
+                this.socialBox.style.display = 'flex';
+            } else {
+                this.socialBox.style.display = 'none';
+            }
         }
 
         // Dual Visual Identity (Logo vs Profile)
