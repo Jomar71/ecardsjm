@@ -17,13 +17,13 @@ const state = {
     // CONFIGURACIÓN DE API
     API_BASE: (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168.')) 
         ? `http://${window.location.hostname}:3000` 
-        : 'https://ecardsjm.onrender.com' // <-- REEMPLAZA ESTO CON TU URL DE RENDER CUANDO SUBAS EL BACKEND
+        : window.location.origin
 };
 
-// Despertar el servidor de Render inmediatamente al cargar
+// Despertar el servidor si estuviera en hibernación (útil para hosting gratuito)
 (async function wakeServer() {
     try {
-        console.log("Despertando servidor profesional...");
+        console.log("Detectando servidor activo...");
         fetch(`${state.API_BASE}/api/test-db`).catch(() => {});
     } catch(e) {}
 })();
@@ -440,9 +440,8 @@ const UI = {
                 setTimeout(() => this.successBanner.classList.add('hidden'), 3000);
             }
             
-            // 3. GENERAR QR SIEMPRE
-            const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
-            const baseUrl = isLocal ? window.location.origin + window.location.pathname : 'https://jomar71.github.io/ecardsjm/';
+            // 3. GENERAR QR DINÁMICAMENTE
+            const baseUrl = window.location.origin + (window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/');
             const cardUrl = `${baseUrl}#/card/${state.cardId}`;
             this.generateQR(cardUrl, this.qrContainer);
 

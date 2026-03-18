@@ -42,14 +42,6 @@ venv/
 gh.zip
 gh_installer.msi
 
-# Archivos innecesarios para la aplicación frontend-only
-Procfile
-app.py
-db.js
-server.js
-test.js
-requirements.txt
-
 # Carpetas innecesarias
 .venv/
 bin/

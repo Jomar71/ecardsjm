@@ -16,7 +16,7 @@ os.environ['FLASK_ENV'] = 'development'
 app = Flask(__name__, static_folder=".", template_folder=".", static_url_path="")
 app.secret_key = "elite_identity_secret_key_2026" # TODO: Mover a una variable de entorno
 
-# Security Config for Cross-Domain Identity (GitHub Pages -> Render)
+# Security Config for Cross-Domain Identity (e.g., GitHub Pages -> Backend)
 app.config.update(
     SESSION_COOKIE_SAMESITE="None",
     SESSION_COOKIE_SECURE=True,
