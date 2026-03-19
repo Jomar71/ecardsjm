@@ -247,6 +247,9 @@ app.get('*', (req, res) => {
     res.sendFile(__dirname + '/index.html');
 });
 
-initDB().then(() => {
-    app.listen(PORT, () => console.log(`🚀 Elite Server active on port ${PORT}`));
+// Arrancar el servidor PRIMERO para pasar el health check de PXXL,
+// luego inicializar la BD en paralelo.
+app.listen(PORT, () => {
+    console.log(`🚀 Elite Server active on port ${PORT}`);
+    initDB(); // Corre en background, no bloquea el startup
 });
