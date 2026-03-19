@@ -1,3 +1,11 @@
+// MANEJADORES GLOBALES: evitan que el proceso muera antes del health check
+process.on('uncaughtException', (err) => {
+    console.error('❌ UNCAUGHT EXCEPTION:', err.message, err.stack);
+});
+process.on('unhandledRejection', (reason) => {
+    console.error('❌ UNHANDLED REJECTION:', reason);
+});
+
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
@@ -8,6 +16,7 @@ require('dotenv').config();
 const app = express();
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.JWT_SECRET || 'ecards_elite_secret_key_123';
+
 
 // Middleware
 app.use(express.json({ limit: '50mb' }));
