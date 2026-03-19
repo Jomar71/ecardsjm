@@ -1,18 +1,26 @@
 const { Pool } = require('pg');
-require('dotenv').config();
 
-const connectionString = process.env.DATABASE_URL;
+let pool = null;
 
-if (!connectionString) {
-  console.error('⚠️ ADVERTENCIA: No se encontró DATABASE_URL. Las funciones de BD no estarán disponibles.');
+function getPool() {
+    if (!pool) {
+        const connectionString = process.env.DATABASE_URL;
+        if (!connectionString) {
+            throw new Error('DATABASE_URL no configurada');
+        }
+        pool = new Pool({
+            connectionString,
+            ssl: { rejectUnauthorized: false },
+            connectionTimeoutMillis: 15000,
+            idleTimeoutMillis: 30000,
+            max: 5
+        });
+        pool.on('error', (err) => {
+            console.error('Pool error (non-fatal):', err.message);
+            pool = null; // resetear para reconectar después
+        });
+    }
+    return pool;
 }
 
-const pool = new Pool({
-  connectionString: connectionString || '',
-  ssl: { rejectUnauthorized: false },
-  connectionTimeoutMillis: 10000,
-  idleTimeoutMillis: 30000,
-  max: 10
-});
-
-module.exports = pool;
+module.exports = { getPool };
