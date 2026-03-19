@@ -6,7 +6,8 @@
 "use strict";
 
 const state = {
-    user: { id: 'local_user', username: 'guest' }, // Usuario local predeterminado
+    user: JSON.parse(localStorage.getItem('ecards_user')) || { id: 'local_user', username: 'guest' },
+    token: localStorage.getItem('ecards_token'),
     cardId: null,
     isPublicView: false,
     logoPath: null,
@@ -14,11 +15,37 @@ const state = {
     bgImagePath: null,
     fontFilePath: null,
     archives: [],
-    // CONFIGURACIÓN DE API
     API_BASE: (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168.')) 
         ? `http://${window.location.hostname}:3000` 
         : window.location.origin
 };
+
+// --- API HELPER CORE ---
+async function apiFetch(endpoint, options = {}) {
+    const headers = {
+        'Content-Type': 'application/json',
+        ...(state.token ? { 'Authorization': `Bearer ${state.token}` } : {}),
+        ...options.headers
+    };
+    
+    try {
+        const response = await fetch(`${state.API_BASE}${endpoint}`, { ...options, headers });
+        const data = await response.json();
+        
+        if (!response.ok) {
+            if (response.status === 401 || response.status === 403) {
+                console.warn("Sesión expirada o inválida.");
+                Auth.logout();
+            }
+            throw new Error(data.error || 'SERVER_ERROR');
+        }
+        return data;
+    } catch (err) {
+        console.error(`API Error [${endpoint}]:`, err);
+        throw err;
+    }
+}
+
 
 // Despertar el servidor si estuviera en hibernación (útil para hosting gratuito)
 (async function wakeServer() {
@@ -98,90 +125,93 @@ window.addEventListener('load', () => {
 
 const Auth = {
     async check() {
-        // Verificar si hay un usuario guardado en localStorage
-        const savedUser = localStorage.getItem('ecards_user');
-        if (savedUser) {
-            this.onLogin(JSON.parse(savedUser));
+        if (state.token && state.user && state.user.id !== 'local_user') {
+            this.updateAuthUI();
         } else {
-            // Por defecto, creamos un usuario local y mostramos UI correspondiente
-            state.user = { id: 'local_user', username: 'guest' };
-            document.getElementById('auth-nav-guest').classList.add('hidden');
-            document.getElementById('auth-nav-user').classList.remove('hidden');
-            const navUsername = document.getElementById('nav-username');
-            if (navUsername) navUsername.textContent = 'USUARIO';
-            const navAvatar = document.getElementById('nav-avatar');
-            if (navAvatar) navAvatar.textContent = 'U';
+            this.logout(false); // Silent logout if no token
         }
     },
 
     async handleLogin(e) {
         e.preventDefault();
-        const user = document.getElementById('login-user').value;
-        const pass = document.getElementById('login-pass').value;
+        const username = document.getElementById('login-user').value;
+        const password = document.getElementById('login-pass').value;
         
-        // Validar credenciales (contraseña por defecto admin123)
-        if (pass === 'admin123') {
-            const userData = { id: 'local_user_' + Date.now(), username: user || 'Usuario' };
-            localStorage.setItem('ecards_user', JSON.stringify(userData));
-            this.onLogin(userData);
-            UI.hideAuth();
-            Router.go('/admin');
-        } else {
-            alert("CREDENCIALES INVÁLIDAS.");
+        try {
+            const data = await apiFetch('/api/auth/login', {
+                method: 'POST',
+                body: JSON.stringify({ username, password })
+            });
+
+            if (data.status === 'success') {
+                localStorage.setItem('ecards_user', JSON.stringify(data.user));
+                localStorage.setItem('ecards_token', data.token);
+                state.user = data.user;
+                state.token = data.token;
+                
+                this.updateAuthUI();
+                UI.hideAuth();
+                Router.go('/admin');
+                location.reload(); // Recargar para sincronizar estado
+            }
+        } catch (err) {
+            alert("ERROR AL INICIAR SESIÓN: " + (err.message === 'INVALID_CREDENTIALS' ? 'Datos incorrectos' : err.message));
         }
     },
 
     async handleRegister(e) {
         e.preventDefault();
-        const user = document.getElementById('reg-user').value;
-        const pass = document.getElementById('reg-pass').value;
-        
-        if (pass === 'admin123') {
-            const userData = { id: 'local_user_' + Date.now(), username: user || 'Usuario' };
-            localStorage.setItem('ecards_user', JSON.stringify(userData));
-            alert("REGISTRO EXITOSO. INICIA SESIÓN.");
-            UI.showAuth('login');
-        } else {
-            alert("ERROR: Contraseña inválida. Use 'admin123'");
+        const username = document.getElementById('reg-user').value;
+        const password = document.getElementById('reg-pass').value;
+
+        try {
+            const data = await apiFetch('/api/auth/register', {
+                method: 'POST',
+                body: JSON.stringify({ username, password })
+            });
+
+            if (data.status === 'success') {
+                alert("REGISTRO EXITOSO. BIENVENIDO.");
+                // Login automático después de registro
+                localStorage.setItem('ecards_user', JSON.stringify(data.user));
+                localStorage.setItem('ecards_token', data.token);
+                state.user = data.user;
+                state.token = data.token;
+                
+                this.updateAuthUI();
+                UI.hideAuth();
+                Router.go('/admin');
+                location.reload();
+            }
+        } catch (err) {
+            alert("ERROR AL REGISTRAR: " + (err.message === 'USER_EXISTS' ? 'El usuario ya existe' : err.message));
         }
     },
 
-    async logout() {
+    async logout(redirect = true) {
         localStorage.removeItem('ecards_user');
+        localStorage.removeItem('ecards_token');
         state.user = { id: 'local_user', username: 'guest' };
-        document.getElementById('auth-nav-guest').classList.remove('hidden');
-        document.getElementById('auth-nav-user').classList.add('hidden');
-        Router.go('/');
+        state.token = null;
+        this.updateAuthUI();
+        if (redirect) Router.go('/');
     },
 
-    onLogin(user) {
-        state.user = user;
-        document.getElementById('auth-nav-guest').classList.add('hidden');
-        document.getElementById('auth-nav-user').classList.remove('hidden');
-        const navUsername = document.getElementById('nav-username');
-        if (navUsername) navUsername.textContent = user.username.toUpperCase();
-        const navAvatar = document.getElementById('nav-avatar');
-        if (navAvatar) navAvatar.textContent = user.username.charAt(0).toUpperCase();
-    },
-    
     updateAuthUI() {
-        const savedUser = localStorage.getItem('ecards_user');
-        if (savedUser) {
-            const user = JSON.parse(savedUser);
-            document.getElementById('auth-nav-guest').classList.add('hidden');
-            document.getElementById('auth-nav-user').classList.remove('hidden');
-            const navUsername = document.getElementById('nav-username');
-            if (navUsername) navUsername.textContent = user.username.toUpperCase();
-            const navAvatar = document.getElementById('nav-avatar');
-            if (navAvatar) navAvatar.textContent = user.username.charAt(0).toUpperCase();
+        const isGuest = !state.token;
+        const navGuest = document.getElementById('auth-nav-guest');
+        const navUser = document.getElementById('auth-nav-user');
+        
+        if (isGuest) {
+            navGuest?.classList.remove('hidden');
+            navUser?.classList.add('hidden');
         } else {
-            // Si no hay usuario guardado, mostrar como si fuera un usuario por defecto
-            document.getElementById('auth-nav-guest').classList.add('hidden');
-            document.getElementById('auth-nav-user').classList.remove('hidden');
+            navGuest?.classList.add('hidden');
+            navUser?.classList.remove('hidden');
             const navUsername = document.getElementById('nav-username');
-            if (navUsername) navUsername.textContent = 'USUARIO';
+            if (navUsername) navUsername.textContent = (state.user.username || 'USUARIO').toUpperCase();
             const navAvatar = document.getElementById('nav-avatar');
-            if (navAvatar) navAvatar.textContent = 'U';
+            if (navAvatar) navAvatar.textContent = (state.user.username?.[0] || 'U').toUpperCase();
         }
     }
 };
@@ -270,26 +300,26 @@ const UI = {
         const localCards = this.getLocalCards();
         allCards = [...localCards];
         
-        // 2. Intentar obtener tarjetas del servidor
-        try {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), 25000); // Darle tiempo a Render de despertar
-            
-            const response = await fetch(`${state.API_BASE}/api/cards`, { signal: controller.signal });
-            clearTimeout(timeoutId);
-            
-            if (response.ok) {
-                const serverCards = await response.json();
-                // Combinar sin duplicados
-                serverCards.forEach(sCard => {
-                    if (!allCards.find(lCard => lCard.id === sCard.id)) {
-                        allCards.push(sCard);
-                    }
-                });
+        // 2. Intentar obtener tarjetas del servidor (solo si está logueado)
+        if (state.token) {
+            try {
+                const serverCards = await apiFetch('/api/cards');
+                
+                if (Array.isArray(serverCards)) {
+                    // Combinar sin duplicados
+                    serverCards.forEach(sCard => {
+                        if (!allCards.find(lCard => lCard.id === sCard.id)) {
+                            allCards.push(sCard);
+                        }
+                    });
+                }
+            } catch (err) {
+                console.warn("Could not fetch dashboard from server, using local only:", err);
             }
-        } catch (err) {
-            console.warn("Could not fetch dashboard from server, using local only:", err);
+        } else {
+            console.log("Not logged in - using local cards only for dashboard.");
         }
+
 
         this.dashboardGrid.innerHTML = '';
         
@@ -445,16 +475,20 @@ const UI = {
             const cardUrl = `${baseUrl}#/card/${state.cardId}`;
             this.generateQR(cardUrl, this.qrContainer);
 
-            // 4. SINCRONIZAR EN SEGUNDO PLANO (Silencioso)
-            fetch(`${state.API_BASE}/api/cards`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(cardData)
-            }).then(() => {
-                console.log("Cloud sync successful");
-            }).catch(() => {
-                console.warn("Cloud sync delayed, using local copy.");
-            });
+            // 4. SINCRONIZAR EN LA NUBE (Solo si está logueado)
+            if (state.token) {
+                apiFetch('/api/cards', {
+                    method: 'POST',
+                    body: JSON.stringify(cardData)
+                }).then(() => {
+                    console.log("Cloud sync successful");
+                }).catch((e) => {
+                    console.warn("Cloud sync delayed:", e);
+                });
+            } else {
+                console.log("Not logged in - saving locally only.");
+            }
+
 
             // ACTUALIZAR DASHBOARD INTEGRADO
             this.loadDashboard();
@@ -551,7 +585,17 @@ const UI = {
         if (!state.cardId) return;
         if (!confirm("¿ESTÁS SEGURO DE ELIMINAR ESTA IDENTIDAD? ESTA ACCIÓN ES IRREVERSIBLE.")) return;
 
-        // Eliminar tarjeta de localStorage
+        // 1. Eliminar de la nube (si está logueado)
+        if (state.token) {
+            try {
+                await apiFetch(`/api/cards/${state.cardId}`, { method: 'DELETE' });
+                console.log("Cloud deletion successful");
+            } catch (err) {
+                console.error("Could not delete from cloud:", err);
+            }
+        }
+
+        // 2. Eliminar tarjeta de localStorage
         let cards = this.getLocalCards();
         cards = cards.filter(card => card.id !== state.cardId);
         localStorage.setItem('ecards_cards', JSON.stringify(cards));
