@@ -2,7 +2,7 @@
   "name": "ecards-jm",
   "version": "1.0.0",
   "description": "Aplicación frontend-only para crear y gestionar tarjetas de presentación digital",
-  "main": "script.js",
+  "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
