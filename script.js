@@ -1018,7 +1018,7 @@ const UI = {
                         
                         <!-- Share buttons -->
                         <div class="share-links">
-                            <a href="https://wa.me/?text=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn-mini" style="background:#25D366"><i class="fab fa-whatsapp"></i></a>
+                            ${card.whatsapp ? `<a href="https://wa.me/${card.whatsapp.replace(/[^\d+]/g, '')}" target="_blank" class="share-btn-mini" style="background:#25D366"><i class="fab fa-whatsapp"></i></a>` : ''}
                             <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn-mini" style="background:#1877F2"><i class="fab fa-facebook"></i></a>
                             <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn-mini" style="background:#0A66C2"><i class="fab fa-linkedin"></i></a>
                         </div>
@@ -1033,7 +1033,9 @@ const UI = {
         // Generate QR code for the current page URL
         const qrContainer = document.getElementById('preview-qr');
         if (qrContainer) {
-            this.generateQR(window.location.href, qrContainer);
+            // Usar la URL de la tarjeta específica
+            const cardUrl = `${window.location.origin}${window.location.pathname}#/card/${card.id}`;
+            this.generateQR(cardUrl, qrContainer);
         }
         
         // Add event listeners for action buttons
