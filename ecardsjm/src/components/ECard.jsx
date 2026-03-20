@@ -8,11 +8,10 @@ import {
   ShareAltOutlined,
   PlusCircleOutlined,
   QrcodeOutlined,
-  WechatOutlined,
+  WhatsAppOutlined,
   FacebookOutlined,
   LinkedinOutlined,
   InstagramOutlined,
-  WhatsAppOutlined
 } from '@ant-design/icons';
 import './ECard.css';
 
@@ -31,12 +30,12 @@ const ECard = () => {
     website: "vaparup.com.co",
     address: "Calle 55 #45 03 Medellín",
     socialMedia: [
-      { icon: <WechatOutlined />, color: '#07c500', label: 'WhatsApp' },
+      { icon: <WhatsAppOutlined />, color: '#25D366', label: 'WhatsApp' },
       { icon: <InstagramOutlined />, color: '#833AB4', label: 'Instagram' },
       { icon: <FacebookOutlined />, color: '#1877F2', label: 'Facebook' }
     ],
     sharingIcons: [
-      { icon: <WechatOutlined />, color: '#07c500', label: 'WhatsApp' },
+      { icon: <WhatsAppOutlined />, color: '#25D366', label: 'WhatsApp' },
       { icon: <FacebookOutlined />, color: '#1877F2', label: 'Facebook' },
       { icon: <LinkedinOutlined />, color: '#0077B5', label: 'LinkedIn' }
     ]
