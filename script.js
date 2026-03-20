@@ -521,14 +521,59 @@ const UI = {
     generateQR(url, targetElement = null) {
         const container = targetElement || this.qrContainer;
         if (!container) return;
+        
+        // Limpiar contenedor
         container.innerHTML = '';
         container.style.opacity = '1';
-        const render = () => {
-            if (typeof QRCode !== 'undefined') {
-                new QRCode(container, { text: url, width: 90, height: 90, colorDark: "#003366", colorLight: "#FFFFFF", correctLevel: QRCode.CorrectLevel.H });
-            } else { setTimeout(render, 500); }
-        };
-        setTimeout(render, 300);
+        
+        // Verificar si QRCode está disponible
+        if (typeof QRCode !== 'undefined') {
+            try {
+                new QRCode(container, { 
+                    text: url, 
+                    width: 90, 
+                    height: 90, 
+                    colorDark: "#003366", 
+                    colorLight: "#FFFFFF", 
+                    correctLevel: QRCode.CorrectLevel.H 
+                });
+            } catch (error) {
+                console.error('Error generando el código QR:', error);
+                // Mostrar un mensaje de error en el contenedor
+                container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:#94a3b8;font-size:0.7rem;text-align:center;padding:5px;">Error<br>QR</div>';
+            }
+        } else {
+            // Si la librería no está disponible, esperar y reintentar
+            let attempts = 0;
+            const maxAttempts = 20; // Máximo de 10 segundos
+            
+            const checkAndRender = () => {
+                attempts++;
+                if (typeof QRCode !== 'undefined') {
+                    try {
+                        new QRCode(container, { 
+                            text: url, 
+                            width: 90, 
+                            height: 90, 
+                            colorDark: "#003366", 
+                            colorLight: "#FFFFFF", 
+                            correctLevel: QRCode.CorrectLevel.H 
+                        });
+                    } catch (error) {
+                        console.error('Error generando el código QR:', error);
+                        container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:#94a3b8;font-size:0.7rem;text-align:center;padding:5px;">Error<br>QR</div>';
+                    }
+                } else if (attempts < maxAttempts) {
+                    setTimeout(checkAndRender, 500); // Reintentar cada 500ms
+                } else {
+                    // Mostrar un mensaje de error si no se carga después de varios intentos
+                    container.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;width:100%;height:100%;color:#94a3b8;font-size:0.7rem;text-align:center;padding:5px;">Librería<br>QR</div>';
+                    console.warn('La librería QRCode no se ha cargado después de varios intentos');
+                }
+            };
+            
+            setTimeout(checkAndRender, 500);
+        }
     },
 
     handleFileUpload(e, targetPath) {
