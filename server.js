@@ -26,6 +26,15 @@ const SECRET_KEY = process.env.JWT_SECRET || 'ecards_elite_secret_key_123';
 app.use(express.json({ limit: '10mb' }));
 app.use(cors());
 
+// ===== CACHE CONTROL MIDDLEWARE =====
+app.use((req, res, next) => {
+    // Evitar problemas de cacheo en dispositivos móviles
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    next();
+});
+
 // ===== HEALTH CHECK (responde inmediatamente, sin DB) =====
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
