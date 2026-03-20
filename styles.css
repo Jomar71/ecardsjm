@@ -1005,6 +1005,36 @@ body::before {
 }
 
 /* Redes Sociales Estilo Cuadros (Referencia) */
+.social-icon-link:hover {
+    background: rgba(255, 255, 255, 0.1);
+    transform: translateY(-2px);
+    border-color: var(--accent);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+}
+
+/* Colores específicos para iconos de redes sociales */
+.social-strip a[href*="whatsapp"] { background-color: #25D366 !important; }
+.social-strip a[href*="facebook"] { background-color: #1877F2 !important; }
+.social-strip a[href*="instagram"] { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%) !important; }
+.social-strip a[href*="linkedin"] { background-color: #0A66C2 !important; }
+.social-strip a[href*="twitter"], 
+.social-strip a[href*="x.com"] { background-color: #000000 !important; }
+.social-strip a[href*="youtube"] { background-color: #FF0000 !important; }
+.social-strip a[href*="tiktok"] { background-color: #000000 !important; }
+.social-strip a[href*="github"] { background-color: #333333 !important; }
+
+/* Colores específicos para los iconos dentro de los enlaces */
+.social-strip a[href*="whatsapp"] i { color: white !important; }
+.social-strip a[href*="facebook"] i { color: white !important; }
+.social-strip a[href*="instagram"] i { color: white !important; }
+.social-strip a[href*="linkedin"] i { color: white !important; }
+.social-strip a[href*="twitter"] i, 
+.social-strip a[href*="x.com"] i { color: white !important; }
+.social-strip a[href*="youtube"] i { color: white !important; }
+.social-strip a[href*="tiktok"] i { color: white !important; }
+.social-strip a[href*="github"] i { color: white !important; }
+
+/* Estilos para diferentes plantillas */
 .template-classic .social-strip {
     background: #ffffff !important;
     padding: 12px !important;
@@ -1037,29 +1067,6 @@ body::before {
     font-size: 1.2rem !important;
     margin: 0 !important;
 }
-
-/* Colores de fondo por red social */
-.template-classic a[href*="whatsapp"]   { background-color: #25D366 !important; }
-.template-classic a[href*="facebook"]   { background-color: #1877F2 !important; }
-.template-classic a[href*="instagram"]  { background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%) !important; }
-.template-classic a[href*="linkedin"]   { background-color: #0A66C2 !important; }
-.template-classic a[href*="twitter"], 
-.template-classic a[href*="x.com"]       { background-color: #000000 !important; }
-.template-classic a[href*="youtube"]    { background-color: #FF0000 !important; }
-.template-classic a[href*="tiktok"]     { background-color: #000000 !important; }
-.template-classic a[href*="github"]     { background-color: #333333 !important; }
-
-.template-classic .social-strip a:hover {
-    transform: scale(1.1) !important;
-    opacity: 0.9 !important;
-}
-
-.template-classic .social-strip a[href*="whatsapp"] i { color: #25D366 !important; }
-.template-classic .social-strip a[href*="facebook"] i { color: #1877F2 !important; }
-.template-classic .social-strip a[href*="instagram"] i { color: #E4405F !important; }
-.template-classic .social-strip a[href*="linkedin"] i { color: #0A66C2 !important; }
-.template-classic .social-strip a[href*="twitter"] i { color: #1DA1F2 !important; }
-.template-classic .social-strip a[href*="youtube"] i { color: #FF0000 !important; }
 
 /* Ocultar elementos no deseados */
 .template-classic .bottom-wave, 
