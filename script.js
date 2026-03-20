@@ -414,6 +414,19 @@ const UI = {
                 const input = this.form.elements[key];
                 if (input && input.type !== 'file') input.value = val || '';
             });
+
+            // Ensure theme_selector is set if it exists in the form
+            const themeSelector = this.form.elements['theme_selector'];
+            if (themeSelector) {
+                themeSelector.value = card.theme_selector || 'dark';
+                document.documentElement.setAttribute('data-theme', card.theme_selector || 'dark');
+            }
+
+            // Ensure profile_position is set if it exists in the form
+            const profilePosition = this.form.elements['profile_position'];
+            if (profilePosition) {
+                profilePosition.value = card.profile_position || 'default';
+            }
         }
         
         this.updatePreview();
@@ -642,6 +655,10 @@ const UI = {
             // Apply Template Class (Preserving layout classes)
             preview.className = `card-preview animate-in template-${data.template_id || 'corporate'}`;
 
+            // Apply theme if selected
+            const theme = data.theme_selector || 'dark';
+            document.documentElement.setAttribute('data-theme', theme);
+
             if (state.bgImagePath) {
                 preview.style.backgroundImage = `url(${state.bgImagePath})`;
             } else {
@@ -673,6 +690,22 @@ const UI = {
             }
             preview.style.color = (data.template_id === 'classic' || data.template_id === 'minimal-modern') ? (data.text_color || '#333') : (data.text_color || '#FFFFFF');
             preview.style.fontFamily = data.font_family || "'Plus Jakarta Sans', sans-serif";
+
+            // Apply profile position
+            const profileContainer = document.querySelector('.profile-container');
+            if (profileContainer) {
+                // Remove any previously applied position classes
+                profileContainer.classList.remove('top-center', 'top-left', 'top-right', 'center', 'bottom-center', 'bottom-left', 'bottom-right');
+                
+                // Add the selected position class if it's not default
+                if (data.profile_position && data.profile_position !== 'default') {
+                    profileContainer.classList.add(data.profile_position);
+                } else {
+                    // Ensure the default positioning is maintained
+                    profileContainer.classList.remove(...profileContainer.classList);
+                    profileContainer.classList.add('profile-container');
+                }
+            }
 
             // Import Template (Apply Custom CSS)
             let customStyleTag = document.getElementById('runtime-custom-css');
@@ -715,116 +748,47 @@ const UI = {
             }
         }
 
-        // Functional Contact Links
-        if (this.contactsBox) {
-            this.contactsBox.innerHTML = '';
-            const items = [
-                { key: 'email', icon: 'envelope', prefix: 'mailto:' },
-                { key: 'phone', icon: 'phone', prefix: 'tel:' },
-                { key: 'website', icon: 'globe', prefix: '' },
-                { key: 'address', icon: 'location-dot', prefix: 'https://www.google.com/maps/search/?api=1&query=' }
-            ];
-            items.forEach(item => {
-                const val = data[item.key];
-                if (val) {
-                    const el = document.createElement('a');
-                    el.className = 'contact-item';
-                    el.href = item.key === 'address' ? item.prefix + encodeURIComponent(val) : item.prefix + val;
-                    el.target = '_blank';
-                    el.style.color = 'inherit';
-                    el.style.textDecoration = 'none';
+        // Update social links preview
+        const socialContainer = document.getElementById('preview-social');
+        if (socialContainer && !customData) { // Only update if not receiving custom data
+            const socialPlatforms = ['linkedin', 'whatsapp', 'instagram', 'facebook', 'tiktok', 'youtube', 'twitter', 'github'];
+            const socialLinks = [];
 
-                    let iconColor = data.primary_color || '#2D5BFF';
-                    if (data.template_id === 'minimal' && this.isLightColor(iconColor)) iconColor = '#0B0F19';
-                    
-                    // En template classic los iconos tienen color gris oscuro por defecto (desde CSS) 
-                    // a menos que el usuario defina algo muy específico.
-                    const iconStyle = (data.template_id === 'classic') ? '' : `style="color:${iconColor}; font-size: 1.1rem; width:25px;"`;
+            socialPlatforms.forEach(platform => {
+                const value = document.getElementById(platform)?.value;
+                if (value) {
+                    let href = value;
+                    if (!value.startsWith('http')) {
+                        if (platform === 'email') href = `mailto:${value}`;
+                        else if (platform === 'phone') href = `tel:${value}`;
+                        else if (platform === 'whatsapp') href = `https://wa.me/${value}`;
+                        else href = `https://${platform}.com/${value}`;
+                    }
 
-                    el.innerHTML = `<i class="fas fa-${item.icon}" ${iconStyle}></i> <span>${val}</span>`;
-                    this.contactsBox.appendChild(el);
+                    const iconClass = platform === 'twitter' ? 'fab fa-x-twitter' : `fab fa-${platform}`;
+                    socialLinks.push(`<a href="${href}" target="_blank" class="social-icon-link"><i class="${iconClass}"></i></a>`);
                 }
             });
+
+            socialContainer.innerHTML = socialLinks.length > 0 ? `
+                <div class="social-strip">
+                    ${socialLinks.join('')}
+                </div>
+            ` : '';
         }
 
-        // Social Strip Rendering
-        if (this.socialBox) {
-            this.socialBox.innerHTML = '';
-            const list = ['linkedin', 'whatsapp', 'instagram', 'facebook', 'tiktok', 'youtube', 'twitter', 'github'];
-            
-            // Solo procesamos si hay al menos un link
-            const hasSocial = list.some(k => data[k] && data[k].trim() !== '');
-            
-            if (hasSocial) {
-                list.forEach(key => {
-                    const val = data[key];
-                    if (val && val.trim() !== '') {
-                        const link = document.createElement('a');
-                        link.href = this.getSocialLink(key, val);
-                        link.target = '_blank';
-                        link.className = 'social-icon-link';
-                        
-                        const icon = document.createElement('i');
-                        icon.className = (key === 'twitter') ? 'fab fa-x-twitter' : `fab fa-${key}`;
-
-                        if (data.template_id !== 'classic') {
-                            let iconColor = data.primary_color || '#2D5BFF';
-                            if (data.template_id === 'minimal' && this.isLightColor(iconColor)) iconColor = '#0B0F19';
-                            icon.style.color = iconColor;
-                        }
-
-                        link.appendChild(icon);
-                        this.socialBox.appendChild(link);
-                    }
-                });
-                this.socialBox.style.display = 'flex';
-            } else {
-                this.socialBox.style.display = 'none';
-            }
-        }
-
-        // Action Buttons & Share Integrated
-        if (this.actionButtons) {
-            this.actionButtons.innerHTML = `
-                <button class="btn-card-action primary" style="background:${data.primary_color || '#7C3AED'}">Guardar Contacto</button>
-                <button class="btn-card-action outline">Compartir Link</button>
-            `;
-        }
-        
-        if (this.shareStrip) {
-            const currentUrl = window.location.href;
-            this.shareStrip.innerHTML = `
-                <a href="https://wa.me/?text=${encodeURIComponent(currentUrl)}" target="_blank" class="share-btn-mini" style="background:#25D366"><i class="fab fa-whatsapp"></i></a>
-                <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}" target="_blank" class="share-btn-mini" style="background:#1877F2"><i class="fab fa-facebook"></i></a>
-                <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}" target="_blank" class="share-btn-mini" style="background:#0A66C2"><i class="fab fa-linkedin"></i></a>
+        // Update action buttons preview
+        const actionContainer = document.getElementById('preview-action-buttons');
+        if (actionContainer) {
+            actionContainer.innerHTML = `
+                <button class="btn-card-action primary">Guardar Contacto</button>
             `;
         }
 
-        if (this.qrContainer) {
-            const isLocal = window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost';
-            const baseUrl = isLocal ? window.location.origin + window.location.pathname : 'https://jomar71.github.io/ecardsjm/';
-            const cardUrl = `${baseUrl}#/card/${state.cardId || 'preview'}`;
-            this.generateQR(cardUrl, this.qrContainer);
-        }
-
-        // Dual Visual Identity (Logo vs Profile)
-        const logoBox = document.getElementById('preview-logo-box');
-        const brandBox = document.querySelector('.company-brand-box'); // Top-left logo area
-
-        if (state.profilePath) {
-            if (logoBox) logoBox.innerHTML = `<img src="${state.profilePath}" style="width:100%; height:100%; object-fit:cover;">`;
-        } else {
-            if (logoBox) logoBox.innerHTML = `<i class="fas fa-user" style="opacity: 0.1; font-size: 4rem; color:white;"></i>`;
-        }
-
-        if (state.logoPath) {
-            const brandImg = document.getElementById('preview-logo-brand');
-            const brandIcon = document.getElementById('preview-logo-icon');
-            if (brandImg) {
-                brandImg.src = state.logoPath;
-                brandImg.style.display = 'block';
-            }
-            if (brandIcon) brandIcon.style.display = 'none';
+        // Update share strip preview
+        const shareStrip = document.getElementById('preview-share-strip');
+        if (shareStrip) {
+            shareStrip.innerHTML = '';
         }
     },
 
@@ -912,6 +876,10 @@ const UI = {
         // Get the template ID or default to 'corporate'
         const templateId = card.template_id || 'corporate';
         
+        // Get theme selection or default to dark
+        const theme = card.theme_selector || 'dark';
+        document.documentElement.setAttribute('data-theme', theme);
+        
         // Generate full name from first and last name
         const firstName = card['first-name'] || '';
         const lastName = card['last-name'] || '';
@@ -925,6 +893,10 @@ const UI = {
             const initials = ((firstName.charAt(0) || '') + (lastName.charAt(0) || '')).toUpperCase();
             profileImageHtml = `<i class="fas fa-user"></i>`;
         }
+        
+        // Get profile position or default
+        const profilePosition = card.profile_position || 'default';
+        const positionClass = profilePosition !== 'default' ? profilePosition : '';
         
         // Build contact items HTML
         const contactItems = [];
@@ -981,7 +953,7 @@ const UI = {
                     
                     <!-- Classic template body -->
                     <div class="card-body-flex">
-                        <div class="profile-container">
+                        <div class="profile-container ${positionClass}">
                             <div id="preview-logo-box">
                                 ${profileImageHtml}
                             </div>
@@ -1008,7 +980,7 @@ const UI = {
                             <div class="brand-text">${card.company || 'EMPRESA'}</div>
                         </div>
                         
-                        <div class="profile-container">
+                        <div class="profile-container ${positionClass}">
                             <div id="preview-logo-box">
                                 ${profileImageHtml}
                             </div>
@@ -1038,7 +1010,6 @@ const UI = {
                     <div class="card-footer-actions">
                         <div class="action-grid">
                             <button class="btn-card-action primary">Guardar Contacto</button>
-                            <button class="btn-card-action outline">Compartir Link</button>
                         </div>
                         
                         <!-- Share buttons -->

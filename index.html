@@ -398,6 +398,21 @@
                                             id="profile" name="profile" accept="image/*"></div>
                                 </div>
 
+                                <!-- Nuevas opciones de posición de perfil -->
+                                <div class="input-group">
+                                    <label>Posición de Foto de Perfil</label>
+                                    <select name="profile_position">
+                                        <option value="default">Predeterminada</option>
+                                        <option value="top-center">Centro Superior</option>
+                                        <option value="top-left">Superior Izquierda</option>
+                                        <option value="top-right">Superior Derecha</option>
+                                        <option value="center">Centro</option>
+                                        <option value="bottom-center">Centro Inferior</option>
+                                        <option value="bottom-left">Inferior Izquierda</option>
+                                        <option value="bottom-right">Inferior Derecha</option>
+                                    </select>
+                                </div>
+
                                 <div class="input-row-3">
                                     <div class="input-group"><label>Color Marca</label><input type="color"
                                             id="primary-color" name="primary_color" value="#7C3AED"></div>
@@ -405,6 +420,16 @@
                                             value="#0B0F19"></div>
                                     <div class="input-group"><label>Texto</label><input type="color" name="text_color"
                                             value="#FFFFFF"></div>
+                                </div>
+                                
+                                <!-- Selector de tema -->
+                                <div class="input-group">
+                                    <label>Tema de Color</label>
+                                    <select id="theme-selector" name="theme_selector">
+                                        <option value="dark">Tema Oscuro</option>
+                                        <option value="light">Tema Claro</option>
+                                        <option value="pastel">Tema Pastel</option>
+                                    </select>
                                 </div>
                             </div>
 
