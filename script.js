@@ -1016,13 +1016,6 @@ const UI = {
                             <button class="btn-card-action primary">Guardar Contacto</button>
                         </div>
                         
-                        <!-- Share buttons -->
-                        <div class="share-links">
-                            ${card.whatsapp ? `<a href="https://wa.me/${card.whatsapp.replace(/[^\d+]/g, '')}" target="_blank" class="share-btn-mini" style="background:#25D366"><i class="fab fa-whatsapp"></i></a>` : ''}
-                            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn-mini" style="background:#1877F2"><i class="fab fa-facebook"></i></a>
-                            <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn-mini" style="background:#0A66C2"><i class="fab fa-linkedin"></i></a>
-                        </div>
-                        
                         <!-- QR code -->
                         <div id="preview-qr" style="width:90px; height:90px; margin-top:1rem;"></div>
                     </div>
@@ -1041,26 +1034,22 @@ const UI = {
         // Add event listeners for action buttons
         const actionButtons = publicView.querySelectorAll('.btn-card-action');
         actionButtons.forEach(button => {
-            if (button.textContent.includes('Compartir')) {
-                button.addEventListener('click', () => {
-                    // Copy current URL to clipboard
-                    const textarea = document.createElement('textarea');
-                    textarea.value = window.location.href;
-                    document.body.appendChild(textarea);
-                    textarea.select();
-                    document.execCommand('copy');
-                    document.body.removeChild(textarea);
-                    
-                    // Show feedback
-                    const originalText = button.innerHTML;
-                    button.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!';
-                    button.style.backgroundColor = 'var(--success)';
-                    setTimeout(() => {
-                        button.innerHTML = originalText;
-                        button.style.backgroundColor = '';
-                    }, 2000);
-                });
-            }
+            // Solo hay un botón ahora: "Guardar Contacto"
+            button.addEventListener('click', () => {
+                // Guardar contacto lógica
+                const vCardData = `BEGIN:VCARD\nVERSION:3.0\nFN:${fullName}\nORG:${card.company}\nTITLE:${card.title}\nTEL;TYPE=WORK,VOICE:${card.phone}\nEMAIL;TYPE=PREF,INTERNET:${card.email}\nURL:${card.website}\nADR;TYPE=WORK:;;${card.address}\nEND:VCARD`;
+                
+                const blob = new Blob([vCardData], { type: 'text/vcard' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${fullName}.vcf`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            });
         });
     },
 
