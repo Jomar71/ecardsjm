@@ -1082,6 +1082,9 @@ body::before {
     transition: var(--transition);
     display: flex !important;
     flex-direction: column !important;
+    background-size: cover !important;
+    background-position: center !important;
+    background-repeat: no-repeat !important;
 }
 
 .card-preview .card-content {
@@ -1839,11 +1842,12 @@ body::before {
 
 /* ── PUBLIC CARD VIEW ────────────────────────────────────────── */
 #public-view {
-    min-height: 100vh;
+    padding: 20px;
     display: flex;
-    align-items: center;
     justify-content: center;
-    padding: 2rem;
+    align-items: flex-start;
+    min-height: 100vh;
+    background: var(--bg-deep);
 }
 
 /* ── MINI CARD (Dashboard thumbnails) ────────────────────────── */
@@ -1980,4 +1984,125 @@ body::before {
         align-items: flex-start;
         gap: 1rem;
     }
+}
+
+/* Responsive improvements */
+@media screen and (max-width: 768px) {
+    .studio-layout {
+        flex-direction: column;
+    }
+    
+    .preview-panel {
+        width: 100%;
+        margin-top: 2rem;
+    }
+    
+    .studio-panel {
+        width: 100%;
+    }
+    
+    .input-row-2 {
+        grid-template-columns: 1fr;
+    }
+    
+    .card-preview {
+        transform: scale(0.85);
+        width: 95%;
+        min-height: 550px;
+    }
+}
+
+@media screen and (max-width: 480px) {
+    .card-preview {
+        transform: scale(0.75);
+        width: 95%;
+        min-height: 500px;
+    }
+    
+    .hero-cta {
+        flex-direction: column;
+        gap: 0.8rem;
+    }
+    
+    .btn {
+        width: 100%;
+    }
+}
+
+/* Professional card styling */
+.card-preview {
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+    transition: all 0.3s ease;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+}
+
+/* Profile picture styling - circular or square */
+.profile-container {
+    border-radius: 50% !important;
+    width: 120px !important;
+    height: 120px !important;
+    min-width: 120px !important;
+    min-height: 120px !important;
+    overflow: hidden;
+}
+
+.profile-container img,
+.profile-container i {
+    border-radius: 50% !important;
+    width: 100% !important;
+    height: 100% !important;
+    object-fit: cover;
+}
+
+/* Theme support - light/dark/pastel */
+[data-theme="dark"] {
+    --bg-primary: #121212;
+    --bg-secondary: #1e1e1e;
+    --text-primary: #ffffff;
+    --text-secondary: #b0b0b0;
+    --accent-color: #bb86fc;
+}
+
+[data-theme="light"] {
+    --bg-primary: #ffffff;
+    --bg-secondary: #f5f5f5;
+    --text-primary: #000000;
+    --text-secondary: #666666;
+    --accent-color: #6200ea;
+}
+
+[data-theme="pastel"] {
+    --bg-primary: #fdfdfd;
+    --bg-secondary: #f0f5ff;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --accent-color: #a78bfa;
+}
+
+/* Remove unnecessary header buttons */
+.header-actions {
+    display: none !important;
+}
+
+/* Fix social icons duplication */
+.social-strip {
+    display: flex !important;
+    gap: 1rem;
+    justify-content: center;
+    align-items: center;
+    padding: 1rem 0;
+}
+
+.social-strip a {
+    text-decoration: none;
+    margin: 0 0.25rem;
+}
+
+/* Fix background image tiling issue */
+.card-preview {
+    background-repeat: no-repeat !important;
+    background-position: center !important;
+    background-size: cover !important;
 }

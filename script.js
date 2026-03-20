@@ -113,14 +113,14 @@ const Router = {
 // Initial routing setup
 window.addEventListener('hashchange', () => Router.render(window.location.hash));
 window.addEventListener('load', () => {
-    // Check if there's a stored hash from a 404 redirect
-    const stored = sessionStorage.getItem('storedHash');
-    if (stored) {
-        sessionStorage.removeItem('storedHash');
-        Router.go(stored);
-    } else {
-        Router.render(window.location.hash || '#/');
-    }
+    // Handle initial routing
+    const initialHash = window.location.hash || '#/';
+    Router.render(initialHash);
+            
+    // Listen for hash changes
+    window.addEventListener('hashchange', () => {
+        Router.render(window.location.hash);
+    });
 });
 
 const Auth = {
@@ -856,11 +856,11 @@ const UI = {
 
     async loadPublicCard(id) {
         const loaderText = document.getElementById('loader-text');
-        if (this.loader) {
-            this.loader.classList.remove('hidden');
+        if (document.getElementById('loader')) {
+            document.getElementById('loader').classList.remove('hidden');
             if (loaderText) loaderText.textContent = 'Buscando identidad en la nube integrada...';
         }
-        
+
         // Buscar la tarjeta en localStorage
         const localCards = this.getLocalCards();
         let card = localCards.find(c => c.id === id);
@@ -870,220 +870,221 @@ const UI = {
             try {
                 const controller = new AbortController();
                 const timeoutId = setTimeout(() => controller.abort(), 30000); // 30s para despertar Render
-                
+
                 const response = await fetch(`${state.API_BASE}/api/cards/${id}`, { signal: controller.signal });
                 clearTimeout(timeoutId);
-                
+
                 if (response.ok) {
                     card = await response.json();
                 }
             } catch (err) {
                 console.error("Error fetching card from server:", err);
-                const publicName = document.getElementById('public-name');
-                if (publicName) {
-                    publicName.textContent = 'Servidor aún despertando...';
-                    const publicJob = document.getElementById('public-job');
-                    if (publicJob) publicJob.textContent = 'Por favor, espera unos segundos y recarga la página.';
-                }
             } finally {
-                if (this.loader) this.loader.classList.add('hidden');
+                if (document.getElementById('loader')) document.getElementById('loader').classList.add('hidden');
             }
         } else {
-            if (this.loader) this.loader.classList.add('hidden');
+            if (document.getElementById('loader')) document.getElementById('loader').classList.add('hidden');
         }
-        
+
         if (card) {
             this.renderPublicCard(card);
         } else {
             console.warn(`Card with ID ${id} not found locally or on server.`);
-            if (this.publicView) {
-                this.publicView.innerHTML = `
-                    <div style="height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center; color:white; text-align:center; padding:2rem;">
-                        <h2 style="font-size:3rem; margin-bottom:1rem; opacity:0.5;">404</h2>
-                        <p style="font-size:1.2rem; margin-bottom:2rem; opacity:0.8;">IDENTIDAD NO ENCONTRADA</p>
-                        <button class="btn btn-primary" onclick="Router.go('/')">VOLVER AL INICIO</button>
+            const publicView = document.getElementById('public-view');
+            if (publicView) {
+                publicView.innerHTML = `
+                    <div style="min-height:80vh; display:flex; flex-direction:column; align-items:center; justify-content:center; color:var(--text-secondary); text-align:center; padding:2rem;">
+                        <i class="fas fa-id-card" style="font-size:3rem; margin-bottom:1rem; opacity:0.5;"></i>
+                        <h2 style="font-size:1.8rem; margin-bottom:1rem; opacity:0.8;">Tarjeta no encontrada</h2>
+                        <p style="font-size:1rem; margin-bottom:2rem; opacity:0.7; max-width:500px;">La tarjeta que buscas no existe o ha sido eliminada. Es posible que el enlace haya expirado o que la tarjeta haya sido eliminada por el propietario.</p>
+                        <button class="btn btn-primary" onclick="Router.go('/')" style="margin:0 auto;">Volver al inicio</button>
                     </div>
                 `;
             }
         }
     },
 
+    // --- Core Engine: Multi-Template Hybrid Rendering ---
     renderPublicCard(card) {
-        if (!this.publicView) return;
-        document.body.style.backgroundColor = card.bg_color || '#E0E5EC';
-        state.logoPath = card.logo_path || null;
-        state.profilePath = card.profile_path || null;
-        state.bgImagePath = card.bg_image_path || null;
-        state.fontFilePath = card.font_file_path || null;
-
-        const wrap = document.createElement('div');
-        wrap.id = 'public-card-container';
-        wrap.className = 'animate-in';
-        wrap.style.cssText = 'width:100%; max-width:450px; margin:0 auto; padding:2rem 1rem; min-height:100vh; display:flex; flex-direction:column; align-items:center; justify-content:center;';
-
-        const cardEl = document.getElementById('card-preview').cloneNode(true);
-        cardEl.id = 'public-final-card';
-        cardEl.classList.remove('hidden');
-
-        // Apply dynamic styles and Template to clone
-        cardEl.className = `card-preview animate-in template-${card.template_id || 'corporate'}`;
-
-        if (state.bgImagePath) {
-            cardEl.style.backgroundImage = `url(${state.bgImagePath})`;
-        } else {
-            cardEl.style.backgroundImage = '';
-            cardEl.style.backgroundColor = card.bg_color || '#0B0F19';
-            if (!card.template_id || card.template_id === 'corporate') {
-                cardEl.style.backgroundImage = `linear-gradient(135deg, ${card.bg_color || '#0B0F19'} 0%, #001A33 100%)`;
-            } else if (card.template_id === 'creative') {
-                cardEl.style.backgroundImage = `radial-gradient(circle at top right, ${card.primary_color || '#1A1C2C'} 0%, ${card.bg_color || '#000000'} 100%)`;
-            }
-        }
-        cardEl.style.color = card.text_color || '#FFFFFF';
-        cardEl.style.fontFamily = card.font_family || "'Plus Jakarta Sans', sans-serif";
-
-        // Fix icons in Public View
-        const isMin = card.template_id === 'minimal' || card.template_id === 'minimal-modern';
-        cardEl.querySelectorAll('.contact-item i, #preview-social i').forEach(ico => {
-            let icoCol = card.primary_color || '#2D5BFF';
-            if (isMin && UI.isLightColor(icoCol)) icoCol = '#0B0F19';
-            ico.style.color = icoCol;
-        });
-
-        // Apply Imported Styles in Public View
-        if (card.custom_css) {
-            const style = document.createElement('style');
-            style.innerHTML = card.custom_css;
-            document.head.appendChild(style);
-        }
-
-        if (card.custom_fonts && card.custom_fonts.startsWith('http')) {
-            const link = document.createElement('link');
-            link.rel = 'stylesheet';
-            link.href = card.custom_fonts;
-            document.head.appendChild(link);
-        }
-
-        if (state.fontFilePath) {
-            const style = document.createElement('style');
-            style.innerHTML = `
-                @font-face {
-                    font-family: 'UploadedCustomFont';
-                    src: url('${state.fontFilePath}');
-                }
-            `;
-            document.head.appendChild(style);
-            cardEl.style.fontFamily = "'UploadedCustomFont', sans-serif";
-        }
-
-        // Update Text
-        // Combinar nombre y apellido para mostrar el nombre completo en la vista pública
-        const firstName = card['first-name'] || card.name || '';
+        const publicView = document.getElementById('public-view');
+        if (!publicView) return;
+        
+        // Get the template ID or default to 'corporate'
+        const templateId = card.template_id || 'corporate';
+        
+        // Generate full name from first and last name
+        const firstName = card['first-name'] || '';
         const lastName = card['last-name'] || '';
-        const fullName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || '';
-        const n = cardEl.querySelector('#preview-name'); if (n) n.textContent = fullName.toUpperCase();
-        const t = cardEl.querySelector('#preview-title'); if (t) t.textContent = (card.title || '').toUpperCase();
-        const c = cardEl.querySelector('#preview-company'); if (c) c.textContent = (card.company || '').toUpperCase();
-        const d = cardEl.querySelector('#preview-description'); if (d) d.textContent = card.description || '';
-
-        // Contacts in Clone
-        const contactBox = cardEl.querySelector('.contact-container');
-        if (contactBox) {
-            contactBox.innerHTML = '';
-            const items = [
-                { key: 'email', icon: 'envelope', prefix: 'mailto:' },
-                { key: 'phone', icon: 'phone', prefix: 'tel:' },
-                { key: 'website', icon: 'globe', prefix: '' },
-                { key: 'address', icon: 'location-dot', prefix: 'https://www.google.com/maps/search/?api=1&query=' }
-            ];
-            items.forEach(item => {
-                if (card[item.key]) {
-                    const el = document.createElement('a');
-                    el.className = 'contact-item';
-                    el.href = item.key === 'address' ? item.prefix + encodeURIComponent(card[item.key]) : item.prefix + card[item.key];
-                    el.target = '_blank';
-                    el.style.color = 'inherit';
-                    el.style.textDecoration = 'none';
-                    el.innerHTML = `<i class="fas fa-${item.icon}" style="color:${card.primary_color || 'white'}; font-size: 1.1rem; width:25px;"></i> <span>${card[item.key]}</span>`;
-                    contactBox.appendChild(el);
+        const fullName = firstName && lastName ? `${firstName} ${lastName}` : card.name || 'Nombre Completo';
+        
+        // Get profile image or fallback to initials
+        let profileImageHtml = '';
+        if (card.profile_path) {
+            profileImageHtml = `<img src="${card.profile_path}" alt="${fullName}">`;
+        } else {
+            const initials = ((firstName.charAt(0) || '') + (lastName.charAt(0) || '')).toUpperCase();
+            profileImageHtml = `<i class="fas fa-user"></i>`;
+        }
+        
+        // Build contact items HTML
+        const contactItems = [];
+        if (card.email) contactItems.push(`<a href="mailto:${card.email}" class="contact-item"><i class="fas fa-envelope" style="font-size: 1.1rem; width:25px;"></i> <span>${card.email}</span></a>`);
+        if (card.phone) contactItems.push(`<a href="tel:${card.phone}" class="contact-item"><i class="fas fa-phone" style="font-size: 1.1rem; width:25px;"></i> <span>${card.phone}</span></a>`);
+        if (card.website) contactItems.push(`<a href="${card.website.startsWith('http') ? card.website : 'http://' + card.website}" target="_blank" class="contact-item"><i class="fas fa-globe" style="font-size: 1.1rem; width:25px;"></i> <span>${card.website}</span></a>`);
+        if (card.address) contactItems.push(`<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(card.address)}" target="_blank" class="contact-item"><i class="fas fa-location-dot" style="font-size: 1.1rem; width:25px;"></i> <span>${card.address}</span></a>`);
+        
+        // Build social links HTML
+        const socialLinks = [];
+        const socialPlatforms = ['linkedin', 'whatsapp', 'instagram', 'facebook', 'tiktok', 'youtube', 'twitter', 'github'];
+        socialPlatforms.forEach(platform => {
+            if (card[platform]) {
+                let href = card[platform];
+                if (!href.startsWith('http')) {
+                    if (platform === 'email') href = `mailto:${href}`;
+                    else if (platform === 'phone') href = `tel:${href}`;
+                    else if (platform === 'whatsapp') href = `https://wa.me/${href}`;
+                    else href = `https://${platform}.com/${href}`;
                 }
-            });
+                
+                const iconClass = platform === 'twitter' ? 'fab fa-x-twitter' : `fab fa-${platform}`;
+                socialLinks.push(`<a href="${href}" target="_blank" class="social-icon-link"><i class="${iconClass}"></i></a>`);
+            }
+        });
+        
+        // Build custom styles for the card
+        let customStyles = '';
+        if (card.custom_css) {
+            customStyles += card.custom_css;
         }
-
-        // Social Strip in Clone
-        const socialBox = cardEl.querySelector('.social-strip');
-        if (socialBox) {
-            socialBox.innerHTML = '';
-            const list = ['linkedin', 'whatsapp', 'instagram', 'facebook', 'tiktok', 'youtube', 'twitter', 'github'];
-            list.forEach(key => {
-                if (card[key]) {
-                    const link = this.getSocialLink(key, card[key]);
-                    const iconClass = (key === 'twitter') ? 'fab fa-x-twitter' : `fab fa-${key}`;
-                    socialBox.innerHTML += `<a href="${link}" target="_blank" style="text-decoration:none;"><i class="${iconClass}" style="color:${card.primary_color || '#00ff88'}; font-size:1.8rem;"></i></a>`;
-                }
-            });
+        
+        // Render the card HTML
+        publicView.innerHTML = `
+            <style>${customStyles}</style>
+            <div class="card-preview template-${templateId}" style="
+                ${card.bg_color && card.bg_color !== '#0B0F19' && card.bg_color !== '#000000' ? `background-color: ${card.bg_color};` : ''}
+                ${card.bg_image_path ? `background-image: url('${card.bg_image_path}'); background-size: cover; background-position: center;` : ''}
+                color: ${card.text_color || '#FFFFFF'};
+                font-family: ${card.font_family || "'Plus Jakarta Sans', sans-serif"};
+            ">
+                <div class="card-content">
+                    <!-- Decorative elements -->
+                    ${templateId !== 'minimal' && templateId !== 'minimal-modern' ? '<div class="deco-circle c1"></div>' : ''}
+                    ${templateId !== 'minimal' && templateId !== 'minimal-modern' ? '<div class="deco-circle c2"></div>' : ''}
+                    ${templateId !== 'minimal' && templateId !== 'minimal-modern' ? '<div class="deco-circle c3"></div>' : ''}
+                    ${templateId !== 'minimal' && templateId !== 'minimal-modern' ? '<div class="deco-circle c4"></div>' : ''}
+                    
+                    ${templateId === 'classic' ? `
+                    <!-- Classic template header -->
+                    <div class="card-header">
+                        <div class="brand-text">${card.company || 'EMPRESA'}</div>
+                    </div>
+                    
+                    <!-- Classic template body -->
+                    <div class="card-body-flex">
+                        <div class="profile-container">
+                            <div id="preview-logo-box">
+                                ${profileImageHtml}
+                            </div>
+                        </div>
+                        
+                        <div class="card-text-block">
+                            <h2 id="preview-name">${fullName.toUpperCase()}</h2>
+                            <h3 id="preview-title">${(card.title || 'CARGO O TÍTULO').toUpperCase()}</h3>
+                            <p class="card-desc">${card.description || 'Esta es tu descripción empresarial profesional.'}</p>
+                        </div>
+                    </div>
+                    
+                    <!-- Contact info section -->
+                    <div class="contact-container">
+                        ${contactItems.join('')}
+                    </div>
+                    ` : `
+                    <!-- Standard template layout -->
+                    <div class="card-top-bar">
+                        <div class="company-brand-box">
+                            <div class="company-logo-ring">
+                                ${card.logo_path ? `<img src="${card.logo_path}" alt="Logo">` : '<i class="fas fa-building"></i>'}
+                            </div>
+                            <div class="brand-text">${card.company || 'EMPRESA'}</div>
+                        </div>
+                        
+                        <div class="profile-container">
+                            <div id="preview-logo-box">
+                                ${profileImageHtml}
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card-text-block">
+                        <h2 id="preview-name">${fullName.toUpperCase()}</h2>
+                        <h3 id="preview-title">${(card.title || 'CARGO O TÍTULO').toUpperCase()}</h3>
+                        <p class="card-desc">${card.description || 'Esta es tu descripción empresarial profesional.'}</p>
+                    </div>
+                    
+                    <!-- Contact info section -->
+                    <div class="contact-container">
+                        ${contactItems.join('')}
+                    </div>
+                    `}
+                    
+                    <!-- Social media links -->
+                    ${socialLinks.length > 0 ? `
+                    <div class="social-strip">
+                        ${socialLinks.join('')}
+                    </div>
+                    ` : ''}
+                    
+                    <!-- Action buttons -->
+                    <div class="card-footer-actions">
+                        <div class="action-grid">
+                            <button class="btn-card-action primary">Guardar Contacto</button>
+                            <button class="btn-card-action outline">Compartir Link</button>
+                        </div>
+                        
+                        <!-- Share buttons -->
+                        <div class="share-links">
+                            <a href="https://wa.me/?text=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn-mini" style="background:#25D366"><i class="fab fa-whatsapp"></i></a>
+                            <a href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn-mini" style="background:#1877F2"><i class="fab fa-facebook"></i></a>
+                            <a href="https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(window.location.href)}" target="_blank" class="share-btn-mini" style="background:#0A66C2"><i class="fab fa-linkedin"></i></a>
+                        </div>
+                        
+                        <!-- QR code -->
+                        <div id="preview-qr" style="width:90px; height:90px; margin-top:1rem;"></div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Generate QR code for the current page URL
+        const qrContainer = document.getElementById('preview-qr');
+        if (qrContainer) {
+            this.generateQR(window.location.href, qrContainer);
         }
-
-        // Visual Identity in Clone
-        const logoBox = cardEl.querySelector('#preview-logo-box');
-        if (state.profilePath && logoBox) logoBox.innerHTML = `<img src="${state.profilePath}" style="width:100%; height:100%; object-fit:cover;">`;
-
-        const brandImg = cardEl.querySelector('#preview-logo-brand');
-        const brandIcon = cardEl.querySelector('#preview-logo-icon');
-        if (state.logoPath && brandImg) {
-            brandImg.src = state.logoPath;
-            brandImg.style.display = 'block';
-            if (brandIcon) brandIcon.style.display = 'none';
-        }
-
-        wrap.appendChild(cardEl);
-
-        // Populate Integrated Actions in Public View
-        const integratedActions = cardEl.querySelector('#preview-action-buttons');
-        if (integratedActions) {
-            integratedActions.innerHTML = '';
-            
-            const vBtn = document.createElement('button');
-            vBtn.className = 'btn-card-action primary';
-            vBtn.style.background = card.primary_color || '#7C3AED';
-            vBtn.innerHTML = 'Guardar Contacto';
-            vBtn.onclick = () => this.downloadVCard(card);
-            integratedActions.appendChild(vBtn);
-
-            const mBtn = document.createElement('button');
-            mBtn.className = 'btn-card-action outline';
-            mBtn.innerHTML = 'Compartir Link';
-            mBtn.onclick = () => this.copyLink(window.location.href);
-            integratedActions.appendChild(mBtn);
-        }
-
-        const integratedShare = cardEl.querySelector('#preview-share-strip');
-        if (integratedShare) {
-            integratedShare.innerHTML = '';
-            const currentUrl = window.location.href;
-            const platforms = [
-                { icon: 'fab fa-whatsapp', color: '#25D366', url: `https://wa.me/?text=${encodeURIComponent(currentUrl)}` },
-                { icon: 'fab fa-facebook', color: '#1877F2', url: `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(currentUrl)}` },
-                { icon: 'fab fa-linkedin', color: '#0A66C2', url: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(currentUrl)}` }
-            ];
-            platforms.forEach(p => {
-                const a = document.createElement('a');
-                a.href = p.url;
-                a.target = '_blank';
-                a.className = 'share-btn-mini';
-                a.style.background = p.color;
-                a.innerHTML = `<i class="${p.icon}"></i>`;
-                integratedShare.appendChild(a);
-            });
-        }
-
-        const integratedQR = cardEl.querySelector('#preview-card-qr');
-        if (integratedQR) {
-            this.generateQR(window.location.href, integratedQR);
-        }
-
-        this.publicView.innerHTML = '';
-        this.publicView.appendChild(wrap);
+        
+        // Add event listeners for action buttons
+        const actionButtons = publicView.querySelectorAll('.btn-card-action');
+        actionButtons.forEach(button => {
+            if (button.textContent.includes('Compartir')) {
+                button.addEventListener('click', () => {
+                    // Copy current URL to clipboard
+                    const textarea = document.createElement('textarea');
+                    textarea.value = window.location.href;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    
+                    // Show feedback
+                    const originalText = button.innerHTML;
+                    button.innerHTML = '<i class="fas fa-check"></i> ¡Copiado!';
+                    button.style.backgroundColor = 'var(--success)';
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.style.backgroundColor = '';
+                    }, 2000);
+                });
+            }
+        });
     },
 
     downloadVCard(card) {
