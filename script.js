@@ -914,7 +914,11 @@ const UI = {
                 if (!href.startsWith('http')) {
                     if (platform === 'email') href = `mailto:${href}`;
                     else if (platform === 'phone') href = `tel:${href}`;
-                    else if (platform === 'whatsapp') href = `https://wa.me/${href}`;
+                    else if (platform === 'whatsapp') {
+                        // Limpiar el número de teléfono para el formato internacional
+                        const phoneNumber = href.replace(/[^\d+]/g, '');
+                        href = `https://wa.me/${phoneNumber}`;
+                    }
                     else href = `https://${platform}.com/${href}`;
                 }
                 
