@@ -183,6 +183,10 @@ app.delete('/api/cards/:id', authenticateToken, async (req, res) => {
     }
 });
 
+// ===== STATIC FILES =====
+// Esto debe ir ANTES de las rutas comodín (*) para que los archivos estáticos se sirvan correctamente
+app.use(express.static(path.join(__dirname)));
+
 // ===== MANEJO DE RUTAS ESPECÍFICAS PARA TARJETAS PÚBLICAS =====
 app.get('/card/:id', async (req, res) => {
     // Esta ruta redirige a index.html para que el cliente maneje la ruta
@@ -194,14 +198,14 @@ app.get('/#/card/:id', async (req, res) => {
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
-// Manejo de todas las demás rutas
+// Manejo de todas las demás rutas (SPA - Single Page Application)
 app.get('*', (req, res) => {
     // Verificar si es una solicitud de API
     if (req.url.startsWith('/api/') || req.url.startsWith('/health')) {
         // Si es una solicitud de API, devolver error 404 genérico
         return res.status(404).json({ error: 'Ruta no encontrada' });
     }
-    // Para cualquier otra ruta, enviar index.html
+    // Para cualquier otra ruta, enviar index.html permitiendo que el router del frontend (script.js) maneje la ruta
     res.sendFile(path.join(__dirname, 'index.html'));
 });
 
@@ -235,13 +239,6 @@ async function initDB() {
         console.error('❌ Error inicializando DB (servidor sigue funcionando):', err.message);
     }
 }
-
-// ===== STATIC FILES =====
-app.use(express.static(path.join(__dirname)));
-
-app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
 
 // ===== START SERVER =====
 app.listen(PORT, '0.0.0.0', () => {
