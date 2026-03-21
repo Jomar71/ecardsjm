@@ -30,6 +30,7 @@ const { getPool } = require('./db');
 // ===== CONFIG =====
 const app = express();
 const PORT = process.env.PORT || 3000;
+console.log(`[INIT] Servidor configurado en el puerto: ${PORT}`);
 const SECRET_KEY = process.env.JWT_SECRET || 'ecards_elite_secret_key_123';
 
 // ===== MIDDLEWARE =====
