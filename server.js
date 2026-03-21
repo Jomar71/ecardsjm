@@ -21,14 +21,6 @@ if (fs.existsSync(pxxlEnvPath)) {
 
 console.log("Database URL configured as:", process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 30) + '...' : 'None');
 
-// Manejo de errores globales para evitar cierres silenciosos
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-process.on('uncaughtException', (err) => {
-    console.error('Uncaught Exception:', err);
-});
-
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
