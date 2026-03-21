@@ -6,9 +6,13 @@ function getPool() {
     if (!pool) {
         // Usar una cadena de conexión local por defecto si no hay DATABASE_URL
         const connectionString = process.env.DATABASE_URL || 'postgresql://localhost/ecards_jm';
+        
+        // Neon requiere SSL. Lo forzamos si la URL contiene 'neon' o si es producción.
+        const useSSL = connectionString.includes('neon') || process.env.NODE_ENV === 'production';
+        
         pool = new Pool({
             connectionString,
-            ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
+            ssl: useSSL ? { rejectUnauthorized: false } : false,
             connectionTimeoutMillis: 15000,
             idleTimeoutMillis: 30000,
             max: 5
