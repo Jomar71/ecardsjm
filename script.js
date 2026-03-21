@@ -15,9 +15,20 @@ const state = {
     bgImagePath: null,
     fontFilePath: null,
     archives: [],
-    API_BASE: (window.location.hostname === '127.0.0.1' || window.location.hostname === 'localhost' || window.location.hostname.startsWith('192.168.') || window.location.hostname.startsWith('10.') || window.location.hostname.match(/\d+\.\d+\.\d+\.\d+/)) 
-        ? `http://${window.location.hostname}:3000` 
-        : window.location.origin
+    API_BASE: (() => {
+        // Detectar si estamos en un entorno local o en producción
+        if (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || 
+            window.location.hostname.match(/^192\.168\./) || 
+            window.location.hostname.match(/^10\./) || 
+            window.location.hostname.match(/^172\.(1[6-9]|2[0-9]|3[01])\./) ||
+            window.location.hostname.match(/\d+\.\d+\.\d+\.\d+/)) {
+            // Si es una IP local o privada, usar el puerto 3000
+            return `http://${window.location.hostname}:3000`;
+        } else {
+            // De lo contrario, usar el origen actual
+            return window.location.origin;
+        }
+    })()
 };
 
 // --- API HELPER CORE ---

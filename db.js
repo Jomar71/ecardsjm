@@ -4,13 +4,11 @@ let pool = null;
 
 function getPool() {
     if (!pool) {
-        const connectionString = process.env.DATABASE_URL;
-        if (!connectionString) {
-            throw new Error('DATABASE_URL no configurada');
-        }
+        // Usar una cadena de conexión local por defecto si no hay DATABASE_URL
+        const connectionString = process.env.DATABASE_URL || 'postgresql://localhost/ecards_jm';
         pool = new Pool({
             connectionString,
-            ssl: { rejectUnauthorized: false },
+            ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : false,
             connectionTimeoutMillis: 15000,
             idleTimeoutMillis: 30000,
             max: 5
