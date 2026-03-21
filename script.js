@@ -502,18 +502,22 @@ const UI = {
 
             // 4. SINCRONIZAR EN LA NUBE (Solo si está logueado)
             if (state.token) {
-                apiFetch('/api/cards', {
-                    method: 'POST',
-                    body: JSON.stringify(cardData)
-                }).then(() => {
+                try {
+                    await apiFetch('/api/cards', {
+                        method: 'POST',
+                        body: JSON.stringify(cardData)
+                    });
                     console.log("Cloud sync successful");
-                }).catch((e) => {
-                    console.warn("Cloud sync delayed:", e);
-                });
+                } catch (e) {
+                    console.error("Cloud sync failed:", e);
+                    alert("⚠️ Error: La tarjeta se guardó localmente, pero no pudo sincronizarse en la nube. Verifica tu conexión o intenta de nuevo. Detalle: " + e.message);
+                }
             } else {
                 console.log("Not logged in - saving locally only.");
             }
 
+            // Ocultar Loader
+            if (this.loader) this.loader.classList.add('hidden');
 
             // ACTUALIZAR DASHBOARD INTEGRADO
             this.loadDashboard();
