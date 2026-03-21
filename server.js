@@ -10,11 +10,21 @@ process.on('unhandledRejection', (reason, promise) => {
 
 // ===== IMPORTS =====
 require('dotenv').config();
+
+// Cargar variables de entorno específicas de PXXL si el archivo existe
+const fs = require('fs');
+const path = require('path');
+const pxxlEnvPath = path.join(__dirname, '.env.pxxl');
+if (fs.existsSync(pxxlEnvPath)) {
+    require('dotenv').config({ path: pxxlEnvPath, override: true });
+}
+
+console.log("Database URL configured as:", process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 30) + '...' : 'None');
+
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const path = require('path');
 const { getPool } = require('./db');
 
 // ===== CONFIG =====
