@@ -42,6 +42,15 @@ async function apiFetch(endpoint, options = {}) {
     
     try {
         const response = await fetch(`${state.API_BASE}${endpoint}`, { ...options, headers });
+        
+        // Manejar respuestas que no sean JSON (como errores del servidor 502/HTML)
+        const contentType = response.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            const body = await response.text();
+            console.error("DEBUG - Response not JSON:", body.substring(0, 500));
+            throw new Error(`Error del Servidor (${response.status}): No es JSON. Posible bloqueo de WAF o servidor caído.`);
+        }
+
         const data = await response.json();
         
         if (!response.ok) {
