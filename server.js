@@ -131,7 +131,8 @@ app.post('/api/cards', authenticateToken, async (req, res) => {
         'website', 'address', 'company', 'bio', 'facebook', 'instagram',
         'linkedin', 'twitter', 'whatsapp', 'github', 'behance', 'youtube',
         'tiktok', 'template_id', 'logo_path', 'profile_path', 'bg_image_path',
-        'font_file_path', 'custom_css', 'custom_fonts', 'bg_color', 'text_color', 'primary_color'
+        'font_file_path', 'custom_css', 'custom_fonts', 'bg_color', 'text_color', 'primary_color',
+        'theme_selector', 'profile_position', 'font_family'
     ];
 
     const cleanData = { user_id: req.user.id };
@@ -231,9 +232,20 @@ async function initDB() {
                 whatsapp TEXT, github TEXT, behance TEXT, youtube TEXT, tiktok TEXT,
                 template_id TEXT, logo_path TEXT, profile_path TEXT, bg_image_path TEXT,
                 font_file_path TEXT, custom_css TEXT, custom_fonts TEXT,
-                bg_color TEXT, text_color TEXT, primary_color TEXT
+                bg_color TEXT, text_color TEXT, primary_color TEXT,
+                theme_selector TEXT, profile_position TEXT, font_family TEXT
             )
         `);
+        
+        // Auto-migration for newly added columns if the table already existed earlier
+        try {
+            await query(`ALTER TABLE business_cards ADD COLUMN IF NOT EXISTS theme_selector TEXT`);
+            await query(`ALTER TABLE business_cards ADD COLUMN IF NOT EXISTS profile_position TEXT`);
+            await query(`ALTER TABLE business_cards ADD COLUMN IF NOT EXISTS font_family TEXT`);
+        } catch(migrationErr) {
+            console.error('Migration info:', migrationErr.message);
+        }
+
         console.log('✅ Base de datos lista');
     } catch (err) {
         console.error('❌ Error inicializando DB (servidor sigue funcionando):', err.message);
