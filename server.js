@@ -47,6 +47,8 @@ app.use((req, res, next) => {
 });
 
 // ===== HEALTH CHECK (responde inmediatamente, sin DB) =====
+app.get('/ping', (req, res) => res.send('pong'));
+
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });
