@@ -287,4 +287,3 @@ app.listen(PORT, '0.0.0.0', () => {
     // Init DB en background, NO bloquea el servidor
     initDB().catch(err => console.error('initDB failed:', err.message));
 });
-```
