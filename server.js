@@ -28,10 +28,22 @@ const jwt = require('jsonwebtoken');
 const { getPool } = require('./db');
 
 // ===== CONFIG =====
-const app = express();
-const PORT = process.env.PORT || 3000;
-console.log(`[INIT] Servidor configurado en el puerto: ${PORT}`);
+const PORT = process.env.PORT || 8888;
 const SECRET_KEY = process.env.JWT_SECRET || 'ecards_elite_secret_key_123';
+
+// Capturar errores fatales para debugging en pxxl
+process.on('uncaughtException', (err) => {
+    console.error('❌ CRASH DETECTADO (Uncaught Exception):', err.stack || err);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ CRASH DETECTADO (Unhandled Rejection):', reason);
+    process.exit(1);
+});
+
+const app = express();
+console.log(`[INIT] Servidor configurado en el puerto: ${PORT}`);
 
 // ===== MIDDLEWARE =====
 app.use(express.json({ limit: '10mb' }));
