@@ -705,9 +705,11 @@ const UI = {
     updatePreview(customData = null) {
         const data = customData || (this.form ? Object.fromEntries(new FormData(this.form).entries()) : {});
         const n = document.getElementById('preview-name');
-        const t = document.getElementById('preview-title');
+        const pt = document.getElementById('preview-prof-title');
         const c = document.getElementById('preview-company');
         const d = document.getElementById('preview-description');
+        const addr = document.getElementById('preview-address');
+        const web = document.getElementById('preview-website');
         const preview = document.getElementById('card-preview');
 
         // Combinar nombre y apellido para mostrar el nombre completo
@@ -716,9 +718,11 @@ const UI = {
         const fullName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || 'NOMBRE COMPLETO';
 
         if (n) n.textContent = fullName.toUpperCase();
-        if (t) t.textContent = (data.title || 'CARGO O TÍTULO').toUpperCase();
+        if (pt) pt.textContent = (data.professional_title || 'CARGO O TÍTULO').toUpperCase();
         if (c) c.textContent = (data.company || 'EMPRESA').toUpperCase();
-        if (d) d.textContent = data.description || 'Esta es tu descripción empresarial profesional.';
+        if (d) d.textContent = data.experience_summary || 'Esta es tu descripción empresarial profesional.';
+        if (addr) addr.textContent = data.address || '';
+        if (web) web.textContent = data.website || '';
 
         // Apply Custom Branding
         if (preview) {
@@ -731,6 +735,8 @@ const UI = {
 
             if (state.bgImagePath) {
                 preview.style.backgroundImage = `url(${state.bgImagePath})`;
+                preview.style.backgroundSize = 'cover';
+                preview.style.backgroundPosition = 'center';
             } else {
                 // If NO user image, use system template gradient/color
                 preview.style.backgroundImage = '';
@@ -1035,47 +1041,47 @@ const UI = {
                         
                         <div class="card-text-block">
                             <h2 id="preview-name">${fullName.toUpperCase()}</h2>
-                            <h3 id="preview-title">${(card.title || 'CARGO O TÍTULO').toUpperCase()}</h3>
-                            <p class="card-desc">${card.description || 'Esta es tu descripción empresarial profesional.'}</p>
+                            <h3 id="preview-title">${(card.professional_title || 'CARGO O TÍTULO').toUpperCase()}</h3>
+                            <p class="card-desc">${card.experience_summary || 'Esta es tu descripción empresarial profesional.'}</p>
                         </div>
                     </div>
                     
                     <!-- Contact info section -->
-                    <div class="contact-container">
+                    <div class="contact-container" style="display: flex; flex-direction: column; gap: 0.5rem; margin: 1rem 0;">
                         ${contactItems.join('')}
                     </div>
                     ` : `
                     <!-- Standard template layout -->
-                    <div class="card-top-bar">
+                    <div class="card-top-bar" style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem;">
                         <div class="company-brand-box">
-                            <div class="company-logo-ring">
-                                ${card.logo_path ? `<img src="${card.logo_path}" alt="Logo">` : '<i class="fas fa-building"></i>'}
+                            <div class="company-logo-ring" style="width: 45px; height: 45px; border: 2px solid var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 0.5rem;">
+                                ${card.logo_path ? `<img src="${card.logo_path}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;">` : '<i class="fas fa-building" style="color: var(--primary);"></i>'}
                             </div>
-                            <div class="brand-text">${card.company || 'EMPRESA'}</div>
+                            <div class="brand-text" style="font-weight: 700; font-size: 0.9rem; letter-spacing: 1px;">${card.company || 'EMPRESA'}</div>
                         </div>
                         
                         <div class="profile-container ${positionClass}">
-                            <div id="preview-logo-box">
+                            <div id="preview-logo-box" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.3);">
                                 ${profileImageHtml}
                             </div>
                         </div>
                     </div>
                     
-                    <div class="card-text-block">
-                        <h2 id="preview-name">${fullName.toUpperCase()}</h2>
-                        <h3 id="preview-title">${(card.title || 'CARGO O TÍTULO').toUpperCase()}</h3>
-                        <p class="card-desc">${card.description || 'Esta es tu descripción empresarial profesional.'}</p>
+                    <div class="card-text-block" style="margin-bottom: 1.5rem;">
+                        <h2 id="preview-name" style="font-size: 1.8rem; font-weight: 800; margin: 0; line-height: 1.1;">${fullName.toUpperCase()}</h2>
+                        <h3 id="preview-title" style="font-size: 1rem; color: var(--primary); margin: 0.3rem 0; font-weight: 600;">${(card.professional_title || 'CARGO O TÍTULO').toUpperCase()}</h3>
+                        <p class="card-desc" style="font-size: 0.9rem; opacity: 0.8; margin-top: 1rem; line-height: 1.5; font-style: italic;">${card.experience_summary || 'Esta es tu descripción empresarial profesional.'}</p>
                     </div>
                     
                     <!-- Contact info section -->
-                    <div class="contact-container">
+                    <div class="contact-container" style="display: flex; flex-direction: column; gap: 0.6rem; margin: 1.5rem 0; border-left: 2px solid var(--primary); padding-left: 1rem;">
                         ${contactItems.join('')}
                     </div>
                     `}
                     
                     <!-- Social media links -->
                     ${socialLinks.length > 0 ? `
-                    <div class="social-strip">
+                    <div class="social-strip" style="display: flex; gap: 1rem; margin-top: 2rem;">
                         ${socialLinks.join('')}
                     </div>
                     ` : ''}
@@ -1107,7 +1113,7 @@ const UI = {
             // Solo hay un botón ahora: "Guardar Contacto"
             button.addEventListener('click', () => {
                 // Guardar contacto lógica
-                const vCardData = `BEGIN:VCARD\nVERSION:3.0\nFN:${fullName}\nORG:${card.company}\nTITLE:${card.title}\nTEL;TYPE=WORK,VOICE:${card.phone}\nEMAIL;TYPE=PREF,INTERNET:${card.email}\nURL:${card.website}\nADR;TYPE=WORK:;;${card.address}\nEND:VCARD`;
+                const vCardData = `BEGIN:VCARD\nVERSION:3.0\nFN:${fullName}\nORG:${card.company || ''}\nTITLE:${card.professional_title || card.title || ''}\nTEL;TYPE=WORK,VOICE:${card.phone || ''}\nEMAIL;TYPE=PREF,INTERNET:${card.email || ''}\nURL:${card.website || ''}\nADR;TYPE=WORK:;;${card.address || ''}\nNOTE:${card.experience_summary || ''}\nEND:VCARD`;
                 
                 const blob = new Blob([vCardData], { type: 'text/vcard' });
                 const url = URL.createObjectURL(blob);
@@ -1129,7 +1135,7 @@ const UI = {
         const lastName = card['last-name'] || '';
         const fullName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || 'Contacto';
         
-        const v = `BEGIN:VCARD\nVERSION:3.0\nFN:${fullName}\nORG:${card.company}\nTITLE:${card.title}\nTEL;TYPE=WORK,VOICE:${card.phone}\nEMAIL;TYPE=PREF,INTERNET:${card.email}\nURL:${card.website}\nADR;TYPE=WORK:;;${card.address || ''}\nEND:VCARD`;
+        const v = `BEGIN:VCARD\nVERSION:3.0\nFN:${fullName}\nORG:${card.company || ''}\nTITLE:${card.professional_title || card.title || ''}\nTEL;TYPE=WORK,VOICE:${card.phone || ''}\nEMAIL;TYPE=PREF,INTERNET:${card.email || ''}\nURL:${card.website || ''}\nADR;TYPE=WORK:;;${card.address || ''}\nNOTE:${card.experience_summary || ''}\nEND:VCARD`;
         const b = new Blob([v], { type: 'text/vcard' });
         const a = document.createElement('a'); 
         a.href = URL.createObjectURL(b); 

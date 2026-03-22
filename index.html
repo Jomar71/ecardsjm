@@ -249,8 +249,6 @@
             </footer>
         </section>
 
-        <!-- DASHBOARD REMOVED (Merged into Admin) -->
-
         <!-- ─── CARD EDITOR ───────────────────────────────────── -->
         <section id="view-admin" class="view-content hidden">
             <div id="view-admin-inner">
@@ -311,35 +309,35 @@
 
                                 <div class="input-row-2">
                                     <div class="input-group"><label><i class="fab fa-linkedin"
-                                                style="color:#0A66C2;margin-right:0.3rem;"></i>LinkedIn</label><input
-                                            type="text" id="linkedin" placeholder="usuario"></div>
-                                    <div class="input-group"><label><i class="fab fa-whatsapp"
-                                                style="color:#25D366;margin-right:0.3rem;"></i>WhatsApp</label><input
-                                            type="text" id="whatsapp" placeholder="número"></div>
+                                                 style="color:#0A66C2;margin-right:0.3rem;"></i>LinkedIn</label><input
+                                             type="text" id="linkedin" placeholder="usuario"></div>
+                                     <div class="input-group"><label><i class="fab fa-whatsapp"
+                                                 style="color:#25D366;margin-right:0.3rem;"></i>WhatsApp</label><input
+                                             type="text" id="whatsapp" placeholder="número"></div>
                                 </div>
                                 <div class="input-row-2">
                                     <div class="input-group"><label><i class="fab fa-instagram"
-                                                style="color:#E1306C;margin-right:0.3rem;"></i>Instagram</label><input
-                                            type="text" id="instagram" placeholder="usuario"></div>
-                                    <div class="input-group"><label><i class="fab fa-facebook"
-                                                style="color:#1877F2;margin-right:0.3rem;"></i>Facebook</label><input
-                                            type="text" id="facebook" placeholder="usuario"></div>
+                                                 style="color:#E1306C;margin-right:0.3rem;"></i>Instagram</label><input
+                                             type="text" id="instagram" placeholder="usuario"></div>
+                                     <div class="input-group"><label><i class="fab fa-facebook"
+                                                 style="color:#1877F2;margin-right:0.3rem;"></i>Facebook</label><input
+                                             type="text" id="facebook" placeholder="usuario"></div>
                                 </div>
                                 <div class="input-row-2">
                                     <div class="input-group"><label><i class="fab fa-tiktok"
-                                                style="color:#FFF;margin-right:0.3rem;"></i>TikTok</label><input
-                                            type="text" id="tiktok" placeholder="usuario"></div>
-                                    <div class="input-group"><label><i class="fab fa-youtube"
-                                                style="color:#FF0000;margin-right:0.3rem;"></i>YouTube</label><input
-                                            type="text" id="youtube" placeholder="canal"></div>
+                                                 style="color:#FFF;margin-right:0.3rem;"></i>TikTok</label><input
+                                             type="text" id="tiktok" placeholder="usuario"></div>
+                                     <div class="input-group"><label><i class="fab fa-youtube"
+                                                 style="color:#FF0000;margin-right:0.3rem;"></i>YouTube</label><input
+                                             type="text" id="youtube" placeholder="canal"></div>
                                 </div>
                                 <div class="input-row-2">
                                     <div class="input-group"><label><i class="fab fa-twitter"
-                                                style="color:#1DA1F2;margin-right:0.3rem;"></i>Twitter&nbsp;(X)</label><input
-                                            type="text" id="twitter" placeholder="usuario"></div>
-                                    <div class="input-group"><label><i class="fab fa-github"
-                                                style="margin-right:0.3rem;"></i>GitHub</label><input type="text"
-                                            id="github" placeholder="usuario"></div>
+                                                 style="color:#1DA1F2;margin-right:0.3rem;"></i>Twitter&nbsp;(X)</label><input
+                                             type="text" id="twitter" placeholder="usuario"></div>
+                                     <div class="input-group"><label><i class="fab fa-github"
+                                                 style="margin-right:0.3rem;"></i>GitHub</label><input type="text"
+                                             id="github" placeholder="usuario"></div>
                                 </div>
                             </div>
 
@@ -348,20 +346,65 @@
                                 <div class="input-group">
                                     <label>Plantilla de Sistema</label>
                                     <select id="template_id" name="template_id">
-                                 <option value="corporate">CORPORATIVO (HORIZONTAL)</option>
-                                 <option value="vertical">MODERNO (VERTICAL)</option>
-                                 <option value="floating">FLOTANTE (MINIMAL)</option>
-                                 <option value="neon">NEON (CREATIVO)</option>
-                                 <option value="neotech">NEOTECH (FUTURISTA PREMIUM)</option>
-                                 <option value="executive">EJECUTIVO (PREMIUM)</option>
-                                 <option value="classic">CLASSIC REFERENCE (FOTO LATERAL)</option>
-                                 <option value="minimal-modern">MINIMAL MODERN (LIMPIO)</option>
-                            </select>
+                                        <option value="corporate">CORPORATIVO (HORIZONTAL)</option>
+                                        <option value="vertical">MODERNO (VERTICAL)</option>
+                                        <option value="floating">FLOTANTE (MINIMAL)</option>
+                                        <option value="neon">NEON (CREATIVO)</option>
+                                        <option value="neotech">NEOTECH (FUTURISTA PREMIUM)</option>
+                                        <option value="executive">EJECUTIVO (PREMIUM)</option>
+                                        <option value="classic">CLASSIC REFERENCE (FOTO LATERAL)</option>
+                                        <option value="minimal-modern">MINIMAL MODERN (LIMPIO)</option>
+                                    </select>
+                                </div>
+
+                                <div class="input-row-2">
+                                    <div class="input-group">
+                                        <label>Logo Empresa</label>
+                                        <input type="file" id="logo" name="logo" accept="image/*">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Foto de Perfil</label>
+                                        <input type="file" id="profile" name="profile" accept="image/*">
+                                    </div>
+                                </div>
+
+                                <div class="input-row-2">
+                                    <div class="input-group">
+                                        <label>Posición del Perfil</label>
+                                        <select id="profile_position" name="profile_position">
+                                            <option value="default">Predeterminada (Auto)</option>
+                                            <option value="top-center">Centro Superior</option>
+                                            <option value="top-left">Superior Izquierda</option>
+                                            <option value="top-right">Superior Derecha</option>
+                                            <option value="center">Centro</option>
+                                            <option value="bottom-center">Centro Inferior</option>
+                                            <option value="bottom-left">Inferior Izquierda</option>
+                                            <option value="bottom-right">Inferior Derecha</option>
+                                        </select>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Tipo de Perfil</label>
+                                        <select id="profile_type" name="profile_type">
+                                            <option value="image">Imagen de Perfil</option>
+                                            <option value="initials">Iniciales</option>
+                                        </select>
+                                    </div>
                                 </div>
 
                                 <div class="input-group">
-                                    <label>Imagen de Fondo Personalizada</label>
+                                    <label>Imagen de Fondo Per.</label>
                                     <input type="file" id="bg_image" name="bg_image" accept="image/*">
+                                </div>
+
+                                <div class="input-row-2">
+                                    <div class="input-group">
+                                        <label>Opacidad Viñeta</label>
+                                        <input type="range" id="bg_vignette" name="bg_vignette" min="0" max="1" step="0.1" value="0">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Desenfoque Fondo (px)</label>
+                                        <input type="range" id="bg_blur" name="bg_blur" min="0" max="20" step="1" value="0">
+                                    </div>
                                 </div>
 
                                 <div class="input-group">
@@ -374,61 +417,40 @@
                                     </select>
                                 </div>
 
-                                <div class="input-group">
-                                    <label>Importar Google Font (URL)</label>
-                                    <input type="text" name="custom_fonts"
-                                        placeholder="https://fonts.googleapis.com/css2?family=...">
+                                <div class="input-row-2">
+                                    <div class="input-group">
+                                        <label>Google Font (URL)</label>
+                                        <input type="text" name="custom_fonts" placeholder="https://fonts.googleapis.com/css2?family=...">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Posición QR</label>
+                                        <select id="qr_position" name="qr_position">
+                                            <option value="default">Auto</option>
+                                            <option value="top-left">Arr. Izq.</option>
+                                            <option value="top-right">Arr. Der.</option>
+                                            <option value="bottom-left">Abaj. Izq.</option>
+                                            <option value="bottom-right">Abaj. Der.</option>
+                                        </select>
+                                    </div>
                                 </div>
 
-                                <div class="input-group">
-                                    <label>Archivo de Fuente (OTF, TTF, WOFF)</label>
-                                    <input type="file" id="font_file" name="font_file" accept=".otf,.ttf,.woff,.woff2">
+                                <div class="input-row-3">
+                                    <div class="input-group"><label>Marca</label><input type="color" id="primary-color" name="primary_color" value="#7C3AED"></div>
+                                    <div class="input-group"><label>Fondo</label><input type="color" name="bg_color" value="#0B0F19"></div>
+                                    <div class="input-group"><label>Texto</label><input type="color" name="text_color" value="#FFFFFF"></div>
                                 </div>
 
                                 <div class="input-group">
                                     <label>CSS Personalizado</label>
-                                    <textarea name="custom_css" rows="3"
-                                        placeholder=".card-preview { border: 2px solid gold; }"></textarea>
-                                </div>
-
-                                <div class="input-row-2">
-                                    <div class="input-group"><label>Logo Empresa</label><input type="file" id="logo"
-                                            name="logo" accept="image/*"></div>
-                                    <div class="input-group"><label>Foto de Perfil</label><input type="file"
-                                            id="profile" name="profile" accept="image/*"></div>
-                                </div>
-
-                                <!-- Nuevas opciones de posición de perfil -->
-                                <div class="input-group">
-                                    <label>Posición de Foto de Perfil</label>
-                                    <select name="profile_position">
-                                        <option value="default">Predeterminada</option>
-                                        <option value="top-center">Centro Superior</option>
-                                        <option value="top-left">Superior Izquierda</option>
-                                        <option value="top-right">Superior Derecha</option>
-                                        <option value="center">Centro</option>
-                                        <option value="bottom-center">Centro Inferior</option>
-                                        <option value="bottom-left">Inferior Izquierda</option>
-                                        <option value="bottom-right">Inferior Derecha</option>
-                                    </select>
-                                </div>
-
-                                <div class="input-row-3">
-                                    <div class="input-group"><label>Color Marca</label><input type="color"
-                                            id="primary-color" name="primary_color" value="#7C3AED"></div>
-                                    <div class="input-group"><label>Fondo</label><input type="color" name="bg_color"
-                                            value="#0B0F19"></div>
-                                    <div class="input-group"><label>Texto</label><input type="color" name="text_color"
-                                            value="#FFFFFF"></div>
+                                    <textarea name="custom_css" rows="3" placeholder=".card-preview { border: 2px solid gold; }"></textarea>
                                 </div>
                                 
-                                <!-- Selector de tema -->
                                 <div class="input-group">
-                                    <label>Tema de Color</label>
+                                    <label>Tema Base</label>
                                     <select id="theme-selector" name="theme_selector">
-                                        <option value="dark">Tema Oscuro</option>
-                                        <option value="light">Tema Claro</option>
-                                        <option value="pastel">Tema Pastel</option>
+                                        <option value="dark">Oscuro Profundo</option>
+                                        <option value="light">Claro Elegante</option>
+                                        <option value="pastel">Pastel Suave</option>
                                     </select>
                                 </div>
                             </div>
@@ -483,14 +505,12 @@
                                         </div>
                                         <div class="brand-text" id="preview-brand-text">EMPRESA<br>DIGITAL</div>
                                     </div>
-                                    <!-- Botones barra superior estilo referencia -->
                                     <div class="header-actions" style="display:flex; gap:0.5rem;">
                                         <button type="button" class="btn-icon-mini"><i class="fas fa-user-plus"></i></button>
                                         <button type="button" class="btn-icon-mini"><i class="fas fa-share-alt"></i></button>
                                     </div>
                                 </div>
 
-                                <!-- Body Flex para diseño lateral (Classic) -->
                                 <div class="card-body-flex">
                                     <!-- Profile Photo -->
                                     <div class="profile-container">
@@ -512,7 +532,6 @@
                                 <div id="preview-contacts" class="contact-container"></div>
                                 <div id="preview-social" class="social-strip"></div>
 
-                                <!-- Nuevos contenedores integrados -->
                                 <div class="card-footer-actions">
                                     <div id="preview-action-buttons" class="action-grid"></div>
                                     <div id="preview-share-strip" class="share-links"></div>
