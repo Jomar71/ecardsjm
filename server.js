@@ -267,7 +267,12 @@ async function initDB() {
 
 // ===== START SERVER =====
 app.listen(PORT, '0.0.0.0', () => {
-    console.log(`🚀 Servidor corriendo en puerto ${PORT}`);
+    console.log(`===========================================`);
+    console.log(`🚀 SERVIDOR LISTO Y ESCUCHANDO`);
+    console.log(`📍 Puerto: ${PORT}`);
+    console.log(`🔗 URL: ecardsjm.pxxl.click`);
+    console.log(`===========================================`);
     // Init DB en background, NO bloquea el servidor
     initDB().catch(err => console.error('initDB failed:', err.message));
 });
+```
