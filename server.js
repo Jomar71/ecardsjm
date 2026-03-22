@@ -47,6 +47,13 @@ console.log(`[INIT] Servidor configurado en el puerto: ${PORT}`);
 
 // ===== MIDDLEWARE =====
 app.use(express.json({ limit: '10mb' }));
+
+// Logger para diagnosticar bloqueos
+app.use((req, res, next) => {
+    console.log(`[REQUEST] ${req.method} ${req.url} - Size: ${req.get('content-length') || '0'} bytes`);
+    next();
+});
+
 app.use(cors());
 
 // ===== CACHE CONTROL MIDDLEWARE =====
