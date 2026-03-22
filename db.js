@@ -13,9 +13,9 @@ function getPool() {
         pool = new Pool({
             connectionString,
             ssl: useSSL ? { rejectUnauthorized: false } : false,
-            connectionTimeoutMillis: 15000,
-            idleTimeoutMillis: 30000,
-            max: 5
+            connectionTimeoutMillis: 30000,
+            idleTimeoutMillis: 60000,
+            max: 2
         });
         pool.on('error', (err) => {
             console.error('Pool error (non-fatal):', err.message);
