@@ -370,18 +370,35 @@ const UI = {
                                 ${profilePath ? `<img src="${profilePath}" style="width:100%; height:100%; object-fit:cover; border-radius:50%;">` : '<i class="fas fa-user"></i>'}
                             </div>
                             <div class="mini-card-title" style="${(templateClass === 'minimal' || templateClass === 'minimal-modern') ? 'color:#64748B;' : ''}">${card.title || ''}</div>
+                            <div id="qr-${card.id}" class="mini-qr" style="width:40px; height:40px; background:#fff; padding:2px; border-radius:4px; margin-top:0.2rem;"></div>
                         </div>
                         ${(templateClass !== 'minimal' && templateClass !== 'minimal-modern') ? '<div class="bottom-wave"></div>' : ''}
                     </div>
                 </div>
                 <div class="card-item-actions">
                     <span class="card-name">${(card['first-name'] && card['last-name'] ? (card['first-name'] + ' ' + card['last-name']).toUpperCase() : (card.name || 'Sin Nombre').toUpperCase())}</span>
-                    <button class="btn btn-primary" style="font-size:0.7rem; padding:0.4rem 0.9rem; border-radius:6px;" onclick="UI.editCard('${card.id}')"><i class="fas fa-pen"></i> Editar</button>
-                    <button class="btn-icon" title="Copiar Link" onclick="UI.copyLink('${pubLink}')"><i class="fas fa-copy"></i></button>
-                    <button class="btn-icon" title="Ver Tarjeta" onclick="window.open('${pubLink}', '_blank'); event.stopPropagation();"><i class="fas fa-external-link-alt"></i></button>
+                    <div style="display:flex; gap:0.4rem;">
+                        <button class="btn btn-primary" style="font-size:0.7rem; padding:0.4rem 0.6rem; border-radius:6px;" onclick="UI.editCard('${card.id}')"><i class="fas fa-pen"></i> Editar</button>
+                        <button class="btn-icon" title="Copiar Link" onclick="UI.copyLink('${pubLink}')" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);"><i class="fas fa-copy"></i></button>
+                        <button class="btn-icon" title="Ver Tarjeta" onclick="window.open('${pubLink}', '_blank'); event.stopPropagation();" style="background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1);"><i class="fas fa-external-link-alt"></i></button>
+                    </div>
                 </div>
             `;
             this.dashboardGrid.appendChild(item);
+            
+            // Generate the QR code for each dashboard item
+            setTimeout(() => {
+                const qrEl = document.getElementById(`qr-${card.id}`);
+                if (qrEl) {
+                    this.generateQR(pubLink, qrEl);
+                    // Adjust QR image size specifically for mini-cards
+                    const qrImg = qrEl.querySelector('img');
+                    if (qrImg) {
+                        qrImg.style.width = '36px';
+                        qrImg.style.height = '36px';
+                    }
+                }
+            }, 100);
         });
 
         // Botón de nueva tarjeta al final
@@ -824,8 +841,22 @@ const UI = {
             }
         }
 
-        // Update social links preview
-        const socialContainer = document.getElementById('preview-social');
+        // Update vertical contacts preview (Left)
+        const verticalContacts = document.getElementById('preview-vertical-contacts');
+        if (verticalContacts) {
+            const phone = document.getElementById('phone')?.value || data.phone;
+            const email = document.getElementById('email')?.value || data.email;
+            const address = document.getElementById('address')?.value || data.address;
+            
+            verticalContacts.innerHTML = `
+                ${phone ? `<div style="color: var(--primary); font-size: 1.25rem;"><i class="fas fa-phone-circle"></i></div>` : ''}
+                ${email ? `<div style="color: var(--text-primary); font-size: 1.25rem;"><i class="fas fa-envelope-open-text"></i></div>` : ''}
+                ${address ? `<div style="color: var(--text-secondary); font-size: 1.25rem;"><i class="fas fa-location-dot"></i></div>` : ''}
+            `;
+        }
+
+        // Update social links preview (Bottom row)
+        const socialContainer = document.getElementById('preview-social-footer');
         if (socialContainer && !customData) { // Only update if not receiving custom data
             const socialPlatforms = ['linkedin', 'whatsapp', 'instagram', 'facebook', 'tiktok', 'youtube', 'twitter', 'github'];
             const socialLinks = [];
@@ -842,15 +873,11 @@ const UI = {
                     }
 
                     const iconClass = platform === 'twitter' ? 'fab fa-x-twitter' : `fab fa-${platform}`;
-                    socialLinks.push(`<a href="${href}" target="_blank" class="social-icon-link"><i class="${iconClass}"></i></a>`);
+                    socialLinks.push(`<a href="${href}" target="_blank" style="color:var(--text-primary); opacity:0.8; font-size: 1.2rem;"><i class="${iconClass}"></i></a>`);
                 }
             });
 
-            socialContainer.innerHTML = socialLinks.length > 0 ? `
-                <div class="social-strip">
-                    ${socialLinks.join('')}
-                </div>
-            ` : '';
+            socialContainer.innerHTML = socialLinks.length > 0 ? socialLinks.join('') : '';
         }
 
         // Update action buttons preview
@@ -859,6 +886,13 @@ const UI = {
             actionContainer.innerHTML = `
                 <button class="btn-card-action primary">Guardar Contacto</button>
             `;
+        }
+
+        // --- NEW: Dynamic QR updates in preview ---
+        if (state.cardId && this.qrContainer) {
+            const baseUrl = window.location.origin + (window.location.pathname.endsWith('/') ? window.location.pathname : window.location.pathname + '/');
+            const cardUrl = `${baseUrl}#/card/${state.cardId}`;
+            this.generateQR(cardUrl, this.qrContainer);
         }
 
         // Update share strip preview
@@ -1025,7 +1059,49 @@ const UI = {
                     ${templateId !== 'minimal' && templateId !== 'minimal-modern' ? '<div class="deco-circle c3"></div>' : ''}
                     ${templateId !== 'minimal' && templateId !== 'minimal-modern' ? '<div class="deco-circle c4"></div>' : ''}
                     
-                    ${templateId === 'classic' ? `
+                    ${templateId === 'corporate' ? `
+                    <!-- Corporate premium template -->
+                    <div class="template-corporate">
+                        <div class="corporate-header">
+                            <div class="qr-stylized-container">
+                                <div class="qr-corners">
+                                    <span class="cor-tl"></span><span class="cor-tr"></span>
+                                    <span class="cor-bl"></span><span class="cor-br"></span>
+                                </div>
+                                <div id="preview-qr" style="width: 100%; height: 100%;"></div>
+                            </div>
+                        </div>
+
+                        <div class="profile-container-modern">
+                            <div class="profile-img-wrap">
+                                ${profileImageHtml}
+                            </div>
+                        </div>
+
+                        <div class="content-row-modern">
+                            <div class="vertical-contact-strip">
+                                ${card.phone ? `<div style="color: var(--accent);"><i class="fas fa-phone"></i></div>` : ''}
+                                ${card.email ? `<div style="color: #fff;"><i class="fas fa-envelope"></i></div>` : ''}
+                                ${card.address ? `<div style="color: var(--text-secondary);"><i class="fas fa-location-dot"></i></div>` : ''}
+                            </div>
+                            
+                            <div class="corporate-main-content">
+                                <h1>${fullName.toUpperCase()}</h1>
+                                <div class="title-modern">${(card.professional_title || 'CARGO O TÍTULO').toUpperCase()}</div>
+                                <p class="desc-modern">${card.experience_summary || 'Esta es tu descripción empresarial profesional.'}</p>
+                            </div>
+                        </div>
+
+                        <div class="card-footer-modern">
+                            <div class="social-footer-row">
+                                <div class="social-icons-footer">
+                                    ${socialLinks.join('')}
+                                </div>
+                                <button class="btn btn-primary btn-save" style="padding: 0.5rem 1.25rem; font-size: 0.75rem;">GUARDAR</button>
+                            </div>
+                        </div>
+                    </div>
+                    ` : templateId === 'classic' ? `
                     <!-- Classic template header -->
                     <div class="card-header">
                         <div class="brand-text">${card.company || 'EMPRESA'}</div>
@@ -1049,6 +1125,21 @@ const UI = {
                     <!-- Contact info section -->
                     <div class="contact-container" style="display: flex; flex-direction: column; gap: 0.5rem; margin: 1rem 0;">
                         ${contactItems.join('')}
+                    </div>
+
+                    <!-- Standard Footer Elements (QR & Social) -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 2rem;">
+                         <div class="qr-stylized-container" style="position: relative; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid var(--border);">
+                             <div class="qr-corners">
+                                 <span class="cor-tl"></span><span class="cor-tr"></span>
+                                 <span class="cor-bl"></span><span class="cor-br"></span>
+                             </div>
+                             <div id="preview-qr" style="width: 100px; height: 100px;"></div>
+                         </div>
+                    </div>
+
+                    <div class="card-footer-actions" style="margin-top: 1.5rem;">
+                        <button class="btn btn-primary btn-full btn-save">Guardar Contacto</button>
                     </div>
                     ` : `
                     <!-- Standard template layout -->
@@ -1077,24 +1168,17 @@ const UI = {
                     <div class="contact-container" style="display: flex; flex-direction: column; gap: 0.6rem; margin: 1.5rem 0; border-left: 2px solid var(--primary); padding-left: 1rem;">
                         ${contactItems.join('')}
                     </div>
+
+                    <!-- Footer Elements for Standard -->
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 2rem;">
+                         <div id="preview-qr" style="width: 80px; height: 80px;"></div>
+                         ${socialLinks.length > 0 ? `<div style="display: flex; gap: 1rem;">${socialLinks.slice(0, 3).join('')}</div>` : ''}
+                    </div>
+
+                    <div class="card-footer-actions" style="margin-top: 1.5rem;">
+                        <button class="btn btn-primary btn-full btn-save">Guardar Contacto</button>
+                    </div>
                     `}
-                    
-                    <!-- Social media links -->
-                    ${socialLinks.length > 0 ? `
-                    <div class="social-strip" style="display: flex; gap: 1rem; margin-top: 2rem;">
-                        ${socialLinks.join('')}
-                    </div>
-                    ` : ''}
-                    
-                    <!-- Action buttons -->
-                    <div class="card-footer-actions">
-                        <div class="action-grid">
-                            <button class="btn-card-action primary">Guardar Contacto</button>
-                        </div>
-                        
-                        <!-- QR code -->
-                        <div id="preview-qr" style="width:90px; height:90px; margin-top:1rem;"></div>
-                    </div>
                 </div>
             </div>
         `;
