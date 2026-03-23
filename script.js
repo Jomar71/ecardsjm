@@ -743,8 +743,8 @@ const UI = {
 
         // Apply Custom Branding
         if (preview) {
-            // Apply Template Class (Preserving layout classes)
-            preview.className = `card-preview animate-in template-${data.template_id || 'corporate'}`;
+            // Apply Template Class
+            preview.className = `card-preview animate-in template-${data.template_id || 'custom'}`;
 
             // Apply theme if selected
             const theme = data.theme_selector || 'dark';
@@ -755,32 +755,16 @@ const UI = {
                 preview.style.backgroundSize = 'cover';
                 preview.style.backgroundPosition = 'center';
             } else {
-                // If NO user image, use system template gradient/color
+                // If NO user image, use selected colors or default gradient
                 preview.style.backgroundImage = '';
                 
-                if (data.bg_color && data.bg_color !== '#0B0F19' && data.bg_color !== '#000000') {
-                    preview.style.backgroundColor = data.bg_color;
-                } else {
-                    preview.style.backgroundColor = ''; // Use CSS default
-                }
-
-                // Apply default gradients for specific templates if no custom background
-                if (!data.bg_color || data.bg_color === '#0B0F19' || data.bg_color === '#000000') {
-                    if (!data.template_id || data.template_id === 'corporate') {
-                        preview.style.backgroundImage = `linear-gradient(135deg, ${data.bg_color || '#0B0F19'} 0%, #001A33 100%)`;
-                    } else if (data.template_id === 'creative') {
-                        preview.style.backgroundImage = `radial-gradient(circle at top right, ${data.primary_color || '#1A1C2C'} 0%, ${data.bg_color || '#000000'} 100%)`;
-                    } else if (data.template_id === 'vertical') {
-                        preview.style.backgroundImage = `linear-gradient(180deg, #1E293B 0%, #0F172A 100%)`;
-                    } else if (data.template_id === 'executive') {
-                        preview.style.backgroundImage = `linear-gradient(135deg, #1e1e1e 0%, #111 100%)`;
-                    } else if (data.template_id === 'neotech') {
-                        preview.style.backgroundImage = `radial-gradient(circle at 50% 50%, #1a103d 0%, #050505 100%)`;
-                    } else if (data.template_id === 'minimal-modern') {
-                        preview.style.backgroundImage = `linear-gradient(135deg, #ffffff 0%, #f0f4f8 100%)`;
-                    }
-                }
+                const bgColor = data.bg_color || '#0B0F19';
+                const primColor = data.primary_color || '#7c3aed';
+                
+                preview.style.backgroundColor = bgColor;
+                preview.style.backgroundImage = `linear-gradient(135deg, ${bgColor} 0%, ${primColor}55 100%)`;
             }
+
             preview.style.color = (data.template_id === 'classic' || data.template_id === 'minimal-modern') ? (data.text_color || '#333') : (data.text_color || '#FFFFFF');
             preview.style.fontFamily = data.font_family || "'Plus Jakarta Sans', sans-serif";
 
@@ -1046,142 +1030,50 @@ const UI = {
         // Render the card HTML
         publicView.innerHTML = `
             <style>${customStyles}</style>
-            <div class="card-preview template-${templateId}" style="
-                ${card.bg_color && card.bg_color !== '#0B0F19' && card.bg_color !== '#000000' ? `background-color: ${card.bg_color};` : ''}
-                ${card.bg_image_path ? `background-image: url('${card.bg_image_path}'); background-size: cover; background-position: center;` : ''}
+            <div class="card-preview template-custom" style="
+                ${card.bg_color ? `background-color: ${card.bg_color};` : 'background-color: #0B0F19;'}
+                ${card.bg_image_path ? `background-image: url('${card.bg_image_path}'); background-size: cover; background-position: center; border: none;` : `background-image: linear-gradient(135deg, ${card.bg_color || '#0B0F19'} 0%, ${card.primary_color || '#7c3aed'}55 100%);`}
                 color: ${card.text_color || '#FFFFFF'};
                 font-family: ${card.font_family || "'Plus Jakarta Sans', sans-serif"};
             ">
                 <div class="card-content">
-                    <!-- Decorative elements -->
-                    ${templateId !== 'minimal' && templateId !== 'minimal-modern' ? '<div class="deco-circle c1"></div>' : ''}
-                    ${templateId !== 'minimal' && templateId !== 'minimal-modern' ? '<div class="deco-circle c2"></div>' : ''}
-                    ${templateId !== 'minimal' && templateId !== 'minimal-modern' ? '<div class="deco-circle c3"></div>' : ''}
-                    ${templateId !== 'minimal' && templateId !== 'minimal-modern' ? '<div class="deco-circle c4"></div>' : ''}
-                    
-                    ${templateId === 'corporate' ? `
-                    <!-- Corporate premium template -->
-                    <div class="template-corporate">
-                        <div class="corporate-header">
-                            <div class="qr-stylized-container">
-                                <div class="qr-corners">
-                                    <span class="cor-tl"></span><span class="cor-tr"></span>
-                                    <span class="cor-bl"></span><span class="cor-br"></span>
-                                </div>
-                                <div id="preview-qr" style="width: 100%; height: 100%;"></div>
-                            </div>
-                        </div>
-
-                        <div class="profile-container-modern">
-                            <div class="profile-img-wrap">
-                                ${profileImageHtml}
-                            </div>
-                        </div>
-
-                        <div class="content-row-modern">
-                            <div class="vertical-contact-strip">
-                                ${card.phone ? `<div style="color: var(--accent);"><i class="fas fa-phone"></i></div>` : ''}
-                                ${card.email ? `<div style="color: #fff;"><i class="fas fa-envelope"></i></div>` : ''}
-                                ${card.address ? `<div style="color: var(--text-secondary);"><i class="fas fa-location-dot"></i></div>` : ''}
-                            </div>
-                            
-                            <div class="corporate-main-content">
-                                <h1>${fullName.toUpperCase()}</h1>
-                                <div class="title-modern">${(card.professional_title || 'CARGO O TÍTULO').toUpperCase()}</div>
-                                <p class="desc-modern">${card.experience_summary || 'Esta es tu descripción empresarial profesional.'}</p>
-                            </div>
-                        </div>
-
-                        <div class="card-footer-modern">
-                            <div class="social-footer-row">
-                                <div class="social-icons-footer">
-                                    ${socialLinks.join('')}
-                                </div>
-                                <button class="btn btn-primary btn-save" style="padding: 0.5rem 1.25rem; font-size: 0.75rem;">GUARDAR</button>
-                            </div>
-                        </div>
-                    </div>
-                    ` : templateId === 'classic' ? `
-                    <!-- Classic template header -->
-                    <div class="card-header">
-                        <div class="brand-text">${card.company || 'EMPRESA'}</div>
-                    </div>
-                    
-                    <!-- Classic template body -->
-                    <div class="card-body-flex">
-                        <div class="profile-container ${positionClass}">
-                            <div id="preview-logo-box">
-                                ${profileImageHtml}
-                            </div>
-                        </div>
-                        
-                        <div class="card-text-block">
-                            <h2 id="preview-name">${fullName.toUpperCase()}</h2>
-                            <h3 id="preview-title">${(card.professional_title || 'CARGO O TÍTULO').toUpperCase()}</h3>
-                            <p class="card-desc">${card.experience_summary || 'Esta es tu descripción empresarial profesional.'}</p>
-                        </div>
-                    </div>
-                    
-                    <!-- Contact info section -->
-                    <div class="contact-container" style="display: flex; flex-direction: column; gap: 0.5rem; margin: 1rem 0;">
-                        ${contactItems.join('')}
-                    </div>
-
-                    <!-- Standard Footer Elements (QR & Social) -->
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 2rem;">
-                         <div class="qr-stylized-container" style="position: relative; padding: 12px; background: rgba(255,255,255,0.03); border-radius: 12px; border: 1px solid var(--border);">
-                             <div class="qr-corners">
-                                 <span class="cor-tl"></span><span class="cor-tr"></span>
-                                 <span class="cor-bl"></span><span class="cor-br"></span>
-                             </div>
-                             <div id="preview-qr" style="width: 100px; height: 100px;"></div>
-                         </div>
-                    </div>
-
-                    <div class="card-footer-actions" style="margin-top: 1.5rem;">
-                        <button class="btn btn-primary btn-full btn-save">Guardar Contacto</button>
-                    </div>
-                    ` : `
-                    <!-- Standard template layout -->
                     <div class="card-top-bar" style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem;">
                         <div class="company-brand-box">
-                            <div class="company-logo-ring" style="width: 45px; height: 45px; border: 2px solid var(--primary); border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 0.5rem;">
-                                ${card.logo_path ? `<img src="${card.logo_path}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;">` : '<i class="fas fa-building" style="color: var(--primary);"></i>'}
+                            <div class="company-logo-ring" style="width: 45px; height: 45px; border: 2px solid ${card.primary_color || 'var(--primary)'}; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 0.5rem; background: rgba(255,255,255,0.05);">
+                                ${card.logo_path ? `<img src="${card.logo_path}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;">` : '<i class="fas fa-building" style="color: white; opacity: 0.5;"></i>'}
                             </div>
-                            <div class="brand-text" style="font-weight: 700; font-size: 0.9rem; letter-spacing: 1px;">${card.company || 'EMPRESA'}</div>
+                            <div class="brand-text" style="font-weight: 700; font-size: 0.9rem; letter-spacing: 1px; color: ${card.text_color || '#FFFFFF'};">${card.company || 'EMPRESA'}</div>
                         </div>
                         
                         <div class="profile-container ${positionClass}">
-                            <div id="preview-logo-box" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid var(--primary); overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.3);">
+                            <div id="preview-logo-box" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid ${card.primary_color || 'var(--primary)'}; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.3);">
                                 ${profileImageHtml}
                             </div>
                         </div>
                     </div>
                     
                     <div class="card-text-block" style="margin-bottom: 1.5rem;">
-                        <h2 id="preview-name" style="font-size: 1.8rem; font-weight: 800; margin: 0; line-height: 1.1;">${fullName.toUpperCase()}</h2>
-                        <h3 id="preview-title" style="font-size: 1rem; color: var(--primary); margin: 0.3rem 0; font-weight: 600;">${(card.professional_title || 'CARGO O TÍTULO').toUpperCase()}</h3>
-                        <p class="card-desc" style="font-size: 0.9rem; opacity: 0.8; margin-top: 1rem; line-height: 1.5; font-style: italic;">${card.experience_summary || 'Esta es tu descripción empresarial profesional.'}</p>
+                        <h2 id="preview-name" style="font-size: 1.8rem; font-weight: 800; margin: 0; line-height: 1.1; color: ${card.text_color || '#FFFFFF'};">${fullName.toUpperCase()}</h2>
+                        <h3 id="preview-title" style="font-size: 1rem; color: ${card.primary_color || 'var(--primary)'}; margin: 0.3rem 0; font-weight: 600;">${(card.professional_title || 'CARGO O TÍTULO').toUpperCase()}</h3>
+                        <p class="card-desc" style="font-size: 0.9rem; opacity: 0.8; margin-top: 1rem; line-height: 1.5; font-style: italic; color: ${card.text_color || '#FFFFFF'};">${card.experience_summary || 'Esta es tu descripción empresarial profesional.'}</p>
                     </div>
                     
-                    <!-- Contact info section -->
-                    <div class="contact-container" style="display: flex; flex-direction: column; gap: 0.6rem; margin: 1.5rem 0; border-left: 2px solid var(--primary); padding-left: 1rem;">
+                    <div class="contact-container" style="display: flex; flex-direction: column; gap: 0.6rem; margin: 1.5rem 0; border-left: 2px solid ${card.primary_color || 'var(--primary)'}; padding-left: 1rem;">
                         ${contactItems.join('')}
                     </div>
-
-                    <!-- Footer Elements for Standard -->
-                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 2rem;">
-                         <div id="preview-qr" style="width: 80px; height: 80px;"></div>
-                         ${socialLinks.length > 0 ? `<div style="display: flex; gap: 1rem;">${socialLinks.slice(0, 3).join('')}</div>` : ''}
+                    
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: auto;">
+                         <div id="preview-qr" style="width: 80px; height: 80px; background: white; padding: 5px; border-radius: 8px;"></div>
+                         ${socialLinks.length > 0 ? `<div style="display: flex; gap: 0.8rem;">${socialLinks.slice(0, 4).join('')}</div>` : ''}
                     </div>
 
                     <div class="card-footer-actions" style="margin-top: 1.5rem;">
-                        <button class="btn btn-primary btn-full btn-save">Guardar Contacto</button>
+                        <button class="btn btn-primary btn-full btn-save" style="background: ${card.primary_color || 'var(--primary)'}; border: none; font-weight: 700;">Guardar Contacto</button>
                     </div>
-                    `}
                 </div>
             </div>
         `;
+
         
         // Generate QR code for the current page URL
         const qrContainer = document.getElementById('preview-qr');
