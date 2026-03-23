@@ -718,11 +718,10 @@ const UI = {
         alert("LINK COPIADO AL PORTAPAPELES");
     },
 
-    // --- Core Engine: Multi-Template Hybrid Rendering ---
     updatePreview(customData = null) {
         const data = customData || (this.form ? Object.fromEntries(new FormData(this.form).entries()) : {});
         const n = document.getElementById('preview-name');
-        const pt = document.getElementById('preview-prof-title');
+        const pt = document.getElementById('preview-title');
         const c = document.getElementById('preview-company');
         const d = document.getElementById('preview-description');
         const addr = document.getElementById('preview-address');
@@ -735,11 +734,74 @@ const UI = {
         const fullName = firstName && lastName ? `${firstName} ${lastName}` : firstName || lastName || 'NOMBRE COMPLETO';
 
         if (n) n.textContent = fullName.toUpperCase();
-        if (pt) pt.textContent = (data.professional_title || 'CARGO O TÍTULO').toUpperCase();
-        if (c) c.textContent = (data.company || 'EMPRESA').toUpperCase();
-        if (d) d.textContent = data.experience_summary || 'Esta es tu descripción empresarial profesional.';
+        
+        if (pt) {
+            const title = (data.professional_title || '').toUpperCase();
+            pt.textContent = title;
+            pt.style.display = title ? 'block' : 'none';
+        }
+        
+        if (c) {
+            const company = (data.company || '').toUpperCase();
+            c.textContent = company;
+            c.style.display = company ? 'block' : 'none';
+        }
+        
+        if (d) {
+            const description = data.experience_summary || '';
+            d.textContent = description;
+            d.style.display = description ? 'block' : 'none';
+        }
         if (addr) addr.textContent = data.address || '';
         if (web) web.textContent = data.website || '';
+
+        // --- Visibilidad Opcional (Live Engine) ---
+        const brandBox = document.querySelector('.company-brand-box');
+        const logoBrand = document.getElementById('preview-logo-brand');
+        const logoRing = document.querySelector('.company-logo-ring');
+        const brandText = document.getElementById('preview-brand-text');
+        const logoIcon = document.getElementById('preview-logo-icon');
+
+        if (brandBox) {
+            const hasLogo = !!state.logoPath;
+            const hasCompany = !!(document.getElementById('company')?.value || data.company);
+            
+            if (hasLogo || hasCompany) {
+                brandBox.style.display = 'block';
+                if (logoRing) {
+                    if (hasLogo) {
+                        logoRing.style.display = 'flex';
+                        if (logoBrand) {
+                            logoBrand.src = state.logoPath;
+                            logoBrand.style.display = 'block';
+                        }
+                        if (logoIcon) logoIcon.style.display = 'none';
+                    } else {
+                        logoRing.style.display = 'none';
+                    }
+                }
+                if (brandText) {
+                    const companyValue = document.getElementById('company')?.value || data.company;
+                    brandText.textContent = companyValue ? companyValue.toUpperCase() : '';
+                    brandText.style.display = companyValue ? 'block' : 'none';
+                }
+            } else {
+                brandBox.style.display = 'none';
+            }
+        }
+
+        const profileContainer = document.querySelector('.preview-panel .profile-container');
+        const profileBox = document.getElementById('preview-logo-box');
+        if (profileContainer) {
+            if (state.profilePath) {
+                profileContainer.style.display = 'block';
+                if (profileBox) {
+                    profileBox.innerHTML = `<img src="${state.profilePath}" style="width:100%; height:100%; object-fit:cover;">`;
+                }
+            } else {
+                profileContainer.style.display = 'none';
+            }
+        }
 
         // Apply Custom Branding
         if (preview) {
@@ -1038,24 +1100,30 @@ const UI = {
             ">
                 <div class="card-content">
                     <div class="card-top-bar" style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1.5rem;">
+                        ${(card.logo_path || card.company) ? `
                         <div class="company-brand-box">
+                            ${card.logo_path ? `
                             <div class="company-logo-ring" style="width: 45px; height: 45px; border: 2px solid ${card.primary_color || 'var(--primary)'}; border-radius: 8px; display: flex; align-items: center; justify-content: center; overflow: hidden; margin-bottom: 0.5rem; background: rgba(255,255,255,0.05);">
-                                ${card.logo_path ? `<img src="${card.logo_path}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;">` : '<i class="fas fa-building" style="color: white; opacity: 0.5;"></i>'}
+                                <img src="${card.logo_path}" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;">
                             </div>
-                            <div class="brand-text" style="font-weight: 700; font-size: 0.9rem; letter-spacing: 1px; color: ${card.text_color || '#FFFFFF'};">${card.company || 'EMPRESA'}</div>
+                            ` : ''}
+                            ${card.company ? `<div class="brand-text" style="font-weight: 700; font-size: 0.9rem; letter-spacing: 1px; color: ${card.text_color || '#FFFFFF'};">${card.company.toUpperCase()}</div>` : ''}
                         </div>
+                        ` : ''}
                         
+                        ${card.profile_path ? `
                         <div class="profile-container ${positionClass}">
                             <div id="preview-logo-box" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid ${card.primary_color || 'var(--primary)'}; overflow: hidden; box-shadow: 0 10px 20px rgba(0,0,0,0.3);">
-                                ${profileImageHtml}
+                                <img src="${card.profile_path}" alt="${fullName}">
                             </div>
                         </div>
+                        ` : ''}
                     </div>
                     
                     <div class="card-text-block" style="margin-bottom: 1.5rem;">
                         <h2 id="preview-name" style="font-size: 1.8rem; font-weight: 800; margin: 0; line-height: 1.1; color: ${card.text_color || '#FFFFFF'};">${fullName.toUpperCase()}</h2>
-                        <h3 id="preview-title" style="font-size: 1rem; color: ${card.primary_color || 'var(--primary)'}; margin: 0.3rem 0; font-weight: 600;">${(card.professional_title || 'CARGO O TÍTULO').toUpperCase()}</h3>
-                        <p class="card-desc" style="font-size: 0.9rem; opacity: 0.8; margin-top: 1rem; line-height: 1.5; font-style: italic; color: ${card.text_color || '#FFFFFF'};">${card.experience_summary || 'Esta es tu descripción empresarial profesional.'}</p>
+                        ${card.professional_title ? `<h3 id="preview-title" style="font-size: 1rem; color: ${card.primary_color || 'var(--primary)'}; margin: 0.3rem 0; font-weight: 600;">${card.professional_title.toUpperCase()}</h3>` : ''}
+                        ${card.experience_summary ? `<p class="card-desc" style="font-size: 0.9rem; opacity: 0.8; margin-top: 1rem; line-height: 1.5; font-style: italic; color: ${card.text_color || '#FFFFFF'};">${card.experience_summary}</p>` : ''}
                     </div>
                     
                     <div class="contact-container" style="display: flex; flex-direction: column; gap: 0.6rem; margin: 1.5rem 0; border-left: 2px solid ${card.primary_color || 'var(--primary)'}; padding-left: 1rem;">
