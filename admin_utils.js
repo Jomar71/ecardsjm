@@ -1,9 +1,16 @@
 require('dotenv').config();
+const fs = require('fs');
+const path = require('path');
 const { Pool } = require('pg');
 
+const pxxlEnvPath = path.join(__dirname, '.env.pxxl');
+if (fs.existsSync(pxxlEnvPath)) {
+    require('dotenv').config({ path: pxxlEnvPath, override: true });
+}
+
 const pool = new Pool({
-    connectionString: process.env.DATABASE_URL || 'postgresql://localhost/ecards_jm',
-    ssl: process.env.DATABASE_URL?.includes('neon') ? { rejectUnauthorized: false } : false
+    connectionString: process.env.DATABASE_URL,
+    ssl: { rejectUnauthorized: false }
 });
 
 const command = process.argv[2];
