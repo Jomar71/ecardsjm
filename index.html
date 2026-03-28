@@ -499,6 +499,27 @@
                     </div>
                 </div>
             </section>
+
+            <!-- VISTA ADMINISTRACIÓN DE USUARIOS -->
+            <section id="view-users-admin" class="view-content hidden">
+                <div class="container" style="max-width: 1000px; margin: 0 auto; padding: 3rem 2rem;">
+                    <header class="studio-header">
+                        <div>
+                            <button class="breadcrumb" onclick="Router.go('/admin')">
+                                <i class="fas fa-arrow-left"></i> Volver al Editor
+                            </button>
+                            <h2 class="premium-text-gradient" style="font-size: 2.2rem; font-weight: 800;">Gestión de Usuarios</h2>
+                            <p class="section-subtitle">Control de acceso y autorizaciones para la plataforma.</p>
+                        </div>
+                    </header>
+                    
+                    <div class="glass-card premium-card" style="margin-top: 2rem; padding: 1rem; overflow-x: auto;">
+                        <div id="users-admin-grid">
+                            <!-- Inyectado por JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
         </main>
     
     <!-- Public View Container - shown when viewing a specific card -->
