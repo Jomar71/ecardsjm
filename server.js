@@ -93,40 +93,7 @@ const authenticateToken = (req, res, next) => {
 
 // ===== AUTH ENDPOINTS =====
 
-app.post('/api/auth/register', async (req, res) => {
-    const { username, password } = req.body;
-    if (!username || !password) return res.status(400).json({ error: 'FIELDS_REQUIRED' });
-    try {
-        const passwordHash = await bcrypt.hash(password, 10);
-        const result = await query(
-            'INSERT INTO users (username, password_hash) VALUES ($1, $2) RETURNING id, username',
-            [username, passwordHash]
-        );
-        const user = result.rows[0];
-        const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '7d' });
-        res.json({ status: 'success', user, token });
-    } catch (err) {
-        if (err.code === '23505') return res.status(400).json({ error: 'USER_EXISTS' });
-        console.error('Register error:', err.message);
-        res.status(500).json({ error: 'SERVER_ERROR', detail: err.message });
-    }
-});
-
-app.post('/api/auth/login', async (req, res) => {
-    const { username, password } = req.body;
-    try {
-        const result = await query('SELECT * FROM users WHERE username = $1', [username]);
-        if (result.rows.length === 0) return res.status(400).json({ error: 'INVALID_CREDENTIALS' });
-        const user = result.rows[0];
-        const validPassword = await bcrypt.compare(password, user.password_hash);
-        if (!validPassword) return res.status(400).json({ error: 'INVALID_CREDENTIALS' });
-        const token = jwt.sign({ id: user.id, username: user.username }, SECRET_KEY, { expiresIn: '7d' });
-        res.json({ status: 'success', user: { id: user.id, username: user.username }, token });
-    } catch (err) {
-        console.error('Login error:', err.message);
-        res.status(500).json({ error: 'SERVER_ERROR', detail: err.message });
-    }
-});
+// Auth endpoints handled at the end of the file for better organization.
 
 // ===== CARDS ENDPOINTS =====
 
@@ -251,9 +218,18 @@ async function initDB() {
                 id SERIAL PRIMARY KEY,
                 username TEXT UNIQUE NOT NULL,
                 password_hash TEXT NOT NULL,
+                is_authorized BOOLEAN DEFAULT FALSE,
+                is_admin BOOLEAN DEFAULT FALSE,
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         `);
+        
+        // Migración: Asegurar que existan las nuevas columnas
+        try {
+            await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_authorized BOOLEAN DEFAULT FALSE`);
+            await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE`);
+        } catch(e) { console.log("Users migration info:", e.message); }
+
         await query(`
             CREATE TABLE IF NOT EXISTS business_cards (
                 id TEXT PRIMARY KEY,
@@ -283,6 +259,104 @@ async function initDB() {
         console.error('❌ Error inicializando DB (servidor sigue funcionando):', err.message);
     }
 }
+
+// ===== AUTH ENDPOINTS ACTUALIZADOS =====
+
+app.post('/api/auth/register', async (req, res) => {
+    const { username, password } = req.body;
+    if (!username || !password) return res.status(400).json({ error: 'FIELDS_REQUIRED' });
+    try {
+        // Verificar si es el primer usuario
+        const countResult = await query('SELECT COUNT(*) FROM users');
+        const isFirstUser = parseInt(countResult.rows[0].count) === 0;
+        
+        const passwordHash = await bcrypt.hash(password, 10);
+        
+        // Si es el primer usuario, se autoriza automáticamente y se hace admin
+        const isAuthorized = isFirstUser;
+        const isAdmin = isFirstUser;
+
+        const result = await query(
+            'INSERT INTO users (username, password_hash, is_authorized, is_admin) VALUES ($1, $2, $3, $4) RETURNING id, username, is_authorized, is_admin',
+            [username, passwordHash, isAuthorized, isAdmin]
+        );
+        const user = result.rows[0];
+        
+        if (!user.is_authorized) {
+            return res.json({ status: 'pending', message: 'WAIT_FOR_APPROVAL', user });
+        }
+
+        const token = jwt.sign({ id: user.id, username: user.username, is_admin: user.is_admin }, SECRET_KEY, { expiresIn: '15d' });
+        res.json({ status: 'success', user, token });
+    } catch (err) {
+        if (err.code === '23505') return res.status(400).json({ error: 'USER_EXISTS' });
+        console.error('Register error:', err.message);
+        res.status(500).json({ error: 'SERVER_ERROR', detail: err.message });
+    }
+});
+
+app.post('/api/auth/login', async (req, res) => {
+    const { username, password } = req.body;
+    try {
+        const result = await query('SELECT * FROM users WHERE username = $1', [username]);
+        if (result.rows.length === 0) return res.status(400).json({ error: 'INVALID_CREDENTIALS' });
+        
+        const user = result.rows[0];
+        const validPassword = await bcrypt.compare(password, user.password_hash);
+        if (!validPassword) return res.status(400).json({ error: 'INVALID_CREDENTIALS' });
+        
+        if (!user.is_authorized) {
+            return res.status(403).json({ error: 'USER_NOT_AUTHORIZED', message: 'Tu cuenta aún no ha sido autorizada por el administrador.' });
+        }
+
+        const token = jwt.sign({ id: user.id, username: user.username, is_admin: user.is_admin }, SECRET_KEY, { expiresIn: '15d' });
+        res.json({ status: 'success', user: { id: user.id, username: user.username, is_admin: user.is_admin }, token });
+    } catch (err) {
+        console.error('Login error:', err.message);
+        res.status(500).json({ error: 'SERVER_ERROR', detail: err.message });
+    }
+});
+
+// ===== ADMIN ENDPOINTS =====
+
+const isAdmin = (req, res, next) => {
+    if (!req.user || !req.user.is_admin) {
+        return res.status(403).json({ error: 'ADMIN_REQUIRED' });
+    }
+    next();
+};
+
+app.get('/api/admin/users', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        const result = await query('SELECT id, username, is_authorized, is_admin, created_at FROM users ORDER BY created_at DESC');
+        res.json(result.rows);
+    } catch (err) {
+        res.status(500).json({ error: 'DB_ERROR' });
+    }
+});
+
+app.post('/api/admin/users/:id/authorize', authenticateToken, isAdmin, async (req, res) => {
+    const { is_authorized } = req.body;
+    try {
+        await query('UPDATE users SET is_authorized = $1 WHERE id = $2', [is_authorized, req.params.id]);
+        res.json({ status: 'success' });
+    } catch (err) {
+        res.status(500).json({ error: 'DB_ERROR' });
+    }
+});
+
+app.delete('/api/admin/users/:id', authenticateToken, isAdmin, async (req, res) => {
+    try {
+        // No permitir que el admin se borre a sí mismo
+        if (parseInt(req.params.id) === req.user.id) {
+            return res.status(400).json({ error: 'CANNOT_DELETE_SELF' });
+        }
+        await query('DELETE FROM users WHERE id = $1', [req.params.id]);
+        res.json({ status: 'success' });
+    } catch (err) {
+        res.status(500).json({ error: 'DB_ERROR' });
+    }
+});
 
 // ===== START SERVER =====
 app.listen(PORT, '0.0.0.0', () => {

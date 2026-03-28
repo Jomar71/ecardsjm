@@ -6,8 +6,10 @@
 "use strict";
 
 const state = {
-    user: JSON.parse(localStorage.getItem('ecards_user')) || { id: 'local_user', username: 'guest' },
+    user: JSON.parse(localStorage.getItem('ecards_user')) || { id: 'local_user', username: 'guest', is_admin: false, is_authorized: false },
     token: localStorage.getItem('ecards_token'),
+    is_admin: false,
+    is_authorized: false,
     cardId: null,
     isPublicView: false,
     logoPath: null,
@@ -113,18 +115,34 @@ const Router = {
 
         // Restaurar estado de autenticación
         Auth.updateAuthUI();
+
+        // Enforcement of authorization
+        if (state.token && !state.is_authorized && path !== '/' && !path.startsWith('/card/')) {
+            document.getElementById('view-pending')?.classList.remove('hidden');
+            return;
+        }
+
         if (path === '/admin' || path === '/dashboard') {
             document.getElementById('view-admin')?.classList.remove('hidden');
             const delBtn = document.getElementById('btn-delete-card');
             if (state.cardId) delBtn?.classList.remove('hidden');
             else delBtn?.classList.add('hidden');
             
+            // Generate QR if card exists
+            if (state.cardId) {
+                const baseUrl = window.location.origin + window.location.pathname;
+                UI.generateQR(`${baseUrl}#/card/${state.cardId}`);
+            }
+
             // Cargar lista de tarjetas en el admin
             UI.loadDashboard();
             
             if (path === '/dashboard') {
                 Router.go('/admin');
             }
+        } else if (path === '/users' && state.is_admin) {
+            document.getElementById('view-users-admin')?.classList.remove('hidden');
+            Admin.loadUsers();
         } else {
             document.getElementById('view-home')?.classList.remove('hidden');
         }
@@ -146,10 +164,20 @@ window.addEventListener('load', () => {
 
 const Auth = {
     async check() {
-        if (state.token && state.user && state.user.id !== 'local_user') {
-            this.updateAuthUI();
+        if (state.token) {
+            try {
+                // Verify token and get fresh user data
+                const data = await apiFetch('/api/auth/me');
+                state.user = data.user;
+                state.is_admin = !!data.user.is_admin;
+                state.is_authorized = !!data.user.is_authorized;
+                localStorage.setItem('ecards_user', JSON.stringify(data.user));
+                this.updateAuthUI();
+            } catch (err) {
+                this.logout(false);
+            }
         } else {
-            this.logout(false); // Silent logout if no token
+            this.logout(false);
         }
     },
 
@@ -169,11 +197,18 @@ const Auth = {
                 localStorage.setItem('ecards_token', data.token);
                 state.user = data.user;
                 state.token = data.token;
+                state.is_admin = !!data.user.is_admin;
+                state.is_authorized = !!data.user.is_authorized;
                 
                 this.updateAuthUI();
                 UI.hideAuth();
-                Router.go('/admin');
-                location.reload(); // Recargar para sincronizar estado
+                
+                if (!state.is_authorized) {
+                    Router.go('/pending');
+                } else {
+                    Router.go('/admin');
+                }
+                location.reload();
             }
         } catch (err) {
             alert("ERROR AL INICIAR SESIÓN: " + (err.message === 'INVALID_CREDENTIALS' ? 'Datos incorrectos' : err.message));
@@ -233,6 +268,100 @@ const Auth = {
             if (navUsername) navUsername.textContent = (state.user.username || 'USUARIO').toUpperCase();
             const navAvatar = document.getElementById('nav-avatar');
             if (navAvatar) navAvatar.textContent = (state.user.username?.[0] || 'U').toUpperCase();
+            
+            // Admin only menu
+            const adminMenu = document.getElementById('admin-only-menu');
+            if (adminMenu) {
+                if (state.is_admin) adminMenu.classList.remove('hidden');
+                else adminMenu.classList.add('hidden');
+            }
+        }
+    }
+};
+
+const Admin = {
+    async loadUsers() {
+        const grid = document.getElementById('users-admin-grid');
+        if (!grid) return;
+        
+        grid.innerHTML = '<div class="premium-loader"></div>';
+        
+        try {
+            const users = await apiFetch('/api/admin/users');
+            grid.innerHTML = '';
+            
+            if (users.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; padding:2rem; color:var(--text-muted);">No hay otros usuarios registrados.</p>';
+                return;
+            }
+            
+            const table = document.createElement('table');
+            table.className = 'admin-table';
+            table.innerHTML = `
+                <thead>
+                    <tr>
+                        <th>Usuario</th>
+                        <th>Estado</th>
+                        <th>Admin</th>
+                        <th>Acción</th>
+                    </tr>
+                </thead>
+                <tbody id="users-table-body"></tbody>
+            `;
+            grid.appendChild(table);
+            
+            const tbody = document.getElementById('users-table-body');
+            users.forEach(u => {
+                const tr = document.createElement('tr');
+                const isAuth = !!u.is_authorized;
+                const isAdmin = !!u.is_admin;
+                
+                tr.innerHTML = `
+                    <td style="font-weight:600;">${u.username}</td>
+                    <td>
+                        <span class="status-badge ${isAuth ? 'status-authorized' : 'status-pending'}">
+                            <i class="fas ${isAuth ? 'fa-check-circle' : 'fa-clock'}"></i>
+                            ${isAuth ? 'Autorizado' : 'Pendiente'}
+                        </span>
+                    </td>
+                    <td>${isAdmin ? '<i class="fas fa-shield-alt" style="color:var(--accent-light)"></i>' : '-'}</td>
+                    <td>
+                        <div class="admin-actions">
+                            <label class="switch">
+                                <input type="checkbox" ${isAuth ? 'checked' : ''} onchange="Admin.toggleAuth('${u.id}', this.checked)">
+                                <span class="slider"></span>
+                            </label>
+                            <button class="btn-icon-mini" title="Eliminar" onclick="Admin.deleteUser('${u.id}')"><i class="fas fa-trash-alt"></i></button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+            
+        } catch (err) {
+            grid.innerHTML = `<p style="color:var(--red); padding:1rem;">Error: ${err.message}</p>`;
+        }
+    },
+
+    async toggleAuth(userId, isAuthorized) {
+        try {
+            await apiFetch(`/api/admin/users/${userId}/authorize`, {
+                method: 'POST',
+                body: JSON.stringify({ isAuthorized })
+            });
+        } catch (err) {
+            alert("Error: " + err.message);
+            this.loadUsers(); // Refresh on error
+        }
+    },
+
+    async deleteUser(userId) {
+        if (!confirm("¿Eliminar este usuario y todas sus tarjetas definitivamente?")) return;
+        try {
+            await apiFetch(`/api/admin/users/${userId}`, { method: 'DELETE' });
+            this.loadUsers();
+        } catch (err) {
+            alert("Error: " + err.message);
         }
     }
 };

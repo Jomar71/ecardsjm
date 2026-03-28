@@ -49,7 +49,9 @@
             <div id="auth-nav-user" class="hidden" style="display:flex; gap:0.75rem; align-items:center;">
                 <button class="nav-link" onclick="Router.go('/')">INICIO</button>
                 <button class="nav-link" onclick="Router.go('/admin')">EDITOR</button>
-                <div class="user-badge">
+                <div class="user-badge" id="admin-btn-container">
+                    <button class="btn-icon-mini hidden" id="admin-users-btn" onclick="Router.go('/users')" title="Gestión de Usuarios"><i class="fas fa-users-cog"></i></button>
+                    <div class="user-badge-divider hidden" id="admin-btn-divider"></div>
                     <div class="user-avatar" id="nav-avatar">U</div>
                     <span id="nav-username">USUARIO</span>
                 </div>
@@ -447,6 +449,56 @@
             </div>
         </section>
 
+        <!-- ─── USER MANAGEMENT (Admin only) ────────────────── -->
+        <section id="view-users" class="view-content hidden">
+            <div class="container" style="max-width: 1000px; margin: 0 auto; padding: 3rem 2rem;">
+                <div class="dashboard-header">
+                    <button class="breadcrumb" onclick="Router.go('/admin')" style="margin-bottom: 1rem;">
+                        <i class="fas fa-arrow-left"></i> Volver al Editor
+                    </button>
+                    <h2 style="font-size: 2rem; font-weight: 800;">GESTIÓN DE USUARIOS</h2>
+                    <p style="color: var(--text-secondary);">Autoriza o revoca el acceso a nuevos usuarios de la plataforma.</p>
+                </div>
+
+                <div class="glass-card" style="overflow-x: auto; margin-top: 2rem;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Registrado</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-list">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+            <!-- VISTA PENDIENTE DE AUTORIZACIÓN -->
+            <section id="view-pending" class="view-content hidden">
+                <div class="pending-container animate-fade-in" style="display:flex; justify-content:center; align-items:center; min-height:60vh;">
+                    <div class="glass-card premium-card" style="text-align: center; max-width: 500px; padding: 3rem; border-radius: 20px;">
+                        <div class="status-icon-glow" style="font-size: 4rem; color: var(--accent); margin-bottom: 2rem;">
+                            <i class="fas fa-clock animate-pulse"></i>
+                        </div>
+                        <h2 class="premium-text-gradient" style="font-size: 2.2rem; font-weight: 800; margin-bottom: 1rem;">Cuenta en Espera</h2>
+                        <p style="color: var(--text-secondary); margin: 1.5rem 0; line-height: 1.6; font-size: 1.1rem;">
+                            Tu cuenta ha sido registrada correctamente, pero requiere la <strong>autorización de un administrador</strong> para acceder a las funciones de creación de tarjetas de élite.
+                        </p>
+                        <div class="pending-details" style="margin-bottom: 2.5rem; opacity: 0.7;">
+                            <p><small><i class="fas fa-info-circle"></i> Por favor, contacta con el administrador del sistema para activar tu perfil.</small></p>
+                        </div>
+                        <button class="btn btn-primary btn-full" style="padding: 1rem; border-radius: 12px; font-weight: 600;" onclick="Auth.logout()">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+            </section>
         </main>
     
     <!-- Public View Container - shown when viewing a specific card -->
@@ -466,8 +518,8 @@
                 <h3>Bienvenido de vuelta</h3>
                 <p class="auth-subtitle">Accede a tu identidad digital</p>
                 <form id="loginForm" onsubmit="Auth.handleLogin(event)">
-                    <div class="input-group"><label>Usuario</label><input type="text" id="login-user" required
-                            placeholder="Tu nombre de usuario"></div>
+                    <div class="input-group"><label>Email / Usuario</label><input type="text" id="login-user" required
+                            placeholder="Tu correo o usuario"></div>
                     <div class="input-group"><label>Contraseña</label><input type="password" id="login-pass" required
                             placeholder="••••••••"></div>
                     <button type="submit" class="btn btn-primary btn-full"
@@ -483,8 +535,8 @@
                 <h3>Crear Identidad</h3>
                 <p class="auth-subtitle">Únete a la plataforma de élite</p>
                 <form id="registerForm" onsubmit="Auth.handleRegister(event)">
-                    <div class="input-group"><label>Nombre de Usuario</label><input type="text" id="reg-user" required
-                            placeholder="Ej: carlos_mendez"></div>
+                    <div class="input-group"><label>Email de Usuario</label><input type="text" id="reg-user" required
+                            placeholder="Ej: carlos@correo.com"></div>
                     <div class="input-group"><label>Contraseña</label><input type="password" id="reg-pass" required
                             placeholder="Mínimo 6 caracteres"></div>
                     <button type="submit" class="btn btn-primary btn-full"
