@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login | E-Cards JM</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .login-container {
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at top right, rgba(79, 70, 229, 0.15), transparent 40%),
+                        radial-gradient(circle at bottom left, rgba(0, 220, 230, 0.1), transparent 40%);
+        }
+        
+        .login-card {
+            width: 100%;
+            max-width: 440px;
+            padding: 48px;
+            border-radius: 32px;
+            text-align: center;
+        }
+
+        .login-card h2 {
+            font-size: 2rem;
+            margin-bottom: 8px;
+            color: #fff;
+        }
+
+        .login-card p {
+            color: var(--on-surface-variant);
+            margin-bottom: 32px;
+        }
+
+        .input-group {
+            text-align: left;
+            margin-bottom: 24px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: var(--on-surface-variant);
+            margin-bottom: 8px;
+            margin-left: 4px;
+        }
+
+        .input-group input {
+            width: 100%;
+            padding: 14px 20px;
+            background: var(--bg-recessed);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: #fff;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .input-group input:focus {
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, var(--primary-container), var(--tertiary-container));
+            border: none;
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 8px;
+            transition: var(--transition);
+        }
+
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .login-footer {
+            margin-top: 24px;
+            font-size: 0.9rem;
+            color: var(--on-surface-variant);
+        }
+
+        .login-footer a {
+            color: var(--tertiary);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        .back-home {
+            position: absolute;
+            top: 40px;
+            left: 40px;
+            color: var(--on-surface-variant);
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+    <a href="index.html" class="back-home">← Volver al inicio</a>
+    
+    <div class="login-container">
+        <div class="login-card glass">
+            <div class="logo" style="justify-content: center; margin-bottom: 32px;">
+                <span>E-Cards</span> JM
+            </div>
+            <h2>Bienvenido</h2>
+            <p>Acceda a su identidad digital profesional.</p>
+            
+            <form id="loginForm">
+                <div class="input-group">
+                    <label>Email Corporativo</label>
+                    <input type="email" placeholder="usuario@empresa.com" required>
+                </div>
+                <div class="input-group">
+                    <label>Contraseña</label>
+                    <input type="password" placeholder="••••••••" required>
+                </div>
+                <button type="submit" class="btn-submit">Ingresar</button>
+            </form>
+            
+            <div class="login-footer">
+                ¿No tiene una cuenta? <a href="#">Contáctenos</a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').onsubmit = function(e) {
+            e.preventDefault();
+            alert('¡Login simulado con éxito! Bienvenido a E-Cards JM.');
+            window.location.href = 'index.html';
+        };
+    </script>
+</body>
+</html>

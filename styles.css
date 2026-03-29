@@ -117,12 +117,14 @@ nav .container {
 }
 
 .btn-login {
+    display: inline-block;
     padding: 10px 24px;
     background: var(--glass-bg);
     border: 1px solid var(--glass-border);
     border-radius: 12px;
     color: var(--on-surface);
     font-weight: 600;
+    text-decoration: none;
     transition: var(--transition);
 }
 
@@ -187,6 +189,7 @@ nav .container {
 }
 
 .btn-primary {
+    display: inline-block;
     padding: 16px 40px;
     background: linear-gradient(135deg, var(--primary-container), var(--tertiary-container));
     border: none;
@@ -194,6 +197,7 @@ nav .container {
     color: #fff;
     font-size: 1.1rem;
     font-weight: 600;
+    text-decoration: none;
     cursor: pointer;
     transition: var(--transition);
     box-shadow: 0 10px 30px -10px rgba(79, 70, 229, 0.5);
