@@ -3,73 +3,130 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Cards JM | Elite Digital Identity</title>
-    <meta name="description" content="E-Cards JM - Tarjetas digitales profesionales">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
-    <link href="/styles.css" rel="stylesheet">
+    <title>E-Cards JM | Su Identidad Digital, Elevada</title>
+    <meta name="description" content="E-Cards JM - Cree tarjetas de presentación digitales profesionales en segundos. Impacte en cada encuentro con tecnología y elegancia.">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-    <div id="app-root">
-        <header id="main-header">
-            <a class="logo" href="#/">E-Cards<span class="logo-accent">JM</span></a>
-            <nav id="top-nav">
-                <!-- 添加 "首页" 和 "我的卡片" 按钮 -->
-                <button class="nav-link" onclick="Router.go('/home')">Inicio</button>
-                <button class="nav-link" onclick="Router.go('/admin')">Mis Tarjetas</button>
+    <nav id="navbar">
+        <div class="container glass">
+            <a href="#" class="logo">
+                <span>E-Cards</span> JM
+            </a>
+            <div class="nav-links">
+                <a href="#hero">Inicio</a>
+                <a href="#tarjetas">Mis Tarjetas</a>
+                <a href="#acerca">Servicios</a>
+                <a href="#contacto">Contacto</a>
+            </div>
+            <button class="btn-login">Login</button>
+        </div>
+    </nav>
 
-                <!-- 原始登录按钮保留 -->
-                <div id="auth-nav-guest">
-                    <button class="nav-link" onclick="UI.showAuth('login')">Login</button>
+    <main>
+        <section class="hero" id="hero">
+            <div class="hero-content">
+                <h1>Su Identidad Digital, Elevada</h1>
+                <p>Efectividad, profesionalismo y diseño. Cree su tarjeta de presentación digital en minutos e impacte en cada encuentro con tecnología de vanguardia.</p>
+                <button class="btn-primary">Comenzar Ahora</button>
+            </div>
+            <div class="hero-visual">
+                <img src="hero_preview.png" alt="E-Cards JM Mockup">
+            </div>
+        </section>
+
+        <section class="section-spacing" id="features">
+            <div class="features-grid">
+                <div class="feature-card glass">
+                    <div class="feature-icon">✨</div>
+                    <h3>Elegancia Digital</h3>
+                    <p>Diseños sofisticados que reflejan su autoridad profesional en cualquier dispositivo.</p>
                 </div>
-            </nav>
-        </header>
-
-        <!-- 视图容器 -->
-        <div id="view-home" class="view-content hidden">
-            <!-- 首页内容 -->
-            <h2>Bienvenido a E-Cards JM</h2>
-            <p>Administra tus tarjetas digitales de forma profesional.</p>
-            <button onclick="Router.go('/admin')" class="btn-primary">Ver mis tarjetas</button>
-        </div>
-
-        <div id="view-admin" class="view-content hidden">
-            <h2>Mis Tarjetas</h2>
-            <div id="card-list">
-                <!-- Aquí se mostrarán las tarjetas del usuario -->
+                <div class="feature-card glass">
+                    <div class="feature-icon">⚡</div>
+                    <h3>Sincronización Total</h3>
+                    <p>Actualice su información en tiempo real. Sus contactos siempre tendrán sus datos al día.</p>
+                </div>
+                <div class="feature-card glass">
+                    <div class="feature-icon">📊</div>
+                    <h3>Analítica de Impacto</h3>
+                    <p>Reciba estadísticas precisas sobre quién y cuándo escanean su tarjeta digital.</p>
+                </div>
             </div>
-            <button onclick="UI.showCardForm()" class="btn-primary">Crear Tarjeta</button>
-        </div>
+        </section>
 
-        <div id="view-auth" class="view-content hidden">
-            <div id="auth-form-login">
-                <h2>Iniciar Sesión</h2>
-                <form id="login-form">
-                    <input type="email" id="login-email" placeholder="Correo electrónico" required>
-                    <input type="password" id="login-password" placeholder="Contraseña" required>
-                    <button type="submit" class="btn-primary">Iniciar Sesión</button>
-                </form>
+        <section class="showcase" id="tarjetas">
+            <div class="section-spacing">
+                <h2 style="font-size: 2.5rem; margin-bottom: 40px; text-align: center;">Explore la Excelencia</h2>
+                <div class="showcase-slider">
+                    <!-- Placeholder de Mockups -->
+                    <div class="mockup-card glass">
+                        <div style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.4), var(--bg-deep)); height: 200px; padding: 40px; text-align: center;">
+                            <div style="width: 80px; height: 80px; border-radius: 50%; background: #fff; margin: 0 auto 20px;"></div>
+                            <h4>Juan Pérez</h4>
+                            <p style="font-size: 0.8rem; opacity: 0.7;">CEO Visionary Corp</p>
+                        </div>
+                        <div style="padding: 32px;">
+                            <div style="width: 100%; height: 120px; background: rgba(255,255,255,0.05); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: var(--tertiary);">QR CODE PREVIEW</div>
+                        </div>
+                    </div>
+                    <div class="mockup-card glass">
+                        <div style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.4), var(--bg-deep)); height: 200px; padding: 40px; text-align: center;">
+                            <div style="width: 80px; height: 80px; border-radius: 50%; background: #eee; margin: 0 auto 20px;"></div>
+                            <h4>Maria Garcia</h4>
+                            <p style="font-size: 0.8rem; opacity: 0.7;">Director of Sales</p>
+                        </div>
+                        <div style="padding: 32px;">
+                            <div style="width: 100%; height: 120px; background: rgba(255,255,255,0.05); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: var(--tertiary);">QR CODE PREVIEW</div>
+                        </div>
+                    </div>
+                    <div class="mockup-card glass">
+                         <div style="background: linear-gradient(135deg, rgba(79, 70, 229, 0.4), var(--bg-deep)); height: 200px; padding: 40px; text-align: center;">
+                            <div style="width: 80px; height: 80px; border-radius: 50%; background: #ccc; margin: 0 auto 20px;"></div>
+                            <h4>Luis Martinez</h4>
+                            <p style="font-size: 0.8rem; opacity: 0.7;">Legal Consultant</p>
+                        </div>
+                        <div style="padding: 32px;">
+                            <div style="width: 100%; height: 120px; background: rgba(255,255,255,0.05); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; color: var(--tertiary);">QR CODE PREVIEW</div>
+                        </div>
+                    </div>
+                </div>
             </div>
-            <div id="auth-form-signup">
-                <h2>Registrarse</h2>
-                <form id="signup-form">
-                    <input type="email" id="signup-email" placeholder="Correo electrónico" required>
-                    <input type="password" id="signup-password" placeholder="Contraseña" required>
-                    <button type="submit" class="btn-primary">Registrarse</button>
-                </form>
+        </section>
+    </main>
+
+    <footer>
+        <div class="footer-content">
+            <div class="footer-logo">
+                <div class="logo">
+                     <span>E-Cards</span> JM
+                </div>
+                <p>La red profesional de tarjetas digitales más sofisticada para líderes empresariales contemporáneos.</p>
+            </div>
+            <div class="nav-links" style="display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
+                <a href="#">Privacidad</a>
+                <a href="#">Términos</a>
+                <a href="#">Ayuda</a>
+            </div>
+            <div class="footer-info">
+                <p>Diseñado para los líderes de hoy.</p>
+                <p style="margin-top: 8px;">soporte@ecardsjm.com</p>
             </div>
         </div>
-
-        <div id="view-card-form" class="view-content hidden">
-            <h2>Crear Tarjeta</h2>
-            <form id="card-form">
-                <input type="text" id="card-name" placeholder="Nombre" required>
-                <input type="text" id="card-title" placeholder="Título" required>
-                <input type="text" id="card-description" placeholder="Descripción" required>
-                <button type="submit" class="btn-primary">Crear Tarjeta</button>
-            </form>
+        <div class="copyright">
+            &copy; 2026 E-Cards JM. Todos los derechos reservados.
         </div>
-    </div>
+    </footer>
 
-    <script src="/app.js"></script>
+    <script>
+        window.onscroll = function() {
+            var navbar = document.getElementById("navbar");
+            if (window.pageYOffset > 50) {
+                navbar.classList.add("scrolled");
+            } else {
+                navbar.classList.remove("scrolled");
+            }
+        };
+    </script>
 </body>
 </html>
