@@ -180,20 +180,57 @@
                     <a href="create-card.html" class="btn-new">+ Nueva Tarjeta</a>
                 </div>
 
-                <div class="card-grid">
-                    <div class="card-item glass">
-                        <span class="card-status">Activa</span>
-                        <h3 style="color: #fff;">Perfil Ejecutivo Principal</h3>
-                        <p style="font-size: 0.9rem; color: var(--on-surface-variant);">CEO visionary@visionary.com</p>
-                        <hr style="border: 0.5px solid var(--glass-border);">
-                        <div style="display: flex; gap: 12px;">
-                            <button style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border); background: none; color: #fff; cursor: pointer;">Editar</button>
-                            <button style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--primary-container); background: var(--primary-container); color: #fff; cursor: pointer;">Ver QR</button>
-                        </div>
-                    </div>
+                <div class="card-grid" id="card-list">
+                    <!-- Cards will be populated here -->
                 </div>
             </div>
         </main>
     </div>
+
+    <script>
+        function loadCards() {
+            const list = document.getElementById('card-list');
+            list.innerHTML = "";
+            let found = false;
+            
+            for (let i = 0; i < localStorage.length; i++) {
+                const key = localStorage.key(i);
+                if (key.startsWith('ecard_')) {
+                    found = true;
+                    const card = JSON.parse(localStorage.getItem(key));
+                    const cardId = key.replace('ecard_', '');
+                    
+                    const cardEl = document.createElement('div');
+                    cardEl.className = 'card-item glass';
+                    
+                    cardEl.innerHTML = `
+                        <div style="height: 100px; background-size: cover; background-position: center; background-image: ${card.bg}; border-radius: 12px; background-color: #222;"></div>
+                        <div>
+                            <h3 style="margin: 0; color: #fff;">${card.name}</h3>
+                            <p style="color: var(--on-surface-variant); font-size: 0.85rem; margin-top: 5px;">ecardsjm.com/${cardId}</p>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: auto;">
+                            <a href="create-card.html?edit=${cardId}" class="btn-new" style="padding: 10px; flex: 1; text-align: center; font-size: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);">Editar</a>
+                            <button onclick="deleteCard('${key}')" style="background: rgba(220, 38, 38, 0.1); color: #ef4444; border: 1px solid rgba(220, 38, 38, 0.2); padding: 10px; border-radius: 10px; cursor: pointer;">Borrar</button>
+                        </div>
+                    `;
+                    list.appendChild(cardEl);
+                }
+            }
+
+            if (!found) {
+                list.innerHTML = `<p style="color: var(--on-surface-variant); grid-column: 1/-1; text-align: center; padding: 40px;">No tienes tarjetas creadas. ¡Empieza creando tu primera tarjeta!</p>`;
+            }
+        }
+
+        function deleteCard(key) {
+            if (confirm('¿Seguro que quieres borrar esta tarjeta?')) {
+                localStorage.removeItem(key);
+                loadCards();
+            }
+        }
+
+        window.onload = loadCards;
+    </script>
 </body>
 </html>

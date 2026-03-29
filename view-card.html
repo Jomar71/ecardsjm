@@ -122,7 +122,46 @@
 
     <script>
         lucide.createIcons();
-        // Here we would load the card data based on the ID in the URL
+        
+        const urlParams = new URLSearchParams(window.location.search);
+        const userId = urlParams.get('u');
+        const cardView = document.getElementById('card-view');
+
+        if (userId) {
+            const data = localStorage.getItem('ecard_' + userId);
+            if (data) {
+                const card = JSON.parse(data);
+                
+                // Set Background
+                cardView.style.backgroundImage = card.bg;
+
+                // Toggle visibility based on data
+                checkVisibility('phone', card.phone);
+                checkVisibility('mail', card.email);
+                checkVisibility('map-pin', card.loc);
+                checkVisibility('message-circle', card.wa);
+                checkVisibility('facebook', card.fb);
+                checkVisibility('instagram', card.ig);
+                checkVisibility('map', card.loc);
+                checkVisibility('globe', card.web);
+
+            } else {
+                showError("Tarjeta no encontrada.");
+            }
+        } else {
+            showError("No se especificó ninguna tarjeta.");
+        }
+
+        function checkVisibility(iconName, value) {
+            const iconEl = document.querySelector(`[data-lucide="${iconName}"]`).parentElement;
+            if (!value || value.trim() === "") {
+                iconEl.style.display = "none";
+            }
+        }
+
+        function showError(msg) {
+            cardView.innerHTML = `<div style="color:#fff; text-align:center; padding:100px;"><h1>404</h1><p>${msg}</p></div>`;
+        }
     </script>
 </body>
 </html>

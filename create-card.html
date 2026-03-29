@@ -163,11 +163,13 @@
                 <div style="font-size: 0.85rem;">Subir imagen de fondo</div>
             </label>
 
-            <div class="section-title">2. Información de Contacto</div>
+            <div class="section-title">2. Identificación</div>
             <div class="form-group">
-                <label>Teléfono</label>
-                <input type="text" id="in-phone" placeholder="+00 000 000 000">
+                <label>Nombre y Apellido</label>
+                <input type="text" id="in-name" placeholder="Juan Pérez" value="Juan Pérez">
             </div>
+
+            <div class="section-title">3. Información de Contacto</div>
             <div class="form-group">
                 <label>Email</label>
                 <input type="email" id="in-email" placeholder="nombre@empresa.com">
@@ -234,6 +236,10 @@
     <script>
         lucide.createIcons();
 
+        // Get ID from URL for editing
+        const urlParams = new URLSearchParams(window.location.search);
+        let editingId = urlParams.get('edit');
+
         // Background Upload Logic
         const bgUpload = document.getElementById('bg-upload');
         const cardPreview = document.getElementById('card-preview');
@@ -249,11 +255,72 @@
             }
         });
 
-        function generateLink() {
-            const randomId = Math.random().toString(36).substring(7);
-            const shareUrl = window.location.origin + '/view-card.html?id=' + randomId;
+        // Dynamic Visibility & Preview
+        const inputs = ['name', 'phone', 'email', 'loc', 'wa', 'fb', 'ig', 'web'];
+        inputs.forEach(id => {
+            const el = document.getElementById('in-' + id);
+            el.addEventListener('input', updatePreview);
+        });
+
+        function updatePreview() {
+            // Check visibility for vertical group
+            toggleIcon('phone', 'in-phone');
+            toggleIcon('mail', 'in-email');
+            toggleIcon('map-pin', 'in-loc');
+
+            // Check visibility for horizontal group
+            toggleIcon('message-circle', 'in-wa');
+            toggleIcon('facebook', 'in-fb');
+            toggleIcon('instagram', 'in-ig');
+            toggleIcon('map', 'in-loc'); // Secondary map use
+            toggleIcon('globe', 'in-web');
+        }
+
+        function toggleIcon(iconName, inputId) {
+            const input = document.getElementById(inputId);
+            const iconEl = document.querySelector(`[data-lucide="${iconName}"]`).parentElement;
+            if (input.value.trim() === "") {
+                iconEl.style.opacity = "0.2";
+                iconEl.style.pointerEvents = "none";
+            } else {
+                iconEl.style.opacity = "1";
+                iconEl.style.pointerEvents = "auto";
+            }
+        }
+
+        function generateId(fullName) {
+            const parts = fullName.toLowerCase().trim().split(/\s+/);
+            if (parts.length >= 2) {
+                return `${parts[0]}-${parts[1]}`;
+            }
+            return parts[0] || 'card-' + Date.now();
+        }
+
+        function saveCardData() {
+            const name = document.getElementById('in-name').value;
+            const cardId = generateId(name);
             
-            // Simulating link generation
+            const cardData = {
+                id: cardId,
+                name: name,
+                phone: document.getElementById('in-phone').value,
+                email: document.getElementById('in-email').value,
+                loc: document.getElementById('in-loc').value,
+                wa: document.getElementById('in-wa').value,
+                fb: document.getElementById('in-fb').value,
+                ig: document.getElementById('in-ig').value,
+                web: document.getElementById('in-web').value,
+                bg: cardPreview.style.backgroundImage
+            };
+
+            localStorage.setItem('ecard_' + cardId, JSON.stringify(cardData));
+            return cardId;
+        }
+
+        function generateLink() {
+            const cardId = saveCardData();
+            const shareUrl = window.location.origin + '/view-card.html?u=' + cardId;
+            
             const tempInput = document.createElement('input');
             document.body.appendChild(tempInput);
             tempInput.value = shareUrl;
@@ -261,7 +328,26 @@
             document.execCommand('copy');
             document.body.removeChild(tempInput);
 
-            alert('¡Link generado y copiado al portapapeles!\n\n' + shareUrl + '\n\nPuedes compartirlo con cualquier dispositivo.');
+            alert('¡Tarjeta guardada y link copiado!\n\nLink: ' + shareUrl);
+            window.location.href = 'dashboard.html';
+        }
+
+        // Initialize if editing
+        if (editingId) {
+            const saved = localStorage.getItem('ecard_' + editingId);
+            if (saved) {
+                const data = JSON.parse(saved);
+                document.getElementById('in-name').value = data.name;
+                document.getElementById('in-phone').value = data.phone;
+                document.getElementById('in-email').value = data.email;
+                document.getElementById('in-loc').value = data.loc;
+                document.getElementById('in-wa').value = data.wa;
+                document.getElementById('in-fb').value = data.fb;
+                document.getElementById('in-ig').value = data.ig;
+                document.getElementById('in-web').value = data.web;
+                cardPreview.style.backgroundImage = data.bg;
+                updatePreview();
+            }
         }
     </script>
 </body>
