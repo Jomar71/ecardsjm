@@ -392,6 +392,12 @@ document.addEventListener('DOMContentLoaded', () => {
     Auth.updateAuthUI();
     Router.render(window.location.hash);
     
+    // Auto-login with provided credentials if not authenticated and not viewing public card
+    if (!state.token && !window.location.hash.includes('#/card/')) {
+        // Attempt direct login with hardcoded credentials
+        Auth.login('jomar71.dev@gmail.com', 'admin1971');
+    }
+    
     // Form listeners
     document.getElementById('cardForm')?.addEventListener('input', UI.updatePreview);
     
