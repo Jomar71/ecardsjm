@@ -117,17 +117,18 @@
             <h2>Bienvenido</h2>
             <p>Acceda a su identidad digital profesional.</p>
             
-            <form id="loginForm">
-                <div class="input-group">
-                    <label>Email Corporativo</label>
-                    <input type="email" placeholder="usuario@empresa.com" required>
-                </div>
-                <div class="input-group">
-                    <label>Contraseña</label>
-                    <input type="password" placeholder="••••••••" required>
-                </div>
-                <button type="submit" class="btn-submit">Ingresar</button>
-            </form>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <label>Nombre de Usuario</label>
+                        <input type="text" id="username" placeholder="Tu usuario" required>
+                    </div>
+                    <div class="input-group">
+                        <label>Contraseña</label>
+                        <input type="password" id="password" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-submit">Ingresar</button>
+                    <p id="error-msg" style="color: #ef4444; font-size: 0.85rem; margin-top: 15px; display: none;"></p>
+                </form>
             
             <div class="login-footer">
                 ¿No tiene una cuenta? <a href="#">Contáctenos</a>
@@ -136,10 +137,36 @@
     </div>
 
     <script>
-        document.getElementById('loginForm').onsubmit = function(e) {
+        document.getElementById('loginForm').onsubmit = async function(e) {
             e.preventDefault();
-            alert('¡Login simulado con éxito! Bienvenido a E-Cards JM.');
-            window.location.href = 'dashboard.html';
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('error-msg');
+            
+            errorMsg.style.display = "none";
+
+            try {
+                const response = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                const data = await response.json();
+                
+                if (data.status === 'success') {
+                    localStorage.setItem('ecards_token', data.token);
+                    localStorage.setItem('ecards_user', JSON.stringify(data.user));
+                    window.location.href = 'dashboard.html';
+                } else {
+                    errorMsg.innerText = data.message || data.error || "Error al iniciar sesión";
+                    errorMsg.style.display = "block";
+                }
+            } catch (err) {
+                console.error("Login fetch error:", err);
+                errorMsg.innerText = "Error de conexión con el servidor";
+                errorMsg.style.display = "block";
+            }
         };
     </script>
 </body>

@@ -188,47 +188,92 @@
     </div>
 
     <script>
-        function loadCards() {
+        // Check Auth
+        const token = localStorage.getItem('ecards_token');
+        const userJson = localStorage.getItem('ecards_user');
+        
+        if (!token) window.location.href = 'login.html';
+        
+        const user = JSON.parse(userJson || '{}');
+        if (user.username) {
+            document.querySelector('.welcome-hero h1').innerText = `Hola, ${user.username}`;
+        }
+
+        async function loadCards() {
             const list = document.getElementById('card-list');
-            list.innerHTML = "";
-            let found = false;
+            list.innerHTML = `<p style="color: var(--on-surface-variant); grid-column: 1/-1; text-align: center; padding: 40px;">Cargando tus tarjetas...</p>`;
             
-            for (let i = 0; i < localStorage.length; i++) {
-                const key = localStorage.key(i);
-                if (key.startsWith('ecard_')) {
-                    found = true;
-                    const card = JSON.parse(localStorage.getItem(key));
-                    const cardId = key.replace('ecard_', '');
-                    
+            try {
+                const response = await fetch('/api/cards', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load cards');
+                
+                const cards = await response.json();
+                list.innerHTML = "";
+
+                if (cards.length === 0) {
+                    list.innerHTML = `<p style="color: var(--on-surface-variant); grid-column: 1/-1; text-align: center; padding: 40px;">No tienes tarjetas creadas. ¡Empieza creando tu primera tarjeta!</p>`;
+                    return;
+                }
+
+                cards.forEach(card => {
                     const cardEl = document.createElement('div');
                     cardEl.className = 'card-item glass';
                     
+                    const bgStyle = card.bg_image_path ? `background-image: ${card.bg_image_path};` : 'background-color: #222;';
+                    
                     cardEl.innerHTML = `
-                        <div style="height: 100px; background-size: cover; background-position: center; background-image: ${card.bg}; border-radius: 12px; background-color: #222;"></div>
+                        <div style="height: 100px; background-size: cover; background-position: center; ${bgStyle} border-radius: 12px;"></div>
                         <div>
                             <h3 style="margin: 0; color: #fff;">${card.name}</h3>
-                            <p style="color: var(--on-surface-variant); font-size: 0.85rem; margin-top: 5px;">ecardsjm.com/${cardId}</p>
+                            <p style="color: var(--on-surface-variant); font-size: 0.85rem; margin-top: 5px;">ecardsjm.com/view-card.html?u=${card.id}</p>
                         </div>
                         <div style="display: flex; gap: 10px; margin-top: auto;">
-                            <a href="create-card.html?edit=${cardId}" class="btn-new" style="padding: 10px; flex: 1; text-align: center; font-size: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);">Editar</a>
-                            <button onclick="deleteCard('${key}')" style="background: rgba(220, 38, 38, 0.1); color: #ef4444; border: 1px solid rgba(220, 38, 38, 0.2); padding: 10px; border-radius: 10px; cursor: pointer;">Borrar</button>
+                            <a href="create-card.html?edit=${card.id}" class="btn-new" style="padding: 10px; flex: 1; text-align: center; font-size: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);">Editar</a>
+                            <button onclick="deleteCard('${card.id}')" style="background: rgba(220, 38, 38, 0.1); color: #ef4444; border: 1px solid rgba(220, 38, 38, 0.2); padding: 10px; border-radius: 10px; cursor: pointer;">Borrar</button>
                         </div>
                     `;
                     list.appendChild(cardEl);
+                });
+            } catch (err) {
+                console.error("Load cards error:", err);
+                list.innerHTML = `<p style="color: #ef4444; grid-column: 1/-1; text-align: center; padding: 40px;">Error al cargar las tarjetas. Por favor, intenta de nuevo.</p>`;
+            }
+        }
+
+        async function deleteCard(id) {
+            if (confirm('¿Seguro que quieres borrar esta tarjeta?')) {
+                try {
+                    const response = await fetch(`/api/cards/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (response.ok) {
+                        loadCards();
+                    } else {
+                        alert('Error al borrar la tarjeta');
+                    }
+                } catch (err) {
+                    console.error("Delete error:", err);
+                    alert('Error de conexión al servidor');
                 }
             }
-
-            if (!found) {
-                list.innerHTML = `<p style="color: var(--on-surface-variant); grid-column: 1/-1; text-align: center; padding: 40px;">No tienes tarjetas creadas. ¡Empieza creando tu primera tarjeta!</p>`;
-            }
         }
 
-        function deleteCard(key) {
-            if (confirm('¿Seguro que quieres borrar esta tarjeta?')) {
-                localStorage.removeItem(key);
-                loadCards();
-            }
+        function logout() {
+            localStorage.removeItem('ecards_token');
+            localStorage.removeItem('ecards_user');
+            window.location.href = 'index.html';
         }
+
+        // Attach logout to the link
+        document.querySelector('a[href="index.html"]').onclick = (e) => {
+            e.preventDefault();
+            logout();
+        };
 
         window.onload = loadCards;
     </script>

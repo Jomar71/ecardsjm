@@ -124,44 +124,75 @@
         lucide.createIcons();
         
         const urlParams = new URLSearchParams(window.location.search);
-        const userId = urlParams.get('u');
+        const cardId = urlParams.get('u');
         const cardView = document.getElementById('card-view');
 
-        if (userId) {
-            const data = localStorage.getItem('ecard_' + userId);
-            if (data) {
-                const card = JSON.parse(data);
-                
-                // Set Background
-                cardView.style.backgroundImage = card.bg;
-
-                // Toggle visibility based on data
-                checkVisibility('phone', card.phone);
-                checkVisibility('mail', card.email);
-                checkVisibility('map-pin', card.loc);
-                checkVisibility('message-circle', card.wa);
-                checkVisibility('facebook', card.fb);
-                checkVisibility('instagram', card.ig);
-                checkVisibility('map', card.loc);
-                checkVisibility('globe', card.web);
-
-            } else {
-                showError("Tarjeta no encontrada.");
+        async function initCard() {
+            if (!cardId) {
+                showError("No se especificó ninguna tarjeta.");
+                return;
             }
-        } else {
-            showError("No se especificó ninguna tarjeta.");
+
+            try {
+                const response = await fetch(`/api/cards/${cardId}`);
+                if (response.ok) {
+                    const card = await response.json();
+                    
+                    // Set Background
+                    if (card.bg_image_path) {
+                        cardView.style.backgroundImage = card.bg_image_path;
+                    }
+
+                    // Toggle visibility based on data
+                    checkVisibility('phone', card.phone);
+                    checkVisibility('mail', card.email);
+                    checkVisibility('map-pin', card.address);
+                    checkVisibility('message-circle', card.whatsapp);
+                    checkVisibility('facebook', card.facebook);
+                    checkVisibility('instagram', card.instagram);
+                    checkVisibility('map', card.address);
+                    checkVisibility('globe', card.website);
+
+                } else {
+                    showError("Tarjeta no encontrada.");
+                }
+            } catch (err) {
+                console.error("View card error:", err);
+                showError("Error al cargar la tarjeta.");
+            }
         }
 
         function checkVisibility(iconName, value) {
             const iconEl = document.querySelector(`[data-lucide="${iconName}"]`).parentElement;
             if (!value || value.trim() === "") {
                 iconEl.style.display = "none";
+            } else {
+                // Wrap in link if value looks like a link or phone
+                const parent = iconEl.parentElement;
+                const link = document.createElement('a');
+                link.href = formatLink(iconName, value);
+                link.target = "_blank";
+                link.style.textDecoration = "none";
+                link.appendChild(iconEl);
+                parent.appendChild(link);
             }
+        }
+
+        function formatLink(icon, value) {
+            if (icon === 'phone') return `tel:${value}`;
+            if (icon === 'mail') return `mailto:${value}`;
+            if (icon === 'map-pin' || icon === 'map') return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`;
+            if (icon === 'message-circle') return `https://wa.me/${value.replace(/\D/g,'')}`;
+            if (value.startsWith('http')) return value;
+            return `https://${value}`;
         }
 
         function showError(msg) {
             cardView.innerHTML = `<div style="color:#fff; text-align:center; padding:100px;"><h1>404</h1><p>${msg}</p></div>`;
+            cardView.style.background = "#111";
         }
+
+        initCard();
     </script>
 </body>
 </html>

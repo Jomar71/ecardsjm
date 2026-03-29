@@ -236,6 +236,10 @@
     <script>
         lucide.createIcons();
 
+        // Check Auth
+        const token = localStorage.getItem('ecards_token');
+        if (!token) window.location.href = 'login.html';
+
         // Get ID from URL for editing
         const urlParams = new URLSearchParams(window.location.search);
         let editingId = urlParams.get('edit');
@@ -250,6 +254,7 @@
                 const reader = new FileReader();
                 reader.onload = function(e) {
                     cardPreview.style.backgroundImage = `url('${e.target.result}')`;
+                    updatePreview();
                 }
                 reader.readAsDataURL(file);
             }
@@ -289,66 +294,105 @@
         }
 
         function generateId(fullName) {
-            const parts = fullName.toLowerCase().trim().split(/\s+/);
-            if (parts.length >= 2) {
-                return `${parts[0]}-${parts[1]}`;
-            }
-            return parts[0] || 'card-' + Date.now();
+            return fullName.toLowerCase().trim()
+                .replace(/[^\w\s-]/g, '')
+                .replace(/[\s_-]+/g, '-')
+                .replace(/^-+|-+$/g, '') || 'card-' + Date.now();
         }
 
-        function saveCardData() {
+        async function saveCardData() {
             const name = document.getElementById('in-name').value;
-            const cardId = generateId(name);
+            const cardId = editingId || generateId(name);
             
             const cardData = {
                 id: cardId,
                 name: name,
                 phone: document.getElementById('in-phone').value,
                 email: document.getElementById('in-email').value,
-                loc: document.getElementById('in-loc').value,
-                wa: document.getElementById('in-wa').value,
-                fb: document.getElementById('in-fb').value,
-                ig: document.getElementById('in-ig').value,
-                web: document.getElementById('in-web').value,
-                bg: cardPreview.style.backgroundImage
+                address: document.getElementById('in-loc').value,
+                whatsapp: document.getElementById('in-wa').value,
+                facebook: document.getElementById('in-fb').value,
+                instagram: document.getElementById('in-ig').value,
+                website: document.getElementById('in-web').value,
+                bg_image_path: cardPreview.style.backgroundImage
             };
 
-            localStorage.setItem('ecard_' + cardId, JSON.stringify(cardData));
-            return cardId;
+            try {
+                const response = await fetch('/api/cards', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify(cardData)
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to save card');
+                }
+                
+                return cardId;
+            } catch (err) {
+                console.error("Save error:", err);
+                alert('Error al guardar: ' + err.message);
+                return null;
+            }
         }
 
-        function generateLink() {
-            const cardId = saveCardData();
-            const shareUrl = window.location.origin + '/view-card.html?u=' + cardId;
-            
-            const tempInput = document.createElement('input');
-            document.body.appendChild(tempInput);
-            tempInput.value = shareUrl;
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
+        async function generateLink() {
+            const btn = document.querySelector('.floating-share');
+            btn.innerText = "GUARDANDO...";
+            btn.disabled = true;
 
-            alert('¡Tarjeta guardada y link copiado!\n\nLink: ' + shareUrl);
-            window.location.href = 'dashboard.html';
+            const cardId = await saveCardData();
+            if (cardId) {
+                const shareUrl = window.location.origin + '/view-card.html?u=' + cardId;
+                
+                // Copy to clipboard
+                try {
+                    await navigator.clipboard.writeText(shareUrl);
+                    alert('¡Tarjeta guardada y link copiado!\n\n' + shareUrl);
+                } catch (e) {
+                    alert('Tarjeta guardada. Tu link es: ' + shareUrl);
+                }
+                
+                window.location.href = 'dashboard.html';
+            } else {
+                btn.innerText = "GENERAR LINK DE COMPARTIR";
+                btn.disabled = false;
+            }
         }
 
         // Initialize if editing
-        if (editingId) {
-            const saved = localStorage.getItem('ecard_' + editingId);
-            if (saved) {
-                const data = JSON.parse(saved);
-                document.getElementById('in-name').value = data.name;
-                document.getElementById('in-phone').value = data.phone;
-                document.getElementById('in-email').value = data.email;
-                document.getElementById('in-loc').value = data.loc;
-                document.getElementById('in-wa').value = data.wa;
-                document.getElementById('in-fb').value = data.fb;
-                document.getElementById('in-ig').value = data.ig;
-                document.getElementById('in-web').value = data.web;
-                cardPreview.style.backgroundImage = data.bg;
+        async function init() {
+            if (editingId) {
+                try {
+                    const response = await fetch(`/api/cards/${editingId}`);
+                    if (response.ok) {
+                        const data = await response.json();
+                        document.getElementById('in-name').value = data.name || '';
+                        document.getElementById('in-phone').value = data.phone || '';
+                        document.getElementById('in-email').value = data.email || '';
+                        document.getElementById('in-loc').value = data.address || '';
+                        document.getElementById('in-wa').value = data.whatsapp || '';
+                        document.getElementById('in-fb').value = data.facebook || '';
+                        document.getElementById('in-ig').value = data.instagram || '';
+                        document.getElementById('in-web').value = data.website || '';
+                        if (data.bg_image_path) {
+                            cardPreview.style.backgroundImage = data.bg_image_path;
+                        }
+                        updatePreview();
+                    }
+                } catch (err) {
+                    console.error("Load error:", err);
+                }
+            } else {
                 updatePreview();
             }
         }
+        
+        init();
     </script>
 </body>
 </html>
