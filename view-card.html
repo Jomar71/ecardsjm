@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Card | Compartida</title>
+    <link rel="stylesheet" href="styles.css">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            overflow: hidden;
+        }
+
+        .view-card-wrapper {
+            width: 100%;
+            height: 100%;
+            max-width: 500px;
+            max-height: 888px; /* Approx 9:16 max */
+            aspect-ratio: 9 / 16;
+            background: #fff;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            background-size: cover;
+            background-position: center;
+        }
+
+        .card-overlay {
+            position: absolute;
+            inset: 0;
+            padding: 30px;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+        }
+
+        .vertical-icons {
+            position: absolute;
+            left: 25px;
+            bottom: 120px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .social-row {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 20px;
+            padding-bottom: 20px;
+        }
+
+        .icon-circle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid currentColor;
+            cursor: pointer;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .qr-placeholder {
+            position: absolute;
+            right: 25px;
+            bottom: 40px;
+            width: 90px;
+            height: 90px;
+            background: #fff;
+            padding: 5px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        /* Mobile specific adjustments */
+        @media (max-width: 600px) {
+            .view-card-wrapper {
+                width: 100vw;
+                height: 100vh;
+                max-width: none;
+                max-height: none;
+                border-radius: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="view-card-wrapper" id="card-view">
+        <div class="card-overlay">
+            <div class="vertical-icons">
+                <div class="icon-circle" style="color: #2563eb;"><i data-lucide="phone"></i></div>
+                <div class="icon-circle" style="color: #64748b;"><i data-lucide="mail"></i></div>
+                <div class="icon-circle" style="color: #f43f5e;"><i data-lucide="map-pin"></i></div>
+            </div>
+
+            <div class="social-row">
+                <div class="icon-circle" style="color: #22c55e;"><i data-lucide="message-circle"></i></div>
+                <div class="icon-circle" style="color: #1d4ed8;"><i data-lucide="facebook"></i></div>
+                <div class="icon-circle" style="color: #d946ef;"><i data-lucide="instagram"></i></div>
+                <div class="icon-circle" style="color: #3b82f6;"><i data-lucide="map"></i></div>
+                <div class="icon-circle" style="color: #0ea5e9;"><i data-lucide="globe"></i></div>
+            </div>
+
+            <div class="qr-placeholder">
+                <i data-lucide="qr-code" style="width: 100%; height: 100%; color: #000;"></i>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        // Here we would load the card data based on the ID in the URL
+    </script>
+</body>
+</html>
