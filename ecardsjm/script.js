@@ -99,3 +99,19 @@ window.addEventListener('load', () => {
         Router.render(window.location.hash);
     });
 });
+
+// script.js
+document.addEventListener('DOMContentLoaded', () => {
+    const loginBtn = document.querySelector('.login-btn');
+    const registerBtn = document.querySelector('.register-btn');
+
+    loginBtn.addEventListener('click', () => {
+        alert('Redirecting to login...');
+        // Implement login logic here
+    });
+
+    registerBtn.addEventListener('click', () => {
+        alert('Redirecting to registration...');
+        // Implement registration logic here
+    });
+});

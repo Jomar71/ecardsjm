@@ -9,208 +9,318 @@
     <link href="/styles.css" rel="stylesheet">
 </head>
 <body>
-    <header id="main-header">
-        <a class="logo" href="#">E-Cards<span class="logo-accent">JM</span></a>
-        <nav id="top-nav">
-            <div id="auth-nav-guest">
-                <button onclick="showModal('login')">Login</button>
-                <button onclick="showModal('register')">Regístrate</button>
-            </div>
-            <div id="auth-nav-user" style="display:none;">
-                <span id="nav-username"></span>
-                <button onclick="logout()">Salir</button>
-            </div>
-        </nav>
-    </header>
-
-    <main>
-        <section id="landing" style="display:block;">
-            <h1>Crea Tu Tarjeta Digital</h1>
-            <button onclick="showModal('register')">Empezar Gratis</button>
-        </section>
-
-        <section id="admin" style="display:none;">
-            <h2>Editor de Tarjetas</h2>
-            <form id="cardForm">
-                <input id="name" placeholder="Nombre">
-                <input id="title" placeholder="Cargo">
-                <button type="submit">Guardar</button>
-            </form>
-            <div id="preview">
-                <h3 id="preview-name">Nombre</h3>
-                <p id="preview-title">Cargo</p>
-            </div>
-        </section>
-
-        <div id="modal" style="display:none;">
-            <div id="modal-content">
-                <span class="close" onclick="hideModal()">&times;</span>
-                <div id="login-form">
-                    <h3>Login</h3>
-                    <input id="login-user" placeholder="Usuario">
-                    <input id="login-pass" type="password" placeholder="Contraseña">
-                    <button onclick="doLogin()">Entrar</button>
+    <div id="app-root">
+        <header id="main-header">
+            <a class="logo" href="#/">E-Cards<span class="logo-accent">JM</span></a>
+            <nav id="top-nav">
+                <div id="auth-nav-guest">
+                    <button class="nav-link" onclick="UI.showAuth('login')">Login</button>
+                    <button class="nav-link" onclick="UI.showAuth('register')">Regístrate</button>
                 </div>
-                <div id="register-form" style="display:none;">
-                    <h3>Registro</h3>
-                    <input id="reg-user" placeholder="Usuario">
-                    <input id="reg-pass" type="password" placeholder="Contraseña">
-                    <button onclick="doRegister()">Crear</button>
+                <div id="auth-nav-user" class="hidden">
+                    <div class="user-badge">
+                        <div class="user-avatar" id="nav-avatar"></div>
+                        <span id="nav-username"></span>
+                    </div>
+                    <button class="nav-link" onclick="Auth.logout()">Salir</button>
+                </div>
+            </nav>
+        </header>
+
+        <main>
+            <section id="view-home" class="view-content">
+                <div class="hero-section">
+                    <div class="hero-eyebrow">
+                        <span class="hero-eyebrow-dot"></span>
+                        <span>PLATAFORMA PREMIUM</span>
+                    </div>
+                    <h1 class="hero-title">Tu <span class="gradient-text">Identidad Digital</span> Profesional</h1>
+                    <p class="hero-subtitle">Crea elegantes tarjetas de presentación digitales que conectan negocios en cualquier momento y lugar</p>
+                    <div class="hero-cta">
+                        <button class="btn btn-primary btn-lg" onclick="UI.showAuth('register')">Empezar Gratis</button>
+                        <button class="btn btn-outline btn-lg" onclick="Router.go('/admin')">Ver Demo</button>
+                    </div>
+                </div>
+                
+                <div class="features-section">
+                    <div class="section-label">CARACTERÍSTICAS</div>
+                    <h2 class="section-title">Potencia Tu Presencia Profesional</h2>
+                    <p class="section-subtitle">Una solución completa para compartir tu información de contacto de forma moderna</p>
+                    
+                    <div class="features-grid">
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-qrcode"></i>
+                            </div>
+                            <h3>QR Dinámico</h3>
+                            <p>Comparte tu tarjeta con un código QR que puedes actualizar indefinidamente</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-palette"></i>
+                            </div>
+                            <h3>Diseños Profesionales</h3>
+                            <p>Plantillas elegantes que puedes personalizar según tu marca personal</p>
+                        </div>
+                        <div class="feature-card">
+                            <div class="feature-icon">
+                                <i class="fas fa-cloud"></i>
+                            </div>
+                            <h3>Acceso Desde Cualquier Lugar</h3>
+                            <p>Guarda tus tarjetas en la nube y accede desde cualquier dispositivo</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="landing-footer">
+                    <p>Desarrollado con ❤️ por <span>E-Cards JM</span> &copy; 2026</p>
+                </div>
+            </section>
+
+            <section id="view-admin" class="view-content hidden">
+                <div class="studio-header">
+                    <button class="breadcrumb" onclick="Router.go('/')">
+                        <i class="fas fa-arrow-left"></i> Volver
+                    </button>
+                    <h2>Editor de Tarjetas</h2>
+                </div>
+                
+                <div class="studio-layout">
+                    <div class="studio-panel glass-card">
+                        <div class="studio-tabs">
+                            <button class="tab-btn active" onclick="UI.showTab(event, 'basic-info')">Información Básica</button>
+                            <button class="tab-btn" onclick="UI.showTab(event, 'social-links')">Redes Sociales</button>
+                            <button class="tab-btn" onclick="UI.showTab(event, 'design')">Diseño</button>
+                        </div>
+                        
+                        <div class="tab-contents">
+                            <div id="basic-info" class="tab-content active">
+                                <form id="cardForm">
+                                    <div class="input-group">
+                                        <label>NOMBRE COMPLETO</label>
+                                        <input name="name" placeholder="Nombre completo">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>CARGO PROFESIONAL</label>
+                                        <input name="title" placeholder="Cargo profesional">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>EMPRESA</label>
+                                        <input name="company" placeholder="Nombre de empresa">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>EMAIL</label>
+                                        <input name="email" type="email" placeholder="tu@email.com">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>TELÉFONO</label>
+                                        <input name="phone" type="tel" placeholder="+1234567890">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>WEBSITE</label>
+                                        <input name="website" placeholder="https://ejemplo.com">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>DIRECCIÓN</label>
+                                        <input name="address" placeholder="Dirección física">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>BIOGRAFÍA</label>
+                                        <textarea name="bio" rows="3" placeholder="Breve descripción profesional"></textarea>
+                                    </div>
+                                </form>
+                                
+                                <div class="form-actions">
+                                    <button onclick="UI.saveCard()" class="btn btn-primary">Guardar Tarjeta</button>
+                                    <div id="save-success" class="hidden">✓ Guardado!</div>
+                                </div>
+                            </div>
+                            
+                            <div id="social-links" class="tab-content">
+                                <form id="socialForm">
+                                    <div class="input-group">
+                                        <label>FACEBOOK</label>
+                                        <input name="facebook" placeholder="https://facebook.com/tu-perfil">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>INSTAGRAM</label>
+                                        <input name="instagram" placeholder="https://instagram.com/tu-perfil">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>LINKEDIN</label>
+                                        <input name="linkedin" placeholder="https://linkedin.com/in/tu-perfil">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>TWITTER</label>
+                                        <input name="twitter" placeholder="https://twitter.com/tu-perfil">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>WHATSAPP</label>
+                                        <input name="whatsapp" placeholder="https://wa.me/tunumero">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>GITHUB</label>
+                                        <input name="github" placeholder="https://github.com/tu-perfil">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>BEHANCE</label>
+                                        <input name="behance" placeholder="https://behance.net/tu-perfil">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>YOUTUBE</label>
+                                        <input name="youtube" placeholder="https://youtube.com/tu-canal">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>TIKTOK</label>
+                                        <input name="tiktok" placeholder="https://tiktok.com/@tu-perfil">
+                                    </div>
+                                </form>
+                            </div>
+                            
+                            <div id="design" class="tab-content">
+                                <div class="input-group">
+                                    <label>PLANTILLA</label>
+                                    <select name="template_id">
+                                        <option value="corporate">Corporativa</option>
+                                        <option value="creative">Creativa</option>
+                                        <option value="minimal">Minimalista</option>
+                                        <option value="modern">Moderna</option>
+                                    </select>
+                                </div>
+                                <div class="input-group">
+                                    <label>COLOR PRINCIPAL</label>
+                                    <input type="color" name="primary_color" value="#7C3AED">
+                                </div>
+                                <div class="input-group">
+                                    <label>COLOR DE TEXTO</label>
+                                    <input type="color" name="text_color" value="#F8FAFC">
+                                </div>
+                                <div class="input-group">
+                                    <label>COLOR DE FONDO</label>
+                                    <input type="color" name="bg_color" value="#0A0E1A">
+                                </div>
+                                <div class="input-group">
+                                    <label>FUENTE</label>
+                                    <select name="font_family">
+                                        <option value="Arial, sans-serif">Arial</option>
+                                        <option value="'Times New Roman', serif">Times New Roman</option>
+                                        <option value="'Courier New', monospace">Courier New</option>
+                                        <option value="Georgia, serif">Georgia</option>
+                                        <option value="Verdana, sans-serif">Verdana</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="preview-panel glass-card">
+                        <div class="preview-label"><span></span>PREVISUALIZACIÓN EN TIEMPO REAL</div>
+                        <div class="card-preview template-corporate">
+                            <div class="card-content">
+                                <div class="corporate-header">
+                                    <div class="qr-stylized-container">
+                                        <div id="preview-qr"></div>
+                                    </div>
+                                </div>
+                                <div class="profile-container-modern">
+                                    <div class="profile-img-wrap">
+                                        <i class="fas fa-user"></i>
+                                    </div>
+                                </div>
+                                <div class="card-text-block" style="text-align: center; padding: 2rem;">
+                                    <h4 id="preview-name" style="font-size: 1.2rem; font-weight: 800; margin-bottom: 0.25rem;">Nombre</h4>
+                                    <p id="preview-title" style="font-size: 0.8rem; opacity: 0.7; margin-bottom: 0.5rem;">Cargo</p>
+                                    <p id="preview-company" style="font-size: 0.6rem; opacity: 0.5; text-transform: uppercase;">Empresa</p>
+                                </div>
+                                <div class="social-strip" style="justify-content: center; padding: 1rem;">
+                                    <a class="social-icon-link" href="#"><i class="fab fa-linkedin-in"></i></a>
+                                    <a class="social-icon-link" href="#"><i class="fab fa-twitter"></i></a>
+                                    <a class="social-icon-link" href="#"><i class="fab fa-instagram"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="dashboard-grid" id="dashboard-grid">
+                    <!-- Cards will be loaded here -->
+                </div>
+            </section>
+            
+            <section id="view-users" class="view-content hidden">
+                <div class="admin-container">
+                    <div class="studio-header">
+                        <button class="breadcrumb" onclick="Router.go('/admin')">
+                            <i class="fas fa-arrow-left"></i> Volver
+                        </button>
+                        <h2>Administración de Usuarios</h2>
+                    </div>
+                    <div class="glass-card" style="padding: 1.5rem; margin-top: 1.5rem;">
+                        <table class="admin-table">
+                            <thead>
+                                <tr>
+                                    <th>Usuario</th>
+                                    <th>Fecha</th>
+                                    <th>Estado</th>
+                                    <th>Acciones</th>
+                                </tr>
+                            </thead>
+                            <tbody id="users-list">
+                                <!-- Users will be loaded here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <div id="public-view" class="hidden">
+        <!-- Public card view will be rendered here -->
+    </div>
+
+    <div id="auth-modal" class="auth-overlay hidden">
+        <div class="auth-box">
+            <button class="auth-close" onclick="UI.hideAuth()">&times;</button>
+            <div class="auth-logo">
+                <div class="logo">E-Cards<span class="logo-accent">JM</span></div>
+            </div>
+            <div id="auth-login">
+                <h3>Iniciar Sesión</h3>
+                <p class="auth-subtitle">Accede a tu panel de control</p>
+                <form id="loginForm">
+                    <div class="input-group">
+                        <input id="login-user" name="username" placeholder="Usuario" required>
+                    </div>
+                    <div class="input-group">
+                        <input id="login-pass" name="password" type="password" placeholder="Contraseña" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Entrar</button>
+                </form>
+                <div class="auth-switch">
+                    ¿No tienes cuenta? <a onclick="UI.showAuth('register')">Regístrate aquí</a>
+                </div>
+            </div>
+            <div id="auth-register" class="hidden">
+                <h3>Crear Cuenta</h3>
+                <p class="auth-subtitle">Comienza a crear tus tarjetas digitales</p>
+                <form id="registerForm">
+                    <div class="input-group">
+                        <input id="reg-user" name="username" placeholder="Usuario" required>
+                    </div>
+                    <div class="input-group">
+                        <input id="reg-pass" name="password" type="password" placeholder="Contraseña" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary btn-full">Crear Cuenta</button>
+                </form>
+                <div class="auth-switch">
+                    ¿Ya tienes cuenta? <a onclick="UI.showAuth('login')">Inicia sesión aquí</a>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <script>
-const API_BASE = '/api';
-
-let token = localStorage.getItem('token');
-let user = JSON.parse(localStorage.getItem('user') || 'null');
-
-function showModal(type) {
-    const modal = document.getElementById('modal');
-    const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
-    
-    if (type === 'login') {
-        loginForm.style.display = 'block';
-        registerForm.style.display = 'none';
-    } else {
-        loginForm.style.display = 'none';
-        registerForm.style.display = 'block';
-    }
-    modal.style.display = 'block';
-}
-
-function hideModal() {
-    document.getElementById('modal').style.display = 'none';
-}
-
-async function doRegister() {
-    const username = document.getElementById('reg-user').value;
-    const password = document.getElementById('reg-pass').value;
-    
-    try {
-        const response = await fetch(`${API_BASE}/auth/register`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({username, password})
-        });
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            token = data.token;
-            user = data.user;
-            updateUI();
-            hideModal();
-            showAdmin();
-        } else {
-            alert(data.message || 'Error');
-        }
-    } catch (err) {
-        alert('Error: ' + err.message);
-    }
-}
-
-async function doLogin() {
-    const username = document.getElementById('login-user').value;
-    const password = document.getElementById('login-pass').value;
-    
-    try {
-        const response = await fetch(`${API_BASE}/auth/login`, {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({username, password})
-        });
-        const data = await response.json();
-        
-        if (data.status === 'success') {
-            localStorage.setItem('token', data.token);
-            localStorage.setItem('user', JSON.stringify(data.user));
-            token = data.token;
-            user = data.user;
-            updateUI();
-            hideModal();
-            showAdmin();
-        } else {
-            alert(data.error || 'Error');
-        }
-    } catch (err) {
-        alert('Error: ' + err.message);
-    }
-}
-
-function logout() {
-    localStorage.removeItem('token');
-    localStorage.removeItem('user');
-    token = null;
-    user = null;
-    updateUI();
-    showLanding();
-}
-
-function updateUI() {
-    document.getElementById('auth-nav-guest').style.display = user ? 'none' : 'flex';
-    document.getElementById('auth-nav-user').style.display = user ? 'flex' : 'none';
-    if (user) {
-        document.getElementById('nav-username').textContent = user.username;
-    }
-}
-
-function showLanding() {
-    document.getElementById('landing').style.display = 'block';
-    document.getElementById('admin').style.display = 'none';
-}
-
-function showAdmin() {
-    document.getElementById('landing').style.display = 'none';
-    document.getElementById('admin').style.display = 'block';
-    loadCards();
-}
-
-document.getElementById('cardForm').addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const data = Object.fromEntries(formData);
-    data.id = Date.now().toString();
-    
-    try {
-        const response = await fetch('/api/cards', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(data)
-        });
-        const result = await response.json();
-        alert('Tarjeta guardada!');
-        loadCards();
-    } catch (err) {
-        alert('Error: ' + err.message);
-    }
-});
-
-async function loadCards() {
-    try {
-        const response = await fetch('/api/cards', {
-            headers: {'Authorization': `Bearer ${token}`}
-        });
-        const cards = await response.json();
-        // Update dashboard
-        console.log('Cards:', cards);
-    } catch (err) {
-        console.error(err);
-    }
-}
-
-// Init
-updateUI();
-if (user) showAdmin();
-else showLanding();
-    </script>
+    <script src="/script.js"></script>
 </body>
 </html>
