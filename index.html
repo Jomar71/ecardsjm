@@ -13,8 +13,63 @@
         <header id="main-header">
             <a class="logo" href="#/">E-Cards<span class="logo-accent">JM</span></a>
             <nav id="top-nav">
+                <!-- 添加 "首页" 和 "我的卡片" 按钮 -->
+                <button class="nav-link" onclick="Router.go('/home')">Inicio</button>
+                <button class="nav-link" onclick="Router.go('/admin')">Mis Tarjetas</button>
+
+                <!-- 原始登录按钮保留 -->
                 <div id="auth-nav-guest">
                     <button class="nav-link" onclick="UI.showAuth('login')">Login</button>
-```
+                </div>
+            </nav>
+        </header>
 
-index.html
+        <!-- 视图容器 -->
+        <div id="view-home" class="view-content hidden">
+            <!-- 首页内容 -->
+            <h2>Bienvenido a E-Cards JM</h2>
+            <p>Administra tus tarjetas digitales de forma profesional.</p>
+            <button onclick="Router.go('/admin')" class="btn-primary">Ver mis tarjetas</button>
+        </div>
+
+        <div id="view-admin" class="view-content hidden">
+            <h2>Mis Tarjetas</h2>
+            <div id="card-list">
+                <!-- Aquí se mostrarán las tarjetas del usuario -->
+            </div>
+            <button onclick="UI.showCardForm()" class="btn-primary">Crear Tarjeta</button>
+        </div>
+
+        <div id="view-auth" class="view-content hidden">
+            <div id="auth-form-login">
+                <h2>Iniciar Sesión</h2>
+                <form id="login-form">
+                    <input type="email" id="login-email" placeholder="Correo electrónico" required>
+                    <input type="password" id="login-password" placeholder="Contraseña" required>
+                    <button type="submit" class="btn-primary">Iniciar Sesión</button>
+                </form>
+            </div>
+            <div id="auth-form-signup">
+                <h2>Registrarse</h2>
+                <form id="signup-form">
+                    <input type="email" id="signup-email" placeholder="Correo electrónico" required>
+                    <input type="password" id="signup-password" placeholder="Contraseña" required>
+                    <button type="submit" class="btn-primary">Registrarse</button>
+                </form>
+            </div>
+        </div>
+
+        <div id="view-card-form" class="view-content hidden">
+            <h2>Crear Tarjeta</h2>
+            <form id="card-form">
+                <input type="text" id="card-name" placeholder="Nombre" required>
+                <input type="text" id="card-title" placeholder="Título" required>
+                <input type="text" id="card-description" placeholder="Descripción" required>
+                <button type="submit" class="btn-primary">Crear Tarjeta</button>
+            </form>
+        </div>
+    </div>
+
+    <script src="/app.js"></script>
+</body>
+</html>
