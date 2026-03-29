@@ -29,7 +29,7 @@ const jwt = require('jsonwebtoken');
 const { getPool } = require('./db');
 
 // ===== CONFIG =====
-const PORT = process.env.PORT || 8888;
+const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.JWT_SECRET || 'ecards_elite_secret_key_123';
 
 // Capturar errores fatales para debugging en pxxl

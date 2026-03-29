@@ -1,0 +1,1 @@
+const { getPool } = require('./db'); const pool = getPool(); (async () => { try { const result = await pool.query('SELECT id, username, is_authorized, is_admin, created_at FROM users ORDER BY created_at DESC'); console.log('Usuarios encontrados:', result.rows); } catch (err) { console.error('Error:', err.message); } finally { pool.end(); }})();
