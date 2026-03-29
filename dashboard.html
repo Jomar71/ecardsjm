@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | E-Cards JM</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+            background: var(--bg-deep);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--bg-recessed);
+            border-right: 1px solid var(--glass-border);
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-nav {
+            margin-top: 60px;
+            flex-grow: 1;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            color: var(--on-surface-variant);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: var(--transition);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .sidebar-link:hover, .sidebar-link.active {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 60px;
+            overflow-y: auto;
+        }
+
+        .welcome-hero {
+            margin-bottom: 48px;
+        }
+
+        .welcome-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        .stat-card {
+            padding: 24px;
+            border-radius: 20px;
+        }
+
+        .stat-card h4 {
+            font-size: 0.9rem;
+            color: var(--on-surface-variant);
+            margin-bottom: 4px;
+        }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .cards-list {
+            margin-top: 40px;
+        }
+
+        .cards-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .btn-new {
+            padding: 12px 24px;
+            background: var(--primary-container);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .btn-new:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .card-item {
+            padding: 24px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card-status {
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 100px;
+            background: rgba(0, 220, 230, 0.1);
+            color: var(--tertiary);
+            align-self: flex-start;
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="logo">
+                <span>E-Cards</span> JM
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="sidebar-link active">Dashboard</a>
+                <a href="#" class="sidebar-link">Mis Tarjetas</a>
+                <a href="#" class="sidebar-link">Contactos</a>
+                <a href="#" class="sidebar-link">Analíticas</a>
+                <a href="#" class="sidebar-link">Configuración</a>
+            </nav>
+
+            <a href="index.html" class="sidebar-link" style="margin-top: auto; color: #ff6b6b;">Cerrar Sesión</a>
+        </aside>
+
+        <main class="main-content">
+            <header class="welcome-hero">
+                <h1>Hola, Juan</h1>
+                <p style="color: var(--on-surface-variant);">Aquí tienes un resumen de tu actividad digital.</p>
+            </header>
+
+            <div class="stats-grid">
+                <div class="stat-card glass">
+                    <h4>Vistas Totales</h4>
+                    <div class="value">1,248</div>
+                </div>
+                <div class="stat-card glass">
+                    <h4>Nuevos Contactos</h4>
+                    <div class="value">42</div>
+                </div>
+                <div class="stat-card glass">
+                    <h4>Escaneos Hoy</h4>
+                    <div class="value">15</div>
+                </div>
+            </div>
+
+            <div class="cards-list">
+                <div class="cards-header">
+                    <h2>Mis Tarjetas</h2>
+                    <a href="create-card.html" class="btn-new">+ Nueva Tarjeta</a>
+                </div>
+
+                <div class="card-grid">
+                    <div class="card-item glass">
+                        <span class="card-status">Activa</span>
+                        <h3 style="color: #fff;">Perfil Ejecutivo Principal</h3>
+                        <p style="font-size: 0.9rem; color: var(--on-surface-variant);">CEO visionary@visionary.com</p>
+                        <hr style="border: 0.5px solid var(--glass-border);">
+                        <div style="display: flex; gap: 12px;">
+                            <button style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--glass-border); background: none; color: #fff; cursor: pointer;">Editar</button>
+                            <button style="flex: 1; padding: 10px; border-radius: 8px; border: 1px solid var(--primary-container); background: var(--primary-container); color: #fff; cursor: pointer;">Ver QR</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+</body>
+</html>

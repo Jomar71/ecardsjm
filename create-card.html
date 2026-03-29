@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Tarjeta | E-Cards JM</title>
+    <link rel="stylesheet" href="styles.css">
+    <style>
+        .create-layout {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            height: 100vh;
+            background: var(--bg-deep);
+        }
+
+        .editor-side {
+            padding: 60px;
+            overflow-y: auto;
+            border-right: 1px solid var(--glass-border);
+        }
+
+        .preview-side {
+            background: var(--bg-recessed);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            position: sticky;
+            top: 0;
+            height: 100vh;
+        }
+
+        .form-group {
+            margin-bottom: 32px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 0.9rem;
+            color: var(--on-surface-variant);
+            margin-bottom: 12px;
+            font-weight: 600;
+        }
+
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 16px;
+            background: var(--bg-surface);
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            color: #fff;
+            outline: none;
+            transition: var(--transition);
+        }
+
+        .form-group input:focus {
+            border-color: var(--primary);
+            background: var(--bg-card);
+        }
+
+        /* Mockup Card styles */
+        .preview-card {
+            width: 320px;
+            height: 580px;
+            border-radius: 40px;
+            background: var(--bg-deep);
+            border: 8px solid #333;
+            box-shadow: 0 40px 100px -20px rgba(0,0,0,0.8);
+            overflow-y: auto;
+            position: relative;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .preview-card::-webkit-scrollbar {
+            display: none;
+        }
+
+        .card-header {
+            height: 180px;
+            background: linear-gradient(135deg, var(--primary-container), var(--tertiary-container));
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            padding-bottom: 40px;
+        }
+
+        .profile-pic {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            background: #fff;
+            border: 4px solid var(--bg-deep);
+            position: absolute;
+            bottom: -50px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.5rem;
+            color: #ccc;
+        }
+
+        .card-body {
+            margin-top: 60px;
+            padding: 0 24px 40px;
+            text-align: center;
+        }
+
+        .card-name { font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 4px; }
+        .card-role { color: var(--on-surface-variant); font-size: 0.9rem; margin-bottom: 24px; }
+        
+        .contact-pill {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px;
+            background: var(--bg-surface);
+            border-radius: 12px;
+            margin-bottom: 12px;
+            text-align: left;
+            text-decoration: none;
+            color: #fff;
+            font-size: 0.85rem;
+            border: 1px solid var(--glass-border);
+        }
+
+        .qr-section {
+            padding: 24px;
+            background: #fff;
+            border-radius: 20px;
+            width: 160px;
+            height: 160px;
+            margin: 24px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background-color: var(--on-surface-variant);
+            color: var(--bg-deep);
+            font-size: 0.7rem;
+            text-align: center;
+        }
+
+        .btn-save {
+            padding: 18px 48px;
+            background: linear-gradient(135deg, var(--primary-container), var(--tertiary-container));
+            border: none;
+            border-radius: 100px;
+            color: #fff;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 40px;
+            width: 100%;
+        }
+
+        .btn-save:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        @media (max-width: 900px) {
+            .create-layout { grid-template-columns: 1fr; }
+            .preview-side { display: none; }
+        }
+    </style>
+</head>
+<body>
+    <div class="create-layout">
+        <section class="editor-side">
+            <a href="dashboard.html" style="color: var(--on-surface-variant); text-decoration: none; font-size: 0.9rem; margin-bottom: 40px; display: inline-block;">← Volver al Dashboard</a>
+            <h1 style="font-size: 2.5rem; margin-bottom: 12px;">Nueva Tarjeta</h1>
+            <p style="color: var(--on-surface-variant); margin-bottom: 48px;">Diseña tu impacto digital en tiempo real.</p>
+
+            <form id="cardForm">
+                <div class="form-group">
+                    <label>Nombre Completo</label>
+                    <input type="text" id="input-name" placeholder="Ej: Juan Pérez" value="Juan Pérez">
+                </div>
+                <div class="form-group">
+                    <label>Cargo / Rol</label>
+                    <input type="text" id="input-role" placeholder="Ej: Director Creativo" value="CEO Visionary Corp">
+                </div>
+                <div class="form-group">
+                    <label>Email Corporativo</label>
+                    <input type="email" id="input-email" placeholder="mail@ejemplo.com" value="juan@visionary.com">
+                </div>
+                <div class="form-group">
+                    <label>Teléfono</label>
+                    <input type="text" id="input-phone" placeholder="+54 9 11 1234 5678" value="+54 9 11 1234 5678">
+                </div>
+                <div class="form-group">
+                    <label>Empresa</label>
+                    <input type="text" id="input-company" placeholder="Nombre de la empresa" value="Visionary Corp">
+                </div>
+                <div class="form-group">
+                    <label>Color de Tema</label>
+                    <select id="input-color">
+                        <option value="var(--primary-container)">Azul Indigo</option>
+                        <option value="#7C3AED">Violeta Profundo</option>
+                        <option value="#059669">Verde Esmeralda</option>
+                        <option value="#DC2626">Rojo Carmesí</option>
+                    </select>
+                </div>
+                
+                <button type="button" class="btn-save" onclick="saveCard()">Publicar Tarjeta</button>
+            </form>
+        </section>
+
+        <section class="preview-side">
+            <div class="preview-card glass">
+                <div class="card-header" id="preview-header">
+                    <div class="profile-pic">👤</div>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-name" id="preview-name">Juan Pérez</h3>
+                    <p class="card-role" id="preview-role">CEO Visionary Corp</p>
+                    
+                    <div class="contact-pill glass">
+                        <span>📧</span> <span id="preview-email">juan@visionary.com</span>
+                    </div>
+                    <div class="contact-pill glass">
+                        <span>📱</span> <span id="preview-phone">+54 9 11 1234 5678</span>
+                    </div>
+                    <div class="contact-pill glass">
+                        <span>🏢</span> <span id="preview-company">Visionary Corp</span>
+                    </div>
+
+                    <div class="qr-section">
+                        CÓDIGO QR GENERADO<br>PARA ESTA TARJETA
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <script>
+        const inputs = ['name', 'role', 'email', 'phone', 'company'];
+        inputs.forEach(id => {
+            const input = document.getElementById('input-' + id);
+            const preview = document.getElementById('preview-' + id);
+            input.addEventListener('input', () => {
+                preview.textContent = input.value || '...';
+            });
+        });
+
+        document.getElementById('input-color').addEventListener('change', (e) => {
+            document.getElementById('preview-header').style.background = e.target.value;
+        });
+
+        function saveCard() {
+            alert('¡Tarjeta publicada con éxito! Ya puedes compartir tu perfil digital.');
+            window.location.href = 'dashboard.html';
+        }
+    </script>
+</body>
+</html>
