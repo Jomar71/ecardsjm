@@ -1,0 +1,580 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Cards JM | Elite Digital Identity</title>
+    
+    <!-- SEO & Social Sharing -->
+    <meta name="description" content="E-Cards JM - The next generation of professional digital business cards. Share your identity instantly via QR code or link.">
+    <meta property="og:title" content="E-Cards JM | Elite Digital Identity">
+    <meta property="og:description" content="Professional digital business cards with premium designs. Share instantly via QR.">
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+
+<body>
+
+    <!-- Platform Loader -->
+    <div id="loader" class="loading-box hidden">
+        <div class="premium-loader"></div>
+        <p id="loader-text" style="color:white; margin-top:1rem; font-family:sans-serif; opacity:0.8;">Iniciando sistema...</p>
+    </div>
+
+    <!-- ── HEADER ─────────────────────────────────────────────── -->
+    <header id="main-header">
+        <a class="logo" onclick="Router.go('/')">
+            <span>E-Cards</span><span class="logo-accent">JM</span>
+        </a>
+
+        <nav id="top-nav">
+            <!-- Guest Nav -->
+            <div id="auth-nav-guest" style="display:flex; gap:0.75rem; align-items:center;">
+                <button class="nav-link" onclick="Router.go('/')">INICIO</button>
+                <div style="width: 1px; height: 20px; background: rgba(255,255,255,0.1); margin: 0 0.5rem;"></div>
+                <button class="btn btn-ghost" onclick="UI.showAuth('login')">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </button>
+                <button class="btn btn-primary" onclick="UI.showAuth('register')">
+                    Regístrate
+                </button>
+            </div>
+
+            <!-- User Nav -->
+            <div id="auth-nav-user" class="hidden" style="display:flex; gap:0.75rem; align-items:center;">
+                <button class="nav-link" onclick="Router.go('/')">INICIO</button>
+                <button class="nav-link" onclick="Router.go('/admin')">EDITOR</button>
+                <div class="user-badge" id="admin-btn-container">
+                    <button class="btn-icon-mini hidden" id="admin-users-btn" onclick="Router.go('/users')" title="Gestión de Usuarios"><i class="fas fa-users-cog"></i></button>
+                    <div class="user-badge-divider hidden" id="admin-btn-divider"></div>
+                    <div class="user-avatar" id="nav-avatar">U</div>
+                    <span id="nav-username">USUARIO</span>
+                </div>
+                <button class="btn btn-ghost" onclick="Auth.logout()">
+                    <i class="fas fa-sign-out-alt"></i> Salir
+                </button>
+            </div>
+        </nav>
+    </header>
+
+    <!-- ── APP ROOT ───────────────────────────────────────────── -->
+    <main id="app-root">
+
+        <!-- ─── LANDING PAGE ─────────────────────────────────── -->
+        <section id="view-home" class="view-content animate-in">
+
+            <!-- Hero -->
+            <div class="hero-section">
+                <div class="hero-eyebrow">
+                    <span class="hero-eyebrow-dot"></span>
+                    Plataforma de Identidad Digital Premium
+                </div>
+                <h1 class="hero-title">
+                    Crea Tu Tarjeta Digital<br>
+                    <span class="gradient-text">de Élite</span>
+                </h1>
+                <p class="hero-subtitle">
+                    La identidad digital que te diferencia del resto. Diseños profesionales,
+                    personalización total y networking sin fronteras.
+                </p>
+                <div class="hero-cta">
+                    <button class="btn btn-primary btn-lg" onclick="Router.go('/admin')">
+                        <i class="fas fa-magic"></i> Probar Gratis
+                    </button>
+                    <button class="btn btn-outline btn-lg" onclick="UI.showAuth('register')">
+                        <i class="fas fa-rocket"></i> Crear Cuenta
+                    </button>
+                </div>
+            </div>
+
+            <!-- Features -->
+            <div class="features-section">
+                <p class="section-label">CARACTERÍSTICAS</p>
+                <h2 class="section-title">Todo lo que necesitas</h2>
+                <p class="section-subtitle">Herramientas de élite para tu identidad digital</p>
+                <div class="features-grid">
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-palette"></i>
+                        </div>
+                        <h3>Diseños Propios</h3>
+                        <p>Sube tus propias plantillas y diseños creados en Canvas, Photoshop o Illustrator. Personaliza cada detalle a tu medida profesional.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-qrcode"></i>
+                        </div>
+                        <h3>Comparte con QR</h3>
+                        <p>Tu perfil disponible instantáneamente con un escaneo. Sin apps extra — funciona en cualquier cámara moderna.</p>
+                    </div>
+                    <div class="feature-card">
+                        <div class="feature-icon">
+                            <i class="fas fa-sliders-h"></i>
+                        </div>
+                        <h3>Identidad sin Límites</h3>
+                        <p>Define tu propio estilo: sube tu plantilla personalizada, logo, foto y hasta tu propio código CSS para un acabado de élite.</p>
+                    </div>
+                </div>
+            </div>
+
+              <div class="showcase-section">
+                <p class="section-label">TU ESTILO, TUS REGLAS</p>
+                <h2 class="section-title">Sube tus propios diseños</h2>
+                <p class="section-subtitle">Usa tus plantillas ya creadas en Canva, Photoshop o Illustrator sin límites.</p>
+                <div style="display: flex; justify-content: center; margin-top: 2rem;">
+                    <div class="glass-card" style="padding: 2.5rem; max-width: 600px; text-align: center; border: 1px dashed rgba(255,255,255,0.2);">
+                        <i class="fas fa-file-upload" style="font-size: 4rem; color: var(--accent); margin-bottom: 1.5rem; opacity: 0.8;"></i>
+                        <p style="color: var(--text-secondary); font-size: 1rem; line-height: 1.6;">Convierte tus archivos de imagen en tarjetas interactivas de élite. Posiciona tus datos profesionales sobre tus mejores creatividades.</p>
+                    </div>
+                </div>
+            </div>
+
+
+                </div>
+            </div>
+
+            <footer class="landing-footer">
+                <p>© 2026 <span>Ecards3</span> · Tu Identidad Digital de Élite</p>
+            </footer>
+        </section>
+
+        <!-- ─── CARD EDITOR ───────────────────────────────────── -->
+        <section id="view-admin" class="view-content hidden">
+            <div id="view-admin-inner">
+                <div class="studio-header">
+                    <button class="breadcrumb" onclick="Router.go('/dashboard')">
+                        <i class="fas fa-arrow-left"></i> Mis Tarjetas
+                    </button>
+                    <span style="color:var(--text-muted)">/</span>
+                    <span style="font-size:0.8rem; font-weight:600;">Editor de Tarjeta</span>
+                </div>
+
+                <div class="studio-layout">
+                    <!-- LEFT: Editor -->
+                    <div class="studio-panel">
+                        <form id="cardForm">
+                            <!-- Tabs -->
+                            <nav class="studio-tabs">
+                                <button type="button" class="tab-btn active"
+                                    onclick="UI.showTab(event,'tab-info')">DATOS</button>
+                                <button type="button" class="tab-btn"
+                                    onclick="UI.showTab(event,'tab-contact')">CONECTOR</button>
+                                <button type="button" class="tab-btn"
+                                    onclick="UI.showTab(event,'tab-design')">DISEÑO</button>
+                            </nav>
+
+                            <!-- DATOS TAB -->
+                            <div id="tab-info" class="tab-content active">
+                                <div class="input-row-2">
+                                    <div class="input-group"><label>Primer Nombre *</label><input type="text" id="first-name" name="first-name"
+                                        required placeholder="Ej: Carlos"></div>
+                                    <div class="input-group"><label>Primer Apellido *</label><input type="text" id="last-name" name="last-name"
+                                        required placeholder="Ej: Méndez"></div>
+                                </div>
+                                <div class="input-group"><label>Cargo / Título</label><input type="text" id="job-title" name="professional_title"
+                                        placeholder="Ej: CEO & Fundador"></div>
+                                <div class="input-group"><label>Compañía / Marca</label><input type="text" id="company" name="company"
+                                        placeholder="Ej: Nexus Corp"></div>
+                                <div class="input-group"><label>Descripción de la Empresa</label>
+                                    <textarea name="experience_summary" rows="3"
+                                        placeholder="Describe brevemente tus servicios o lo que te hace único..."></textarea>
+                                </div>
+                                <div class="input-group"><label>Dirección Física / Oficina</label><input type="text" id="address" name="address"
+                                        placeholder="Ej: Calle 123, Ciudad"></div>
+                            </div>
+
+                            <!-- CONECTOR TAB -->
+                            <div id="tab-contact" class="tab-content">
+                                <div class="input-row-2">
+                                    <div class="input-group"><label>Email</label><input type="email" id="email" name="email"
+                                            placeholder="tu@empresa.com"></div>
+                                    <div class="input-group"><label>Teléfono</label><input type="tel" id="phone" name="phone"
+                                            placeholder="+1 234 567 890"></div>
+                                </div>
+                                <div class="input-group"><label>Website</label><input type="url" id="website" name="website"
+                                        placeholder="https://tuempresa.com"></div>
+
+                                <span class="form-divider">REDES SOCIALES</span>
+
+                                <div class="input-row-2">
+                                    <div class="input-group"><label><i class="fab fa-linkedin"
+                                                 style="color:#0A66C2;margin-right:0.3rem;"></i>LinkedIn</label><input
+                                             type="text" id="linkedin" name="linkedin" placeholder="usuario"></div>
+                                     <div class="input-group"><label><i class="fab fa-whatsapp"
+                                                 style="color:#25D366;margin-right:0.3rem;"></i>WhatsApp</label><input
+                                             type="text" id="whatsapp" name="whatsapp" placeholder="número"></div>
+                                </div>
+                                <div class="input-row-2">
+                                    <div class="input-group"><label><i class="fab fa-instagram"
+                                                 style="color:#E1306C;margin-right:0.3rem;"></i>Instagram</label><input
+                                             type="text" id="instagram" name="instagram" placeholder="usuario"></div>
+                                     <div class="input-group"><label><i class="fab fa-facebook"
+                                                 style="color:#1877F2;margin-right:0.3rem;"></i>Facebook</label><input
+                                             type="text" id="facebook" name="facebook" placeholder="usuario"></div>
+                                </div>
+                                <div class="input-row-2">
+                                    <div class="input-group"><label><i class="fab fa-tiktok"
+                                                 style="color:#FFF;margin-right:0.3rem;"></i>TikTok</label><input
+                                             type="text" id="tiktok" name="tiktok" placeholder="usuario"></div>
+                                     <div class="input-group"><label><i class="fab fa-youtube"
+                                                 style="color:#FF0000;margin-right:0.3rem;"></i>YouTube</label><input
+                                             type="text" id="youtube" name="youtube" placeholder="canal"></div>
+                                </div>
+                                <div class="input-row-2">
+                                    <div class="input-group"><label><i class="fab fa-twitter"
+                                                 style="color:#1DA1F2;margin-right:0.3rem;"></i>Twitter&nbsp;(X)</label><input
+                                             type="text" id="twitter" name="twitter" placeholder="usuario"></div>
+                                     <div class="input-group"><label><i class="fab fa-github"
+                                                 style="margin-right:0.3rem;"></i>GitHub</label><input type="text"
+                                             id="github" name="github" placeholder="usuario"></div>
+                                </div>
+                            </div>
+
+                            <!-- ESTILO TAB -->
+                            <div id="tab-design" class="tab-content">
+                                <!-- Solo opción personalizada -->
+                                <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                                    Usa los controles de abajo para personalizar tu tarjeta o sube una imagen de fondo completa.
+                                </p>
+
+                                <div class="input-row-2">
+                                    <div class="input-group">
+                                        <label>Logo Empresa</label>
+                                        <input type="file" id="logo" name="logo" accept="image/*">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Foto de Perfil</label>
+                                        <input type="file" id="profile" name="profile" accept="image/*">
+                                    </div>
+                                </div>
+
+                                <div class="input-row-2">
+                                    <div class="input-group">
+                                        <label>Posición del Perfil</label>
+                                        <select id="profile_position" name="profile_position">
+                                            <option value="default">Predeterminada (Auto)</option>
+                                            <option value="top-center">Centro Superior</option>
+                                            <option value="top-left">Superior Izquierda</option>
+                                            <option value="top-right">Superior Derecha</option>
+                                            <option value="center">Centro</option>
+                                            <option value="bottom-center">Centro Inferior</option>
+                                            <option value="bottom-left">Inferior Izquierda</option>
+                                            <option value="bottom-right">Inferior Derecha</option>
+                                        </select>
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Tipo de Perfil</label>
+                                        <select id="profile_type" name="profile_type">
+                                            <option value="image">Imagen de Perfil</option>
+                                            <option value="initials">Iniciales</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="input-group">
+                                    <label>Cargar Archivo de Plantilla (JPG/PNG)</label>
+                                    <input type="file" id="bg_image" name="bg_image" accept="image/*">
+                                </div>
+
+                                <div class="input-row-2">
+                                    <div class="input-group">
+                                        <label>Opacidad Viñeta</label>
+                                        <input type="range" id="bg_vignette" name="bg_vignette" min="0" max="1" step="0.1" value="0">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Desenfoque Fondo (px)</label>
+                                        <input type="range" id="bg_blur" name="bg_blur" min="0" max="20" step="1" value="0">
+                                    </div>
+                                </div>
+
+                                <div class="input-group">
+                                    <label>Tipografía</label>
+                                    <select name="font_family">
+                                        <option value="'Plus Jakarta Sans', sans-serif">Jakarta Sans (Default)</option>
+                                        <option value="'Inter', sans-serif">Inter (Modern)</option>
+                                        <option value="'Playfair Display', serif">Playfair (Premium)</option>
+                                        <option value="'Roboto Mono', monospace">Roboto Mono (Tech)</option>
+                                    </select>
+                                </div>
+
+                                <div class="input-row-2">
+                                    <div class="input-group">
+                                        <label>Google Font (URL)</label>
+                                        <input type="text" name="custom_fonts" placeholder="https://fonts.googleapis.com/css2?family=...">
+                                    </div>
+                                    <div class="input-group">
+                                        <label>Posición QR</label>
+                                        <select id="qr_position" name="qr_position">
+                                            <option value="default">Auto</option>
+                                            <option value="top-left">Arr. Izq.</option>
+                                            <option value="top-right">Arr. Der.</option>
+                                            <option value="bottom-left">Abaj. Izq.</option>
+                                            <option value="bottom-right">Abaj. Der.</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div class="input-row-3">
+                                    <div class="input-group"><label>Marca</label><input type="color" id="primary-color" name="primary_color" value="#7C3AED"></div>
+                                    <div class="input-group"><label>Fondo</label><input type="color" name="bg_color" value="#0B0F19"></div>
+                                    <div class="input-group"><label>Texto</label><input type="color" name="text_color" value="#FFFFFF"></div>
+                                </div>
+
+                                <div class="input-group">
+                                    <label>CSS Personalizado</label>
+                                    <textarea name="custom_css" rows="3" placeholder=".card-preview { border: 2px solid gold; }"></textarea>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <label>Tema Base</label>
+                                    <select id="theme-selector" name="theme_selector">
+                                        <option value="dark">Oscuro Profundo</option>
+                                        <option value="light">Claro Elegante</option>
+                                        <option value="pastel">Pastel Suave</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Action Buttons -->
+                            <div style="display:grid; grid-template-columns:2fr 1fr; gap:0.75rem; margin-top:1.25rem;">
+                                <button type="button" class="btn btn-primary btn-full"
+                                    style="border-radius:8px; padding:1rem;" onclick="UI.saveCard()">
+                                    <i class="fas fa-rocket"></i> Guardar y Desplegar
+                                </button>
+                                <button type="button" id="btn-delete-card" class="btn btn-danger btn-full hidden"
+                                    style="border-radius:8px; padding:1rem;" onclick="UI.deleteCurrentCard()">
+                                    <i class="fas fa-trash"></i> Eliminar
+                                </button>
+                            </div>
+                            
+                            <!-- QR Code Section -->
+                            <div style="margin-top:2rem; text-align:center; padding:1.5rem; border:1px solid var(--border); border-radius:var(--radius-md); background:var(--bg-glass);">
+                                <h3 style="margin-bottom:1rem; color:var(--text-primary);">Código QR de tu Tarjeta</h3>
+                                <div id="preview-qr" style="display:inline-block; background:white; padding:0.75rem; border-radius:8px;"></div>
+                                <p style="margin-top:1rem; font-size:0.85rem; color:var(--text-secondary);">Escanea este código para acceder directamente a tu tarjeta de presentación</p>
+                            </div>
+                        </form>
+                    </div>
+
+                    <!-- RIGHT: Live Preview -->
+                    <div class="preview-panel">
+                        <div class="preview-label">
+                            <span></span>LIVE ENGINE
+                        </div>
+
+                        <!-- Success Banner -->
+                        <div id="save-success" class="hidden animate-in">
+                            <i class="fas fa-check-circle"></i> ¡IDENTIDAD ACTUALIZADA EXITOSAMENTE!
+                        </div>
+
+                        <!-- Card Preview -->
+                        <div id="card-preview" class="card-preview template-custom animate-in">
+
+                            <div class="card-content">
+                                <!-- Top bar -->
+                                <div class="card-top-bar">
+                                    <div class="company-brand-box">
+                                        <div class="company-logo-ring">
+                                            <img id="preview-logo-brand" src="" alt="Logo">
+                                            <i id="preview-logo-icon" class="fas fa-building"
+                                                style="color:var(--accent-light); font-size:0.9rem;"></i>
+                                        </div>
+                                        <div class="brand-text" id="preview-brand-text">EMPRESA<br>DIGITAL</div>
+                                    </div>
+                                    <div class="header-actions" style="display:flex; gap:0.5rem;">
+                                        <button type="button" class="btn-icon-mini"><i class="fas fa-user-plus"></i></button>
+                                        <button type="button" class="btn-icon-mini"><i class="fas fa-share-alt"></i></button>
+                                    </div>
+                                </div>
+
+                                <div class="card-body-flex">
+                                    <!-- Profile Photo -->
+                                    <div class="profile-container">
+                                        <div id="preview-logo-box">
+                                            <i class="fas fa-user"
+                                                style="opacity:0.15; font-size:2rem; color:var(--accent-light);"></i>
+                                        </div>
+                                    </div>
+
+                                    <div class="card-text-block">
+                                        <p id="preview-company">EMPRESA EJEMPLO</p>
+                                        <h2 id="preview-name">NOMBRE COMPLETO</h2>
+                                        <p id="preview-title">CARGO O TÍTULO</p>
+                                        <p id="preview-description" class="card-desc">Esta es tu descripción. Resalta tus
+                                            valores y servicios.</p>
+                                    </div>
+                                </div>
+
+                                <!-- New footer layout based on reference image -->
+                                 <div class="preview-footer-flex" style="display: flex; justify-content: space-between; align-items: flex-end; margin-top: 1.5rem;">
+                                     <div id="preview-vertical-contacts" class="vertical-contact-strip" style="display: flex; flex-direction: column; gap: 1rem; align-items: center;"></div>
+                                     <div class="qr-stylized-container" style="position: relative; padding: 10px; background: rgba(255,255,255,0.03); border-radius: 10px; border: 1px solid var(--border);">
+                                         <div class="qr-corners">
+                                             <span class="cor-tl"></span><span class="cor-tr"></span>
+                                             <span class="cor-bl"></span><span class="cor-br"></span>
+                                         </div>
+                                         <div id="preview-card-qr" class="mini-qr" style="width: 80px; height: 80px;">
+                                             <i class="fas fa-qrcode" style="opacity:0.2;"></i>
+                                         </div>
+                                     </div>
+                                 </div>
+                                 <div id="preview-social-footer" class="social-footer-row" style="display: flex; gap: 1.2rem; justify-content: center; margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border);"></div>
+                                 <div class="card-footer-actions" style="margin-top: 1rem;">
+                                     <div id="preview-action-buttons" class="action-grid"></div>
+                                 </div>
+                             </div>
+
+                            <div class="bottom-wave"></div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+            <!-- TUS TARJETAS (Integrado) -->
+            <div id="admin-cards-list" class="container" style="margin-top: 4rem; padding-top: 4rem; border-top: 1px solid var(--border);">
+                <div class="dashboard-header" style="margin-bottom: 2rem;">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 800;">MIS TARJETAS</h2>
+                        <p style="font-size: 0.8rem; opacity: 0.6;">Gestiona y edita tus identidades creadas</p>
+                    </div>
+                </div>
+                <div id="dashboard-grid">
+                    <!-- Injected via script.js -->
+                </div>
+            </div>
+        </section>
+
+        <!-- ─── USER MANAGEMENT (Admin only) ────────────────── -->
+        <section id="view-users" class="view-content hidden">
+            <div class="container" style="max-width: 1000px; margin: 0 auto; padding: 3rem 2rem;">
+                <div class="dashboard-header">
+                    <button class="breadcrumb" onclick="Router.go('/admin')" style="margin-bottom: 1rem;">
+                        <i class="fas fa-arrow-left"></i> Volver al Editor
+                    </button>
+                    <h2 style="font-size: 2rem; font-weight: 800;">GESTIÓN DE USUARIOS</h2>
+                    <p style="color: var(--text-secondary);">Autoriza o revoca el acceso a nuevos usuarios de la plataforma.</p>
+                </div>
+
+                <div class="glass-card" style="overflow-x: auto; margin-top: 2rem;">
+                    <table class="admin-table">
+                        <thead>
+                            <tr>
+                                <th>Usuario</th>
+                                <th>Registrado</th>
+                                <th>Estado</th>
+                                <th>Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="users-list">
+                            <!-- Dynamically loaded -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+
+            <!-- VISTA PENDIENTE DE AUTORIZACIÓN -->
+            <section id="view-pending" class="view-content hidden">
+                <div class="pending-container animate-fade-in" style="display:flex; justify-content:center; align-items:center; min-height:60vh;">
+                    <div class="glass-card premium-card" style="text-align: center; max-width: 500px; padding: 3rem; border-radius: 20px;">
+                        <div class="status-icon-glow" style="font-size: 4rem; color: var(--accent); margin-bottom: 2rem;">
+                            <i class="fas fa-clock animate-pulse"></i>
+                        </div>
+                        <h2 class="premium-text-gradient" style="font-size: 2.2rem; font-weight: 800; margin-bottom: 1rem;">Cuenta en Espera</h2>
+                        <p style="color: var(--text-secondary); margin: 1.5rem 0; line-height: 1.6; font-size: 1.1rem;">
+                            Tu cuenta ha sido registrada correctamente, pero requiere la <strong>autorización de un administrador</strong> para acceder a las funciones de creación de tarjetas de élite.
+                        </p>
+                        <div class="pending-details" style="margin-bottom: 2.5rem; opacity: 0.7;">
+                            <p><small><i class="fas fa-info-circle"></i> Por favor, contacta con el administrador del sistema para activar tu perfil.</small></p>
+                        </div>
+                        <button class="btn btn-primary btn-full" style="padding: 1rem; border-radius: 12px; font-weight: 600;" onclick="Auth.logout()">
+                            <i class="fas fa-sign-out-alt"></i> Cerrar Sesión
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- VISTA ADMINISTRACIÓN DE USUARIOS -->
+            <section id="view-users-admin" class="view-content hidden">
+                <div class="container" style="max-width: 1000px; margin: 0 auto; padding: 3rem 2rem;">
+                    <header class="studio-header">
+                        <div>
+                            <button class="breadcrumb" onclick="Router.go('/admin')">
+                                <i class="fas fa-arrow-left"></i> Volver al Editor
+                            </button>
+                            <h2 class="premium-text-gradient" style="font-size: 2.2rem; font-weight: 800;">Gestión de Usuarios</h2>
+                            <p class="section-subtitle">Control de acceso y autorizaciones para la plataforma.</p>
+                        </div>
+                    </header>
+                    
+                    <div class="glass-card premium-card" style="margin-top: 2rem; padding: 1rem; overflow-x: auto;">
+                        <div id="users-admin-grid">
+                            <!-- Inyectado por JS -->
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    
+    <!-- Public View Container - shown when viewing a specific card -->
+    <div id="public-view" class="hidden" style="display: flex; justify-content: center; align-items: flex-start; min-height: 100vh; padding: 20px; background: var(--bg-deep);">
+        <!-- Content dynamically loaded by script.js -->
+    </div>
+
+    <!-- ── AUTH MODAL ─────────────────────────────────────────── -->
+    <div id="auth-modal" class="auth-overlay hidden">
+        <div class="auth-box">
+            <div class="auth-logo">
+                <span class="logo-text">Ecards<span style="color:var(--accent-light);">3</span></span>
+            </div>
+
+            <!-- Login Form -->
+            <div id="auth-login">
+                <h3>Bienvenido de vuelta</h3>
+                <p class="auth-subtitle">Accede a tu identidad digital</p>
+<form id="loginForm">
+                    <div class="input-group"><label>Email / Usuario</label><input type="text" id="login-user" required
+                            placeholder="Tu correo o usuario"></div>
+                    <div class="input-group"><label>Contraseña</label><input type="password" id="login-pass" required
+                            placeholder="••••••••"></div>
+                    <button type="submit" class="btn btn-primary btn-full"
+                        style="border-radius:8px; padding:0.9rem; margin-top:0.5rem;">
+                        <i class="fas fa-sign-in-alt"></i> Entrar
+                    </button>
+                </form>
+                <p class="auth-switch">¿Sin cuenta? <a onclick="UI.showAuth('register')">Crear una ahora</a></p>
+            </div>
+
+            <!-- Register Form -->
+            <div id="auth-register" class="hidden">
+                <h3>Crear Identidad</h3>
+                <p class="auth-subtitle">Únete a la plataforma de élite</p>
+<form id="registerForm">
+                    <div class="input-group"><label>Email de Usuario</label><input type="text" id="reg-user" required
+                            placeholder="Ej: carlos@correo.com"></div>
+                    <div class="input-group"><label>Contraseña</label><input type="password" id="reg-pass" required
+                            placeholder="Mínimo 6 caracteres"></div>
+                    <button type="submit" class="btn btn-primary btn-full"
+                        style="border-radius:8px; padding:0.9rem; margin-top:0.5rem;">
+                        <i class="fas fa-user-plus"></i> Crear Cuenta
+                    </button>
+                </form>
+                <p class="auth-switch">¿Ya tienes cuenta? <a onclick="UI.showAuth('login')">Iniciar sesión</a></p>
+            </div>
+
+            <button class="auth-close" onclick="UI.hideAuth()">&times;</button>
+        </div>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="/script.js"></script>
+</body>
+
+</html>

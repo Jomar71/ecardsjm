@@ -20,6 +20,7 @@ if (fs.existsSync(pxxlEnvPath)) {
 }
 
 console.log("Database URL configured as:", process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 30) + '...' : 'None');
+console.log("JWT Secret configured:", process.env.JWT_SECRET ? 'Exists' : 'Missing');
 
 const express = require('express');
 const cors = require('cors');
@@ -75,8 +76,15 @@ app.get('/health', (req, res) => {
 // ===== HELPER: query con manejo de errores =====
 async function query(text, params) {
     const pool = getPool();
-    const result = await pool.query(text, params);
-    return result;
+    console.log(`[DB QUERY] Ejecutando: ${text.substring(0, 100)}...`);
+    try {
+        const result = await pool.query(text, params);
+        console.log(`[DB RESULT] Filas afectadas/recuperadas: ${result.rowCount}`);
+        return result;
+    } catch (err) {
+        console.error('[DB ERROR] Query fallida:', err.message);
+        throw err;
+    }
 }
 
 // ===== AUTH MIDDLEWARE =====
@@ -84,8 +92,12 @@ const authenticateToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
     if (!token) return res.status(401).json({ error: 'TOKEN_REQUIRED' });
+    
     jwt.verify(token, SECRET_KEY, (err, user) => {
-        if (err) return res.status(403).json({ error: 'TOKEN_INVALID' });
+        if (err) {
+            console.error('[AUTH ERROR] Token verification failed:', err.message);
+            return res.status(403).json({ error: 'TOKEN_INVALID' });
+        }
         req.user = user;
         next();
     });
@@ -267,11 +279,15 @@ async function initDB() {
 
 app.post('/api/auth/register', async (req, res) => {
     const { username, password } = req.body;
+    console.log(`[AUTH] Registro solicitado para usuario: ${username}`);
+    
     if (!username || !password) return res.status(400).json({ error: 'FIELDS_REQUIRED' });
     try {
         // Verificar si es el primer usuario
         const countResult = await query('SELECT COUNT(*) FROM users');
         const isFirstUser = parseInt(countResult.rows[0].count) === 0;
+        
+        console.log(`[AUTH] ¿Es primer usuario?: ${isFirstUser}`);
         
         const passwordHash = await bcrypt.hash(password, 10);
         
@@ -285,14 +301,21 @@ app.post('/api/auth/register', async (req, res) => {
         );
         const user = result.rows[0];
         
+        console.log(`[AUTH] Usuario creado:`, user);
+        
         if (!user.is_authorized) {
+            console.log(`[AUTH] Usuario pendiente de autorización: ${user.username}`);
             return res.json({ status: 'pending', message: 'WAIT_FOR_APPROVAL', user });
         }
 
         const token = jwt.sign({ id: user.id, username: user.username, is_admin: user.is_admin }, SECRET_KEY, { expiresIn: '15d' });
+        console.log(`[AUTH] Registro exitoso para: ${user.username}`);
         res.json({ status: 'success', user, token });
     } catch (err) {
-        if (err.code === '23505') return res.status(400).json({ error: 'USER_EXISTS' });
+        if (err.code === '23505') {
+            console.error(`[AUTH] Usuario ya existe: ${username}`);
+            return res.status(400).json({ error: 'USER_EXISTS' });
+        }
         console.error('Register error:', err.message);
         res.status(500).json({ error: 'SERVER_ERROR', detail: err.message });
     }
@@ -300,19 +323,29 @@ app.post('/api/auth/register', async (req, res) => {
 
 app.post('/api/auth/login', async (req, res) => {
     const { username, password } = req.body;
+    console.log(`[AUTH] Login solicitado para usuario: ${username}`);
+    
     try {
         const result = await query('SELECT * FROM users WHERE username = $1', [username]);
-        if (result.rows.length === 0) return res.status(400).json({ error: 'INVALID_CREDENTIALS' });
+        if (result.rows.length === 0) {
+            console.log(`[AUTH] Usuario no encontrado: ${username}`);
+            return res.status(400).json({ error: 'INVALID_CREDENTIALS' });
+        }
         
         const user = result.rows[0];
         const validPassword = await bcrypt.compare(password, user.password_hash);
-        if (!validPassword) return res.status(400).json({ error: 'INVALID_CREDENTIALS' });
+        if (!validPassword) {
+            console.log(`[AUTH] Contraseña inválida para usuario: ${username}`);
+            return res.status(400).json({ error: 'INVALID_CREDENTIALS' });
+        }
         
         if (!user.is_authorized) {
+            console.log(`[AUTH] Usuario no autorizado: ${username}`);
             return res.status(403).json({ error: 'USER_NOT_AUTHORIZED', message: 'Tu cuenta aún no ha sido autorizada por el administrador.' });
         }
 
         const token = jwt.sign({ id: user.id, username: user.username, is_admin: user.is_admin }, SECRET_KEY, { expiresIn: '15d' });
+        console.log(`[AUTH] Login exitoso para: ${user.username}`);
         res.json({ status: 'success', user: { id: user.id, username: user.username, is_admin: user.is_admin }, token });
     } catch (err) {
         console.error('Login error:', err.message);
