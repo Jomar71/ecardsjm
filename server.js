@@ -185,7 +185,10 @@ app.delete('/api/cards/:id', authenticateToken, async (req, res) => {
 
 // ===== STATIC FILES =====
 // Esto debe ir ANTES de las rutas comodín (*) para que los archivos estáticos se sirvan correctamente
-app.use(express.static(path.join(__dirname)));
+app.use(express.static(path.join(__dirname), { extensions: ['css', 'js', 'html', 'ico'], index: false }));  
+app.get('/styles.css', (req, res) => res.type('text/css').sendFile(path.join(__dirname, 'styles.css')));
+app.get('/script.js', (req, res) => res.type('application/javascript').sendFile(path.join(__dirname, 'script.js')));
+app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
 // ===== MANEJO DE RUTAS ESPECÍFICAS PARA TARJETAS PÚBLICAS =====
 app.get('/card/:id', async (req, res) => {
