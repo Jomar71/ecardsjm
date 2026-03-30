@@ -222,13 +222,14 @@
                     const cardEl = document.createElement('div');
                     cardEl.className = 'card-item glass';
                     
-                    const bgStyle = card.bg_image_path ? `background-image: ${card.bg_image_path};` : 'background-color: #222;';
+                    const bg = card.bg_image_path;
+                    const bgStyle = bg ? `background-image: url('${bg.startsWith('url(') ? bg.slice(4,-1).replace(/["']/g,"") : bg}');` : 'background-color: #333;';
                     
                     cardEl.innerHTML = `
                         <div style="height: 100px; background-size: cover; background-position: center; ${bgStyle} border-radius: 12px;"></div>
                         <div>
                             <h3 style="margin: 0; color: #fff;">${card.name}</h3>
-                            <p style="color: var(--on-surface-variant); font-size: 0.85rem; margin-top: 5px;">ecardsjm.com/view-card.html?u=${card.id}</p>
+                            <p style="color: var(--on-surface-variant); font-size: 0.85rem; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${window.location.origin}/view-card.html?u=${card.id}</p>
                         </div>
                         <div style="display: flex; gap: 10px; margin-top: auto;">
                             <a href="create-card.html?edit=${card.id}" class="btn-new" style="padding: 10px; flex: 1; text-align: center; font-size: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);">Editar</a>

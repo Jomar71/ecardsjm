@@ -140,7 +140,8 @@
                     
                     // Set Background
                     if (card.bg_image_path) {
-                        cardView.style.backgroundImage = card.bg_image_path;
+                        const bg = card.bg_image_path;
+                        cardView.style.backgroundImage = bg.startsWith('url(') ? bg : `url('${bg}')`;
                     }
 
                     // Toggle visibility based on data

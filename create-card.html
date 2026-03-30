@@ -168,6 +168,10 @@
                 <label>Nombre y Apellido</label>
                 <input type="text" id="in-name" placeholder="Juan Pérez" value="Juan Pérez">
             </div>
+            <div class="form-group">
+                <label>Teléfono</label>
+                <input type="text" id="in-phone" placeholder="+57 --- --- ----">
+            </div>
 
             <div class="section-title">3. Información de Contacto</div>
             <div class="form-group">
@@ -304,6 +308,12 @@
             const name = document.getElementById('in-name').value;
             const cardId = editingId || generateId(name);
             
+            let bgPath = cardPreview.style.backgroundImage;
+            // Clean 'url("...")' to get only the source
+            if (bgPath.startsWith('url(')) {
+                bgPath = bgPath.slice(4, -1).replace(/["']/g, "");
+            }
+
             const cardData = {
                 id: cardId,
                 name: name,
@@ -314,7 +324,7 @@
                 facebook: document.getElementById('in-fb').value,
                 instagram: document.getElementById('in-ig').value,
                 website: document.getElementById('in-web').value,
-                bg_image_path: cardPreview.style.backgroundImage
+                bg_image_path: bgPath
             };
 
             try {
@@ -342,24 +352,32 @@
 
         async function generateLink() {
             const btn = document.querySelector('.floating-share');
+            const originalText = btn.innerText;
             btn.innerText = "GUARDANDO...";
             btn.disabled = true;
 
-            const cardId = await saveCardData();
-            if (cardId) {
-                const shareUrl = window.location.origin + '/view-card.html?u=' + cardId;
-                
-                // Copy to clipboard
-                try {
-                    await navigator.clipboard.writeText(shareUrl);
-                    alert('¡Tarjeta guardada y link copiado!\n\n' + shareUrl);
-                } catch (e) {
-                    alert('Tarjeta guardada. Tu link es: ' + shareUrl);
+            try {
+                const cardId = await saveCardData();
+                if (cardId) {
+                    const shareUrl = window.location.origin + '/view-card.html?u=' + cardId;
+                    
+                    // Copy to clipboard
+                    try {
+                        await navigator.clipboard.writeText(shareUrl);
+                        alert('¡Tarjeta guardada y link copiado!\n\n' + shareUrl);
+                    } catch (e) {
+                        alert('Tarjeta guardada. Tu link es: ' + shareUrl);
+                    }
+                    
+                    window.location.href = 'dashboard.html';
+                } else {
+                    btn.innerText = originalText;
+                    btn.disabled = false;
                 }
-                
-                window.location.href = 'dashboard.html';
-            } else {
-                btn.innerText = "GENERAR LINK DE COMPARTIR";
+            } catch (err) {
+                console.error("Critical error in generateLink:", err);
+                alert("Ocurrió un error inesperado. Por favor, revisa la consola o intenta de nuevo.");
+                btn.innerText = originalText;
                 btn.disabled = false;
             }
         }
@@ -380,7 +398,8 @@
                         document.getElementById('in-ig').value = data.instagram || '';
                         document.getElementById('in-web').value = data.website || '';
                         if (data.bg_image_path) {
-                            cardPreview.style.backgroundImage = data.bg_image_path;
+                            const bg = data.bg_image_path;
+                            cardPreview.style.backgroundImage = bg.startsWith('url(') ? bg : `url('${bg}')`;
                         }
                         updatePreview();
                     }
