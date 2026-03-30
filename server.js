@@ -51,11 +51,12 @@ app.use(express.json({ limit: '20mb' }));
 
 // Logger para diagnosticar solicitudes
 app.use((req, res, next) => {
-    console.log(`[REQUEST] ${req.method} ${req.url} - Size: ${req.get('content-length') || '0'} bytes`);
+    const contentLength = req.get('content-length') || '0';
+    console.log(`[REQUEST] ${req.method} ${req.url} - ${contentLength} bytes`);
     
-    // Validar JSON malformed en el body (antes de cada ruta)
-    if (req.method === 'POST' && req.get('content-type') === 'application/json') {
-        // Express ya corrió express.json(), si hay un error de sintaxis caería al error handler final
+    // Si la solicitud es demasiado grande, avisar antes de procesar
+    if (parseInt(contentLength) > 20 * 1024 * 1024) {
+        console.warn(`[WARNING] Request exceeds 20MB: ${contentLength} bytes`);
     }
     next();
 });
@@ -231,19 +232,26 @@ app.get('*', (req, res) => {
 app.use((err, req, res, next) => {
     console.error('❌ GLOBAL ERROR:', err.message);
     
+    // Capturar cualquier error que no sea JSON y forzar JSON
+    const status = err.status || err.statusCode || 500;
+    
     // Si es un error de Payload (imagen muy grande)
-    if (err.type === 'entity.too.large') {
-        return res.status(413).json({ error: 'FILE_TOO_LARGE', detail: 'La imagen es demasiado grande. Máximo 15MB.' });
+    if (err.type === 'entity.too.large' || status === 413) {
+        return res.status(413).json({ 
+            error: 'FILE_TOO_LARGE', 
+            detail: 'La imagen o los datos exceden el límite permitido. Intenta con una imagen más pequeña.' 
+        });
     }
     
     // Si es un error de JSON malformado
-    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+    if (err instanceof SyntaxError && status === 400 && 'body' in err) {
         return res.status(400).json({ error: 'INVALID_JSON', detail: err.message });
     }
 
-    res.status(err.status || 500).json({ 
-        error: 'INTERNAL_ERROR', 
-        detail: err.message || 'Error interno del servidor'
+    res.status(status).json({ 
+        error: err.name || 'SERVER_ERROR', 
+        detail: err.message || 'Error interno del servidor',
+        code: status
     });
 });
 
