@@ -277,47 +277,32 @@ async function initDB() {
 
 // ===== AUTH ENDPOINTS ACTUALIZADOS =====
 
-app.post('/api/auth/register', async (req, res) => {
+// ===== ADMIN ENDPOINTS =====
+
+const isAdmin = (req, res, next) => {
+    if (!req.user || !req.user.is_admin) {
+        return res.status(403).json({ error: 'ADMIN_REQUIRED' });
+    }
+    next();
+};
+
+app.post('/api/auth/register', authenticateToken, isAdmin, async (req, res) => {
     const { username, password } = req.body;
-    console.log(`[AUTH] Registro solicitado para usuario: ${username}`);
+    console.log(`[AUTH] Registro administrativo para usuario: ${username}`);
     
     if (!username || !password) return res.status(400).json({ error: 'FIELDS_REQUIRED' });
     try {
-        // Verificar si es el primer usuario
-        const countResult = await query('SELECT COUNT(*) FROM users');
-        const isFirstUser = parseInt(countResult.rows[0].count) === 0;
-        
-        console.log(`[AUTH] ¿Es primer usuario?: ${isFirstUser}`);
-        
         const passwordHash = await bcrypt.hash(password, 10);
         
-        // Si es el primer usuario, se autoriza automáticamente y se hace admin
-        const isAuthorized = isFirstUser;
-        const isAdmin = isFirstUser;
-
+        // Los usuarios creados por el admin están autorizados por defecto
         const result = await query(
-            'INSERT INTO users (username, password_hash, is_authorized, is_admin) VALUES ($1, $2, $3, $4) RETURNING id, username, is_authorized, is_admin',
-            [username, passwordHash, isAuthorized, isAdmin]
+            'INSERT INTO users (username, password_hash, is_authorized, is_admin) VALUES ($1, $2, $3, $4) RETURNING id',
+            [username, passwordHash, true, false]
         );
-        const user = result.rows[0];
-        
-        console.log(`[AUTH] Usuario creado:`, user);
-        
-        if (!user.is_authorized) {
-            console.log(`[AUTH] Usuario pendiente de autorización: ${user.username}`);
-            return res.json({ status: 'pending', message: 'WAIT_FOR_APPROVAL', user });
-        }
-
-        const token = jwt.sign({ id: user.id, username: user.username, is_admin: user.is_admin }, SECRET_KEY, { expiresIn: '15d' });
-        console.log(`[AUTH] Registro exitoso para: ${user.username}`);
-        res.json({ status: 'success', user, token });
+        res.json({ status: 'success', user: result.rows[0] });
     } catch (err) {
-        if (err.code === '23505') {
-            console.error(`[AUTH] Usuario ya existe: ${username}`);
-            return res.status(400).json({ error: 'USER_EXISTS' });
-        }
-        console.error('Register error:', err.message);
-        res.status(500).json({ error: 'SERVER_ERROR', detail: err.message });
+        if (err.code === '23505') return res.status(400).json({ error: 'USER_EXISTS' });
+        res.status(500).json({ error: 'SERVER_ERROR' });
     }
 });
 
@@ -355,12 +340,7 @@ app.post('/api/auth/login', async (req, res) => {
 
 // ===== ADMIN ENDPOINTS =====
 
-const isAdmin = (req, res, next) => {
-    if (!req.user || !req.user.is_admin) {
-        return res.status(403).json({ error: 'ADMIN_REQUIRED' });
-    }
-    next();
-};
+// ===== ADMIN ENDPOINTS CONTINUED =====
 
 app.get('/api/admin/users', authenticateToken, isAdmin, async (req, res) => {
     try {

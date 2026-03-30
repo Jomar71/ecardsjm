@@ -131,41 +131,17 @@
                         <p id="error-msg" style="color: #ef4444; font-size: 0.85rem; margin-top: 15px; display: none;"></p>
                     </form>
                     <div class="login-footer">
-                        ¿No tiene una cuenta? <a href="#" onclick="toggleView('register')">Registrarse ahora</a>
-                    </div>
-                </div>
-
-                <div id="register-view" style="display: none;">
-                    <form id="registerForm">
-                        <div class="input-group">
-                            <label>Nombre de Usuario</label>
-                            <input type="text" id="reg-username" placeholder="Elige un usuario" required>
-                        </div>
-                        <div class="input-group">
-                            <label>Contraseña</label>
-                            <input type="password" id="reg-password" placeholder="Mínimo 6 caracteres" required>
-                        </div>
-                        <button type="submit" class="btn-submit">Crear Cuenta</button>
-                        <p id="reg-error-msg" style="color: #ef4444; font-size: 0.85rem; margin-top: 15px; display: none;"></p>
-                    </form>
-                    <div class="login-footer">
-                        ¿Ya tienes cuenta? <a href="#" onclick="toggleView('login')">Iniciar Sesión</a>
+                        Solo un administrador puede proporcionar credenciales de acceso.
                     </div>
                 </div>
             
             <div style="margin-top: 30px; font-size: 0.75rem; color: var(--on-surface-variant); padding: 15px; border-radius: 12px; background: rgba(255,255,255,0.03);">
-                <b>Nota Importante:</b> Hemos actualizado nuestro sistema a una base de datos real en la nube. Si tenías un usuario previo, deberás <b>registrarte de nuevo</b> para empezar a usar el sistema profesional.
+                <b>Nota:</b> El sistema ha sido migrado a una base de datos real. Ya puedes ingresar con tu <b>nuevo usuario corporativo</b>.
             </div>
         </div>
     </div>
 
     <script>
-        function toggleView(view) {
-            document.getElementById('login-view').style.display = view === 'login' ? 'block' : 'none';
-            document.getElementById('register-view').style.display = view === 'register' ? 'block' : 'none';
-            document.querySelector('.login-card h2').innerText = view === 'login' ? 'Bienvenido' : 'Crear Cuenta';
-        }
-
         // Login Logic
         document.getElementById('loginForm').onsubmit = async function(e) {
             e.preventDefault();
@@ -187,35 +163,6 @@
                     window.location.href = 'dashboard.html';
                 } else {
                     errorMsg.innerText = data.message || data.error || "Error al iniciar sesión";
-                    errorMsg.style.display = "block";
-                }
-            } catch (err) {
-                errorMsg.innerText = "Error de conexión con el servidor";
-                errorMsg.style.display = "block";
-            }
-        };
-
-        // Register Logic
-        document.getElementById('registerForm').onsubmit = async function(e) {
-            e.preventDefault();
-            const username = document.getElementById('reg-username').value;
-            const password = document.getElementById('reg-password').value;
-            const errorMsg = document.getElementById('reg-error-msg');
-            errorMsg.style.display = "none";
-
-            try {
-                const response = await fetch('/api/auth/register', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ username, password })
-                });
-                const data = await response.json();
-                if (data.status === 'success') {
-                    alert('¡Cuenta creada exitosamente! Ahora puedes iniciar sesión.');
-                    toggleView('login');
-                    document.getElementById('username').value = username;
-                } else {
-                    errorMsg.innerText = data.message || data.error || "Error al registrarse";
                     errorMsg.style.display = "block";
                 }
             } catch (err) {
