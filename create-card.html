@@ -276,7 +276,7 @@
             toggleIcon('phone', 'in-phone');
             toggleIcon('mail', 'in-email');
             toggleIcon('map-pin', 'in-loc');
-
+            
             // Check visibility for horizontal group
             toggleIcon('message-circle', 'in-wa');
             toggleIcon('facebook', 'in-fb');
@@ -287,7 +287,10 @@
 
         function toggleIcon(iconName, inputId) {
             const input = document.getElementById(inputId);
-            const iconEl = document.querySelector(`[data-lucide="${iconName}"]`).parentElement;
+            const iconNode = document.querySelector(`[data-lucide="${iconName}"]`);
+            if (!iconNode || !input) return;
+
+            const iconEl = iconNode.parentElement;
             if (input.value.trim() === "") {
                 iconEl.style.opacity = "0.2";
                 iconEl.style.pointerEvents = "none";
@@ -338,8 +341,14 @@
                 });
 
                 if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to save card');
+                    let errData;
+                    const responseText = await response.text();
+                    try {
+                        errData = JSON.parse(responseText);
+                    } catch (e) {
+                        errData = { error: 'SERVER_RESPONDED_HTML', detail: responseText.substring(0, 100) };
+                    }
+                    throw new Error(errData.error || errData.detail || 'Failed to save card');
                 }
                 
                 return cardId;

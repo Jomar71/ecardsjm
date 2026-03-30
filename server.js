@@ -47,11 +47,16 @@ const app = express();
 console.log(`[INIT] Servidor configurado en el puerto: ${PORT}`);
 
 // ===== MIDDLEWARE =====
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: '20mb' }));
 
-// Logger para diagnosticar bloqueos
+// Logger para diagnosticar solicitudes
 app.use((req, res, next) => {
     console.log(`[REQUEST] ${req.method} ${req.url} - Size: ${req.get('content-length') || '0'} bytes`);
+    
+    // Validar JSON malformed en el body (antes de cada ruta)
+    if (req.method === 'POST' && req.get('content-type') === 'application/json') {
+        // Express ya corrió express.json(), si hay un error de sintaxis caería al error handler final
+    }
     next();
 });
 
@@ -215,13 +220,31 @@ app.get('/#/card/:id', async (req, res) => {
 
 // Manejo de todas las demás rutas (SPA - Single Page Application)
 app.get('*', (req, res) => {
-    // Verificar si es una solicitud de API
+    // Verificar si es una solicitud de API (solo para GETs)
     if (req.url.startsWith('/api/') || req.url.startsWith('/health')) {
-        // Si es una solicitud de API, devolver error 404 genérico
         return res.status(404).json({ error: 'Ruta no encontrada' });
     }
-    // Para cualquier otra ruta, enviar index.html permitiendo que el router del frontend (script.js) maneje la ruta
     res.sendFile(path.join(__dirname, 'index.html'));
+});
+
+// ===== GLOBAL ERROR HANDLER (El último middleware) =====
+app.use((err, req, res, next) => {
+    console.error('❌ GLOBAL ERROR:', err.message);
+    
+    // Si es un error de Payload (imagen muy grande)
+    if (err.type === 'entity.too.large') {
+        return res.status(413).json({ error: 'FILE_TOO_LARGE', detail: 'La imagen es demasiado grande. Máximo 15MB.' });
+    }
+    
+    // Si es un error de JSON malformado
+    if (err instanceof SyntaxError && err.status === 400 && 'body' in err) {
+        return res.status(400).json({ error: 'INVALID_JSON', detail: err.message });
+    }
+
+    res.status(err.status || 500).json({ 
+        error: 'INTERNAL_ERROR', 
+        detail: err.message || 'Error interno del servidor'
+    });
 });
 
 // ===== DB INITIALIZATION =====
