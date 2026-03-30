@@ -3,10 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Creador de E-Cards | 9:16 Premium</title>
+    <title>Diseñar Tarjeta | E-Cards JM</title>
     <link rel="stylesheet" href="styles.css">
-    <!-- Lucide Icons for premium feel -->
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         .create-container {
             display: grid;
@@ -159,7 +158,7 @@
             <div class="section-title">1. Fondo de la Tarjeta</div>
             <label class="upload-area" id="bg-upload-label">
                 <input type="file" id="bg-upload" hidden accept="image/*">
-                <i data-lucide="image-plus" style="margin-bottom: 8px;"></i>
+                <i class="fa-solid fa-image" style="margin-bottom: 8px; font-size: 1.5rem;"></i>
                 <div style="font-size: 0.85rem;">Subir imagen de fondo</div>
             </label>
 
@@ -183,7 +182,7 @@
                 <input type="text" id="in-loc" placeholder="Ciudad, País">
             </div>
 
-            <div class="section-title">3. Redes Sociales</div>
+            <div class="section-title">4. Redes Sociales</div>
             <div class="input-row">
                 <div class="form-group">
                     <label>WhatsApp</label>
@@ -191,7 +190,7 @@
                 </div>
                 <div class="form-group">
                     <label>Facebook</label>
-                    <input type="text" id="in-fb" placeholder="Usuario">
+                    <input type="text" id="in-fb" placeholder="Usuario/Link">
                 </div>
             </div>
             <div class="input-row">
@@ -200,9 +199,23 @@
                     <input type="text" id="in-ig" placeholder="@usuario">
                 </div>
                 <div class="form-group">
-                    <label>Website</label>
-                    <input type="text" id="in-web" placeholder="https://...">
+                    <label>LinkedIn</label>
+                    <input type="text" id="in-li" placeholder="URL Perfil">
                 </div>
+            </div>
+            <div class="input-row">
+                <div class="form-group">
+                    <label>TikTok</label>
+                    <input type="text" id="in-tt" placeholder="@usuario">
+                </div>
+                <div class="form-group">
+                    <label>X (Twitter)</label>
+                    <input type="text" id="in-tw" placeholder="@usuario">
+                </div>
+            </div>
+            <div class="form-group">
+                <label>Página Web</label>
+                <input type="text" id="in-web" placeholder="https://...">
             </div>
         </aside>
 
@@ -212,23 +225,25 @@
                 <div class="card-overlay">
                     <!-- Left Vertical Icons -->
                     <div class="vertical-icons">
-                        <div class="icon-circle" style="color: #2563eb;"><i data-lucide="phone" style="width:16px;"></i></div>
-                        <div class="icon-circle" style="color: #64748b;"><i data-lucide="mail" style="width:16px;"></i></div>
-                        <div class="icon-circle" style="color: #f43f5e;"><i data-lucide="map-pin" style="width:16px;"></i></div>
+                        <div class="icon-circle" id="view-phone" style="color: #2563eb;"><i class="fa-solid fa-phone"></i></div>
+                        <div class="icon-circle" id="view-email" style="color: #64748b;"><i class="fa-solid fa-envelope"></i></div>
+                        <div class="icon-circle" id="view-loc" style="color: #f43f5e;"><i class="fa-solid fa-location-dot"></i></div>
                     </div>
 
                     <!-- Bottom Social Row -->
                     <div class="social-row">
-                        <div class="icon-circle" style="color: #22c55e;"><i data-lucide="message-circle" style="width:18px;"></i></div>
-                        <div class="icon-circle" style="color: #1d4ed8;"><i data-lucide="facebook" style="width:18px;"></i></div>
-                        <div class="icon-circle" style="color: #d946ef;"><i data-lucide="instagram" style="width:18px;"></i></div>
-                        <div class="icon-circle" style="color: #3b82f6;"><i data-lucide="map" style="width:18px;"></i></div>
-                        <div class="icon-circle" style="color: #0ea5e9;"><i data-lucide="globe" style="width:18px;"></i></div>
+                        <div class="icon-circle" id="view-wa" style="color: #22c55e;"><i class="fa-brands fa-whatsapp"></i></div>
+                        <div class="icon-circle" id="view-li" style="color: #0077b5;"><i class="fa-brands fa-linkedin-in"></i></div>
+                        <div class="icon-circle" id="view-ig" style="color: #d946ef;"><i class="fa-brands fa-instagram"></i></div>
+                        <div class="icon-circle" id="view-tt" style="color: #000000;"><i class="fa-brands fa-tiktok"></i></div>
+                        <div class="icon-circle" id="view-tw" style="color: #000000;"><i class="fa-brands fa-x-twitter"></i></div>
+                        <div class="icon-circle" id="view-fb" style="color: #1d4ed8;"><i class="fa-brands fa-facebook-f"></i></div>
+                        <div class="icon-circle" id="view-web" style="color: #0ea5e9;"><i class="fa-solid fa-globe"></i></div>
                     </div>
 
                     <!-- QR Code (Right) -->
                     <div class="qr-placeholder">
-                        <i data-lucide="qr-code" style="width: 100%; height: 100%; color: var(--primary);"></i>
+                        <i class="fa-solid fa-qrcode" style="width: 100%; height: 100%; color: var(--primary);"></i>
                     </div>
                 </div>
             </div>
@@ -238,7 +253,6 @@
     <button class="floating-share" onclick="generateLink()">GENERAR LINK DE COMPARTIR</button>
 
     <script>
-        lucide.createIcons();
 
         // Check Auth
         const token = localStorage.getItem('ecards_token');
@@ -310,32 +324,33 @@
         }
 
         // Dynamic Visibility & Preview
-        const inputs = ['name', 'phone', 'email', 'loc', 'wa', 'fb', 'ig', 'web'];
+        const inputs = ['name', 'phone', 'email', 'loc', 'wa', 'fb', 'ig', 'li', 'tt', 'tw', 'web'];
         inputs.forEach(id => {
             const el = document.getElementById('in-' + id);
-            el.addEventListener('input', updatePreview);
+            if (el) el.addEventListener('input', updatePreview);
         });
 
         function updatePreview() {
-            // Check visibility for vertical group
-            toggleIcon('phone', 'in-phone');
-            toggleIcon('mail', 'in-email');
-            toggleIcon('map-pin', 'in-loc');
+            // Vertical group
+            toggleIcon('view-phone', 'in-phone');
+            toggleIcon('view-email', 'in-email');
+            toggleIcon('view-loc', 'in-loc');
             
-            // Check visibility for horizontal group
-            toggleIcon('message-circle', 'in-wa');
-            toggleIcon('facebook', 'in-fb');
-            toggleIcon('instagram', 'in-ig');
-            toggleIcon('map', 'in-loc'); // Secondary map use
-            toggleIcon('globe', 'in-web');
+            // Social group
+            toggleIcon('view-wa', 'in-wa');
+            toggleIcon('view-fb', 'in-fb');
+            toggleIcon('view-ig', 'in-ig');
+            toggleIcon('view-li', 'in-li');
+            toggleIcon('view-tt', 'in-tt');
+            toggleIcon('view-tw', 'in-tw');
+            toggleIcon('view-web', 'in-web');
         }
 
-        function toggleIcon(iconName, inputId) {
+        function toggleIcon(iconId, inputId) {
             const input = document.getElementById(inputId);
-            const iconNode = document.querySelector(`[data-lucide="${iconName}"]`);
-            if (!iconNode || !input) return;
+            const iconEl = document.getElementById(iconId);
+            if (!iconEl || !input) return;
 
-            const iconEl = iconNode.parentElement;
             if (input.value.trim() === "") {
                 iconEl.style.opacity = "0.2";
                 iconEl.style.pointerEvents = "none";
@@ -371,6 +386,9 @@
                 whatsapp: document.getElementById('in-wa').value,
                 facebook: document.getElementById('in-fb').value,
                 instagram: document.getElementById('in-ig').value,
+                linkedin: document.getElementById('in-li').value,
+                tiktok: document.getElementById('in-tt').value,
+                twitter: document.getElementById('in-tw').value,
                 website: document.getElementById('in-web').value,
                 bg_image_path: bgPath
             };
@@ -450,6 +468,10 @@
                         document.getElementById('in-wa').value = data.whatsapp || '';
                         document.getElementById('in-fb').value = data.facebook || '';
                         document.getElementById('in-ig').value = data.instagram || '';
+                        document.getElementById('in-li')?.setAttribute('value', data.linkedin || '');
+                        if(document.getElementById('in-li')) document.getElementById('in-li').value = data.linkedin || '';
+                        if(document.getElementById('in-tt')) document.getElementById('in-tt').value = data.tiktok || '';
+                        if(document.getElementById('in-tw')) document.getElementById('in-tw').value = data.twitter || '';
                         document.getElementById('in-web').value = data.website || '';
                         if (data.bg_image_path) {
                             const bg = data.bg_image_path;

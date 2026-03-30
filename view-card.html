@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Card | Compartida</title>
     <link rel="stylesheet" href="styles.css">
-    <script src="https://unpkg.com/lucide@latest"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <style>
         body {
             margin: 0;
@@ -16,13 +16,14 @@
             justify-content: center;
             background: #000;
             overflow: hidden;
+            font-family: 'Inter', sans-serif;
         }
 
         .view-card-wrapper {
             width: 100%;
             height: 100%;
             max-width: 500px;
-            max-height: 888px; /* Approx 9:16 max */
+            max-height: 888px;
             aspect-ratio: 9 / 16;
             background: #fff;
             position: relative;
@@ -38,12 +39,13 @@
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
+            background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%);
         }
 
         .vertical-icons {
             position: absolute;
             left: 25px;
-            bottom: 120px;
+            bottom: 155px; /* Adjust for more social icons */
             display: flex;
             flex-direction: column;
             gap: 15px;
@@ -51,23 +53,32 @@
 
         .social-row {
             display: flex;
+            flex-wrap: wrap;
             justify-content: center;
-            gap: 12px;
+            gap: 14px;
             margin-top: 20px;
-            padding-bottom: 20px;
+            padding-bottom: 30px;
         }
 
         .icon-circle {
-            width: 36px;
-            height: 36px;
+            width: 42px;
+            height: 42px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid currentColor;
+            border: 1px solid rgba(255,255,255,0.3);
             cursor: pointer;
-            background: rgba(255,255,255,0.1);
-            backdrop-filter: blur(5px);
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            transition: transform 0.2s;
+            color: #fff;
+            font-size: 1.1rem;
+        }
+        
+        .icon-circle:hover {
+            transform: scale(1.1);
+            background: rgba(255,255,255,0.25);
         }
 
         .qr-placeholder {
@@ -77,15 +88,14 @@
             width: 90px;
             height: 90px;
             background: #fff;
-            padding: 5px;
+            padding: 8px;
             border-radius: 12px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+            box-shadow: 0 5px 25px rgba(0,0,0,0.3);
         }
 
-        /* Mobile specific adjustments */
         @media (max-width: 600px) {
             .view-card-wrapper {
                 width: 100vw;
@@ -100,35 +110,29 @@
 <body>
     <div class="view-card-wrapper" id="card-view">
         <div class="card-overlay">
-            <div class="vertical-icons">
-                <div class="icon-circle" style="color: #2563eb;"><i data-lucide="phone"></i></div>
-                <div class="icon-circle" style="color: #64748b;"><i data-lucide="mail"></i></div>
-                <div class="icon-circle" style="color: #f43f5e;"><i data-lucide="map-pin"></i></div>
+            <div class="vertical-icons" id="vert-icons">
+                <!-- Phone, Email, Loc -->
             </div>
 
-            <div class="social-row">
-                <div class="icon-circle" style="color: #22c55e;"><i data-lucide="message-circle"></i></div>
-                <div class="icon-circle" style="color: #1d4ed8;"><i data-lucide="facebook"></i></div>
-                <div class="icon-circle" style="color: #d946ef;"><i data-lucide="instagram"></i></div>
-                <div class="icon-circle" style="color: #3b82f6;"><i data-lucide="map"></i></div>
-                <div class="icon-circle" style="color: #0ea5e9;"><i data-lucide="globe"></i></div>
+            <div class="social-row" id="soc-row">
+                <!-- WA, LI, IG, TT, TW, FB, WEB -->
             </div>
 
             <div class="qr-placeholder">
-                <i data-lucide="qr-code" style="width: 100%; height: 100%; color: #000;"></i>
+                <i class="fa-solid fa-qrcode" id="qr-icon" style="font-size: 4rem; color: #000;"></i>
             </div>
         </div>
     </div>
 
     <script>
-        lucide.createIcons();
-        
-        const urlParams = new URLSearchParams(window.location.search);
-        const cardId = urlParams.get('u');
+        // Get ID from URL or Hash
+        let cardId = new URLSearchParams(window.location.search).get('u') || 
+                     window.location.hash.split('/').pop();
+
         const cardView = document.getElementById('card-view');
 
         async function initCard() {
-            if (!cardId) {
+            if (!cardId || cardId === "#") {
                 showError("No se especificó ninguna tarjeta.");
                 return;
             }
@@ -144,53 +148,64 @@
                         cardView.style.backgroundImage = bg.startsWith('url(') ? bg : `url('${bg}')`;
                     }
 
-                    // Toggle visibility based on data
-                    checkVisibility('phone', card.phone);
-                    checkVisibility('mail', card.email);
-                    checkVisibility('map-pin', card.address);
-                    checkVisibility('message-circle', card.whatsapp);
-                    checkVisibility('facebook', card.facebook);
-                    checkVisibility('instagram', card.instagram);
-                    checkVisibility('map', card.address);
-                    checkVisibility('globe', card.website);
+                    // Render Icons
+                    renderVertical(card);
+                    renderSocial(card);
 
                 } else {
                     showError("Tarjeta no encontrada.");
                 }
             } catch (err) {
                 console.error("View card error:", err);
-                showError("Error al cargar la tarjeta.");
+                showError("Ocurrió un error al cargar los datos.");
             }
         }
 
-        function checkVisibility(iconName, value) {
-            const iconEl = document.querySelector(`[data-lucide="${iconName}"]`).parentElement;
-            if (!value || value.trim() === "") {
-                iconEl.style.display = "none";
-            } else {
-                // Wrap in link if value looks like a link or phone
-                const parent = iconEl.parentElement;
-                const link = document.createElement('a');
-                link.href = formatLink(iconName, value);
-                link.target = "_blank";
-                link.style.textDecoration = "none";
-                link.appendChild(iconEl);
-                parent.appendChild(link);
-            }
+        function renderVertical(card) {
+            const container = document.getElementById('vert-icons');
+            const fields = [
+                { id: 'phone', val: card.phone, icon: 'fa-phone', color: '#2563eb', link: 'tel:' + card.phone },
+                { id: 'mail', val: card.email, icon: 'fa-envelope', color: '#64748b', link: 'mailto:' + card.email },
+                { id: 'loc', val: card.address, icon: 'fa-location-dot', color: '#f43f5e', link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(card.address)}` }
+            ];
+
+            fields.forEach(f => {
+                if (f.val && f.val.trim() !== "") {
+                    container.innerHTML += `<a href="${f.link}" target="_blank" class="icon-circle" style="color:${f.color}"><i class="fa-solid ${f.icon}"></i></a>`;
+                }
+            });
         }
 
-        function formatLink(icon, value) {
-            if (icon === 'phone') return `tel:${value}`;
-            if (icon === 'mail') return `mailto:${value}`;
-            if (icon === 'map-pin' || icon === 'map') return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(value)}`;
-            if (icon === 'message-circle') return `https://wa.me/${value.replace(/\D/g,'')}`;
-            if (value.startsWith('http')) return value;
-            return `https://${value}`;
+        function renderSocial(card) {
+            const container = document.getElementById('soc-row');
+            const fields = [
+                { id: 'wa', val: card.whatsapp, icon: 'fa-brands fa-whatsapp', color: '#22c55e', link: `https://wa.me/${(card.whatsapp||'').replace(/\D/g,'')}` },
+                { id: 'li', val: card.linkedin, icon: 'fa-brands fa-linkedin-in', color: '#0077b5', link: card.linkedin },
+                { id: 'ig', val: card.instagram, icon: 'fa-brands fa-instagram', color: '#d946ef', link: card.instagram?.startsWith('http') ? card.instagram : `https://instagram.com/${(card.instagram||'').replace('@','')}` },
+                { id: 'tt', val: card.tiktok, icon: 'fa-brands fa-tiktok', color: '#000000', link: card.tiktok?.startsWith('http') ? card.tiktok : `https://tiktok.com/@${(card.tiktok||'').replace('@','')}` },
+                { id: 'tw', val: card.twitter, icon: 'fa-brands fa-x-twitter', color: '#000000', link: card.twitter?.startsWith('http') ? card.twitter : `https://x.com/${(card.twitter||'').replace('@','')}` },
+                { id: 'fb', val: card.facebook, icon: 'fa-brands fa-facebook-f', color: '#1d4ed8', link: card.facebook?.startsWith('http') ? card.facebook : `https://facebook.com/${card.facebook}` },
+                { id: 'web', val: card.website, icon: 'fa-solid fa-globe', color: '#0ea5e9', link: card.website?.startsWith('http') ? card.website : `https://${card.website}` }
+            ];
+
+            fields.forEach(f => {
+                if (f.val && f.val.trim() !== "") {
+                    let finalLink = f.link;
+                    if (f.id === 'li' && !finalLink.startsWith('http')) finalLink = `https://${finalLink}`;
+                    
+                    container.innerHTML += `<a href="${finalLink}" target="_blank" class="icon-circle" style="color:${f.color}"><i class="${f.icon}"></i></a>`;
+                }
+            });
         }
 
         function showError(msg) {
-            cardView.innerHTML = `<div style="color:#fff; text-align:center; padding:100px;"><h1>404</h1><p>${msg}</p></div>`;
+            cardView.innerHTML = `<div style="color:#fff; text-align:center; padding:100px; font-family: sans-serif;">
+                <h1 style="font-size: 4rem; margin:0;">404</h1>
+                <p style="opacity:0.7;">${msg}</p>
+                <a href="/" style="color:var(--primary); text-decoration:none; margin-top:20px; display:inline-block;">Volver al Inicio</a>
+            </div>`;
             cardView.style.background = "#111";
+            cardView.style.backgroundImage = "none";
         }
 
         initCard();

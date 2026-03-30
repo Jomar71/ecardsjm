@@ -221,15 +221,20 @@
                 cards.forEach(card => {
                     const cardEl = document.createElement('div');
                     cardEl.className = 'card-item glass';
+                    const shareLink = `${window.location.origin}/#/card/${card.id}`;
                     
                     const bg = card.bg_image_path;
                     const bgStyle = bg ? `background-image: url('${bg.startsWith('url(') ? bg.slice(4,-1).replace(/["']/g,"") : bg}');` : 'background-color: #333;';
                     
                     cardEl.innerHTML = `
-                        <div style="height: 100px; background-size: cover; background-position: center; ${bgStyle} border-radius: 12px;"></div>
+                        <div style="height: 100px; background-size: cover; background-position: center; ${bgStyle} border-radius: 12px; position:relative;">
+                        </div>
                         <div>
                             <h3 style="margin: 0; color: #fff;">${card.name}</h3>
-                            <p style="color: var(--on-surface-variant); font-size: 0.85rem; margin-top: 5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${window.location.origin}/view-card.html?u=${card.id}</p>
+                            <p style="color: var(--on-surface-variant); font-size: 0.85rem; margin-top: 5px; cursor:pointer;" onclick="copyLink('${shareLink}')">
+                                <span style="opacity:0.7;">URL: </span> /#/card/${card.id}
+                                <span style="font-size:0.7rem; color:var(--primary); margin-left:8px;">Copiar</span>
+                            </p>
                         </div>
                         <div style="display: flex; gap: 10px; margin-top: auto;">
                             <a href="create-card.html?edit=${card.id}" class="btn-new" style="padding: 10px; flex: 1; text-align: center; font-size: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);">Editar</a>
@@ -242,6 +247,11 @@
                 console.error("Load cards error:", err);
                 list.innerHTML = `<p style="color: #ef4444; grid-column: 1/-1; text-align: center; padding: 40px;">Error al cargar las tarjetas. Por favor, intenta de nuevo.</p>`;
             }
+        }
+
+        function copyLink(link) {
+            navigator.clipboard.writeText(link);
+            alert('¡Link copiado al portapapeles!');
         }
 
         async function deleteCard(id) {
