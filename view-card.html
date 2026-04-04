@@ -6,6 +6,7 @@
     <title>E-Card | Compartida</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         body {
             margin: 0;
@@ -156,8 +157,8 @@
                 <!-- WA, LI, IG, TT, TW, FB, WEB -->
             </div>
 
-            <div class="qr-placeholder">
-                <i class="fa-solid fa-qrcode" id="qr-icon" style="font-size: 4rem; color: #000;"></i>
+            <div class="qr-placeholder" id="qrcode">
+                <!-- QR Code will be rendered here -->
             </div>
         </div>
     </div>
@@ -189,6 +190,23 @@
                     // Render Icons
                     renderVertical(card);
                     renderSocial(card);
+
+                    // Generate QR Code
+                    new QRCode(document.getElementById("qrcode"), {
+                        text: window.location.href,
+                        width: 128,
+                        height: 128,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
+                    
+                    // Ajustar tamaño del QR generado para que quepa en el contenedor
+                    const qrImg = document.querySelector('#qrcode img');
+                    if(qrImg) {
+                        qrImg.style.width = '100%';
+                        qrImg.style.height = '100%';
+                    }
 
                 } else {
                     showError("Tarjeta no encontrada.");

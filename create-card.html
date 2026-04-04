@@ -6,6 +6,7 @@
     <title>Diseñar Tarjeta | E-Cards JM</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         .create-container {
             display: grid;
@@ -280,8 +281,8 @@
                     </div>
 
                     <!-- QR Code (Right) -->
-                    <div class="qr-placeholder">
-                        <i class="fa-solid fa-qrcode" style="width: 100%; height: 100%; color: var(--primary);"></i>
+                    <div class="qr-placeholder" id="qr-preview">
+                        <!-- QR Preview rendered here -->
                     </div>
                 </div>
             </div>
@@ -382,6 +383,33 @@
             toggleIcon('view-tt', 'in-tt');
             toggleIcon('view-tw', 'in-tw');
             toggleIcon('view-web', 'in-web');
+
+            // Actualizar QR Preview
+            updateQRPreview();
+        }
+
+        function updateQRPreview() {
+            const qrContainer = document.getElementById('qr-preview');
+            const nameInput = document.getElementById('in-name');
+            const cardId = editingId || generateId(nameInput.value);
+            const shareUrl = window.location.origin + '/view-card.html?u=' + cardId;
+            
+            qrContainer.innerHTML = "";
+            new QRCode(qrContainer, {
+                text: shareUrl,
+                width: 128,
+                height: 128,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            // Ajustar imagen para diseño
+            const qrImg = qrContainer.querySelector('img');
+            if(qrImg) {
+                qrImg.style.width = '100%';
+                qrImg.style.height = '100%';
+            }
         }
 
         function toggleIcon(iconId, inputId) {
