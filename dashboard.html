@@ -133,9 +133,89 @@
             color: var(--tertiary);
             align-self: flex-start;
         }
+
+        /* Mobile Adjustments */
+        .mobile-header {
+            display: none;
+            padding: 16px 24px;
+            background: var(--bg-recessed);
+            border-bottom: 1px solid var(--glass-border);
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: var(--on-surface);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                bottom: 0;
+                z-index: 1000;
+                transition: 0.3s;
+                box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .mobile-header {
+                display: flex;
+            }
+
+            .main-content {
+                padding: 30px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .main-content {
+                padding: 24px 16px;
+            }
+
+            .welcome-hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cards-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .btn-new {
+                width: 100%;
+                text-align: center;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
     </style>
 </head>
 <body>
+    <div class="mobile-header">
+        <div class="logo">
+            <span>E-Cards</span> JM
+        </div>
+        <button class="menu-btn" id="menu-toggle">≡</button>
+    </div>
     <div class="dashboard-layout">
         <aside class="sidebar">
             <div class="logo">
@@ -285,6 +365,23 @@
             e.preventDefault();
             logout();
         };
+
+        // Mobile Sidebar Toggle
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.querySelector('.sidebar');
+        
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+            });
+        }
+        
+        // Cierra el sidebar al clickear afuera en móvil
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 992 && !sidebar.contains(e.target) && !menuToggle.contains(e.target) && sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+            }
+        });
 
         window.onload = loadCards;
     </script>

@@ -14,11 +14,17 @@
                 <a href="/" class="logo">
                     <span>E-Cards</span> JM
                 </a>
-                <div class="nav-links">
-                    <a href="#hero">Inicio</a>
-                    <a href="#tarjetas">Mis Tarjetas</a>
-                    <a href="#acerca">Servicios</a>
-                    <a href="#contacto">Contacto</a>
+                <button class="nav-toggle" id="nav-toggle" aria-label="Abrir Menú">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+                <div class="nav-links" id="nav-menu">
+                    <a href="#hero" class="nav-item">Inicio</a>
+                    <a href="#features" class="nav-item">Servicios</a>
+                    <a href="#tarjetas" class="nav-item">Mis Tarjetas</a>
+                    <a href="#contacto" class="nav-item">Contacto</a>
+                    <a href="login.html" class="btn-login btn-login-mobile">Login</a>
                 </div>
                 <a href="login.html" class="btn-login" style="text-decoration: none;">Login</a>
             </div>
@@ -104,7 +110,7 @@
                     </div>
                     <p>La red profesional de tarjetas digitales más sofisticada para líderes empresariales contemporáneos.</p>
                 </div>
-                <div class="nav-links" style="display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
+                <div class="nav-links nav-links-footer" style="display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
                     <a href="#">Privacidad</a>
                     <a href="#">Términos</a>
                     <a href="#">Ayuda</a>
@@ -133,6 +139,23 @@
                 navbar.classList.remove("scrolled");
             }
         };
+
+        // Mobile Nav Logic
+        const navToggle = document.getElementById('nav-toggle');
+        const navMenu = document.getElementById('nav-menu');
+        const navItems = document.querySelectorAll('.nav-item');
+
+        navToggle.addEventListener('click', () => {
+            navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active');
+        });
+
+        navItems.forEach(item => {
+            item.addEventListener('click', () => {
+                navMenu.classList.remove('active');
+                navToggle.classList.remove('active');
+            });
+        });
 
         function handleRoute() {
             const hash = window.location.hash;

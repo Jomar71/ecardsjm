@@ -104,6 +104,44 @@
                 max-height: none;
                 border-radius: 0;
             }
+
+            .card-overlay {
+                padding: 24px;
+            }
+
+            .vertical-icons {
+                left: 20px;
+                bottom: 140px;
+            }
+
+            .qr-placeholder {
+                right: 20px;
+                bottom: 30px;
+                width: 75px;
+                height: 75px;
+            }
+
+            .social-row {
+                gap: 10px;
+                padding-bottom: 10px;
+            }
+        }
+
+        /* Handle short screens */
+        @media (max-height: 700px) and (max-width: 600px) {
+            .vertical-icons {
+                bottom: 110px;
+                gap: 10px;
+            }
+            .icon-circle {
+                width: 36px;
+                height: 36px;
+            }
+            .qr-placeholder {
+                width: 60px;
+                height: 60px;
+                bottom: 20px;
+            }
         }
     </style>
 </head>
