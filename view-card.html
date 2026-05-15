@@ -198,11 +198,25 @@
                     });
                     
                     // Ajustar tamaño del QR generado para que quepa en el contenedor
+                    // Asegurar que el QR se ajuste al contenedor (evita tamaños que “se quedan” al re-render)
                     const qrImg = document.querySelector('#qrcode img');
-                    if(qrImg) {
+                    if (qrImg) {
                         qrImg.style.width = '100%';
                         qrImg.style.height = '100%';
+                        qrImg.style.maxWidth = '100%';
+                        qrImg.style.maxHeight = '100%';
+                        qrImg.style.objectFit = 'contain';
                     }
+
+                    // Forzar recalculo al siguiente frame para que el contenedor ya tenga su tamaño final
+                    requestAnimationFrame(() => {
+                        const qrImg2 = document.querySelector('#qrcode img');
+                        if (qrImg2) {
+                            qrImg2.style.width = '100%';
+                            qrImg2.style.height = '100%';
+                        }
+                    });
+
 
                 } else {
                     showError("Tarjeta no encontrada.");
