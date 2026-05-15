@@ -11,32 +11,31 @@
         body {
             margin: 0;
             padding: 0;
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
             background: #000;
-            overflow: hidden;
+            overflow: auto;
             font-family: 'Inter', sans-serif;
         }
 
         .view-card-wrapper {
-            width: 100%;
-            height: 100%;
-            max-width: 500px;
-            max-height: 888px;
+            width: min(100vw, 500px);
+            height: auto;
             aspect-ratio: 9 / 16;
             background: #fff;
             position: relative;
             box-shadow: 0 0 50px rgba(0,0,0,0.5);
             background-size: cover;
             background-position: center;
+            border-radius: 0;
         }
 
         .card-overlay {
             position: absolute;
             inset: 0;
-            padding: 30px;
+            padding: clamp(16px, 3.5vw, 30px);
             display: flex;
             flex-direction: column;
             justify-content: flex-end;
@@ -45,25 +44,25 @@
 
         .vertical-icons {
             position: absolute;
-            left: 25px;
-            bottom: 155px; /* Adjust for more social icons */
+            left: clamp(14px, 4vw, 25px);
+            bottom: clamp(90px, 18vh, 155px); /* Adjust for more social icons */
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: clamp(10px, 1.8vh, 15px);
         }
 
         .social-row {
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: 14px;
+            gap: clamp(8px, 2.2vw, 14px);
             margin-top: 20px;
-            padding-bottom: 30px;
+            padding-bottom: clamp(14px, 4vw, 30px);
         }
 
         .icon-circle {
-            width: 42px;
-            height: 42px;
+            width: clamp(28px, 6vw, 42px);
+            height: clamp(28px, 6vw, 42px);
             border-radius: 50%;
             display: flex;
             align-items: center;
@@ -74,7 +73,7 @@
             backdrop-filter: blur(8px);
             transition: transform 0.2s;
             color: #fff;
-            font-size: 1.1rem;
+            font-size: clamp(0.85rem, 3.5vw, 1.1rem);
         }
         
         .icon-circle:hover {
@@ -84,12 +83,12 @@
 
         .qr-placeholder {
             position: absolute;
-            right: 25px;
-            bottom: 40px;
-            width: 90px;
-            height: 90px;
+            right: clamp(14px, 4vw, 25px);
+            bottom: clamp(18px, 5vh, 40px);
+            width: clamp(60px, 14vw, 90px);
+            height: clamp(60px, 14vw, 90px);
             background: #fff;
-            padding: 8px;
+            padding: clamp(5px, 1.2vw, 8px);
             border-radius: 12px;
             display: flex;
             align-items: center;
@@ -100,48 +99,45 @@
         @media (max-width: 600px) {
             .view-card-wrapper {
                 width: 100vw;
-                height: 100vh;
-                max-width: none;
-                max-height: none;
                 border-radius: 0;
             }
 
             .card-overlay {
-                padding: 24px;
+                padding: clamp(14px, 6vw, 24px);
             }
 
             .vertical-icons {
-                left: 20px;
-                bottom: 140px;
+                left: clamp(14px, 4vw, 20px);
+                bottom: clamp(90px, 16vh, 140px);
             }
 
             .qr-placeholder {
-                right: 20px;
-                bottom: 30px;
-                width: 75px;
-                height: 75px;
+                right: clamp(14px, 4vw, 20px);
+                bottom: clamp(18px, 4vh, 30px);
+                width: clamp(56px, 18vw, 75px);
+                height: clamp(56px, 18vw, 75px);
             }
 
             .social-row {
-                gap: 10px;
-                padding-bottom: 10px;
+                gap: clamp(8px, 3vw, 10px);
+                padding-bottom: clamp(8px, 3vw, 10px);
             }
         }
 
         /* Handle short screens */
         @media (max-height: 700px) and (max-width: 600px) {
             .vertical-icons {
-                bottom: 110px;
-                gap: 10px;
+                bottom: clamp(70px, 14vh, 110px);
+                gap: clamp(10px, 2.5vh, 10px);
             }
             .icon-circle {
-                width: 36px;
-                height: 36px;
+                width: clamp(28px, 10vw, 36px);
+                height: clamp(28px, 10vw, 36px);
             }
             .qr-placeholder {
-                width: 60px;
-                height: 60px;
-                bottom: 20px;
+                width: clamp(52px, 18vw, 60px);
+                height: clamp(52px, 18vw, 60px);
+                bottom: clamp(14px, 3vh, 20px);
             }
         }
     </style>
