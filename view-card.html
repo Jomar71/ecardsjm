@@ -188,14 +188,21 @@
                     renderSocial(card);
 
                     // Generate QR Code
-                    new QRCode(document.getElementById("qrcode"), {
+                    // QRCode.js usa width/height fijos para generar el <img>.
+                    // En móvil eso puede quedar mal si el contenedor es otro tamaño.
+                    // Por eso, generamos con el tamaño actual del contenedor.
+                    const qrContainer = document.getElementById('qrcode');
+                    const qrSize = Math.floor(qrContainer.getBoundingClientRect().width || 128);
+
+                    new QRCode(qrContainer, {
                         text: window.location.href,
-                        width: 128,
-                        height: 128,
+                        width: qrSize,
+                        height: qrSize,
                         colorDark : "#000000",
                         colorLight : "#ffffff",
                         correctLevel : QRCode.CorrectLevel.H
                     });
+
                     
                     // Ajustar tamaño del QR generado para que quepa en el contenedor
                     // Asegurar que el QR se ajuste al contenedor (evita tamaños que “se quedan” al re-render)
