@@ -252,9 +252,15 @@
                     <input type="text" id="in-tw" placeholder="@usuario">
                 </div>
             </div>
-            <div class="form-group">
-                <label>Página Web</label>
-                <input type="text" id="in-web" placeholder="https://...">
+            <div class="input-row">
+                <div class="form-group">
+                    <label>YouTube</label>
+                    <input type="text" id="in-yt" placeholder="Canal/Link">
+                </div>
+                <div class="form-group">
+                    <label>Página Web</label>
+                    <input type="text" id="in-web" placeholder="https://...">
+                </div>
             </div>
         </aside>
 
@@ -277,6 +283,7 @@
                         <div class="icon-circle" id="view-tt" style="color: #000000;"><i class="fa-brands fa-tiktok"></i></div>
                         <div class="icon-circle" id="view-tw" style="color: #000000;"><i class="fa-brands fa-x-twitter"></i></div>
                         <div class="icon-circle" id="view-fb" style="color: #1d4ed8;"><i class="fa-brands fa-facebook-f"></i></div>
+                        <div class="icon-circle" id="view-yt" style="color: #ff0000;"><i class="fa-brands fa-youtube"></i></div>
                         <div class="icon-circle" id="view-web" style="color: #0ea5e9;"><i class="fa-solid fa-globe"></i></div>
                     </div>
 
@@ -363,7 +370,7 @@
         }
 
         // Dynamic Visibility & Preview
-        const inputs = ['name', 'phone', 'email', 'loc', 'wa', 'fb', 'ig', 'li', 'tt', 'tw', 'web'];
+        const inputs = ['name', 'phone', 'email', 'loc', 'wa', 'fb', 'ig', 'li', 'tt', 'tw', 'yt', 'web'];
         inputs.forEach(id => {
             const el = document.getElementById('in-' + id);
             if (el) el.addEventListener('input', updatePreview);
@@ -382,6 +389,7 @@
             toggleIcon('view-li', 'in-li');
             toggleIcon('view-tt', 'in-tt');
             toggleIcon('view-tw', 'in-tw');
+            toggleIcon('view-yt', 'in-yt');
             toggleIcon('view-web', 'in-web');
 
             // Actualizar QR Preview
@@ -455,6 +463,7 @@
                 linkedin: document.getElementById('in-li').value,
                 tiktok: document.getElementById('in-tt').value,
                 twitter: document.getElementById('in-tw').value,
+                youtube: document.getElementById('in-yt').value,
                 website: document.getElementById('in-web').value,
                 bg_image_path: bgPath
             };
@@ -538,6 +547,7 @@
                         if(document.getElementById('in-li')) document.getElementById('in-li').value = data.linkedin || '';
                         if(document.getElementById('in-tt')) document.getElementById('in-tt').value = data.tiktok || '';
                         if(document.getElementById('in-tw')) document.getElementById('in-tw').value = data.twitter || '';
+                        if(document.getElementById('in-yt')) document.getElementById('in-yt').value = data.youtube || '';
                         document.getElementById('in-web').value = data.website || '';
                         if (data.bg_image_path) {
                             const bg = data.bg_image_path;
