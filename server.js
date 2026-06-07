@@ -1,14 +1,4 @@
-// ===== MANEJADORES GLOBALES (deben ir PRIMERO) =====
-process.on('uncaughtException', (err) => {
-    console.error('❌ UNCAUGHT EXCEPTION:', err.message);
-    console.error(err.stack);
-    // NO salimos del proceso — el servidor sigue vivo
-});
-process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ UNHANDLED REJECTION:', reason);
-});
-
-// ===== IMPORTS =====
+// ===== IMPORTS PRIMERO =====
 require('dotenv').config();
 
 // Cargar variables de entorno específicas de PXXL si el archivo existe
@@ -19,32 +9,36 @@ if (fs.existsSync(pxxlEnvPath)) {
     require('dotenv').config({ path: pxxlEnvPath, override: true });
 }
 
-console.log("Database URL configured as:", process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 30) + '...' : 'None');
-console.log("JWT Secret configured:", process.env.JWT_SECRET ? 'Exists' : 'Missing');
+console.log("🔧 [INIT] Database URL configured as:", process.env.DATABASE_URL ? process.env.DATABASE_URL.substring(0, 30) + '...' : 'MISSING - CRITICAL!');
+console.log("🔧 [INIT] JWT Secret configured:", process.env.JWT_SECRET ? 'Exists' : 'Missing');
+console.log("🔧 [INIT] PORT from env:", process.env.PORT || 'Not set (will use 3000)');
 
 const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { getPool } = require('./db');
+const { getPool, isConnected } = require('./db');
 
 // ===== CONFIG =====
 const PORT = process.env.PORT || 3000;
 const SECRET_KEY = process.env.JWT_SECRET || 'ecards_elite_secret_key_123';
 
-// Capturar errores fatales para debugging en pxxl
+// ===== MANEJADORES GLOBALES (deben capturar PERO NO crashear el servidor) =====
 process.on('uncaughtException', (err) => {
-    console.error('❌ CRASH DETECTADO (Uncaught Exception):', err.stack || err);
-    process.exit(1);
+    console.error('❌ UNCAUGHT EXCEPTION:', err.message);
+    console.error('Stack:', err.stack);
+    // NO llamamos a process.exit() - el servidor sigue vivo
 });
 
 process.on('unhandledRejection', (reason, promise) => {
-    console.error('❌ CRASH DETECTADO (Unhandled Rejection):', reason);
-    process.exit(1);
+    console.error('❌ UNHANDLED REJECTION:', reason);
+    // NO llamamos a process.exit() - el servidor sigue vivo
 });
 
 const app = express();
-console.log(`[INIT] Servidor configurado en el puerto: ${PORT}`);
+console.log(`\n🚀 [STARTUP] Servidor Express creado`);
+console.log(`📍 [STARTUP] Escuchará en puerto: ${PORT}`);
+console.log(`🌍 [STARTUP] Dirección: 0.0.0.0:${PORT}\n`);
 
 // ===== MIDDLEWARE =====
 app.use(express.json({ limit: '20mb' }));
@@ -52,7 +46,9 @@ app.use(express.json({ limit: '20mb' }));
 // Logger para diagnosticar solicitudes
 app.use((req, res, next) => {
     const contentLength = req.get('content-length') || '0';
-    console.log(`[REQUEST] ${req.method} ${req.url} - ${contentLength} bytes`);
+    if (!req.url.includes('.css') && !req.url.includes('.js') && !req.url.includes('.ico')) {
+        console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+    }
     
     // Si la solicitud es demasiado grande, avisar antes de procesar
     if (parseInt(contentLength) > 20 * 1024 * 1024) {
@@ -73,22 +69,34 @@ app.use((req, res, next) => {
 });
 
 // ===== HEALTH CHECK (responde inmediatamente, sin DB) =====
-app.get('/ping', (req, res) => res.send('pong'));
-
-app.get('/health', (req, res) => {
-    res.json({ status: 'ok', timestamp: new Date().toISOString() });
+app.get('/ping', (req, res) => {
+    res.send('pong');
 });
 
-// ===== HELPER: query con manejo de errores =====
-async function query(text, params) {
+app.get('/health', (req, res) => {
+    res.json({ 
+        status: 'ok', 
+        dbConnected: isConnected(),
+        port: PORT,
+        timestamp: new Date().toISOString() 
+    });
+});
+
+// ===== HELPER: query con manejo de errores y timeout =====
+async function query(text, params, timeout = 30000) {
     const pool = getPool();
-    console.log(`[DB QUERY] Ejecutando: ${text.substring(0, 100)}...`);
+    const queryStart = Date.now();
+    const shortQuery = text.substring(0, 100).replace(/\n/g, ' ');
+    console.log(`[DB QUERY] ${shortQuery}...`);
+    
     try {
         const result = await pool.query(text, params);
-        console.log(`[DB RESULT] Filas afectadas/recuperadas: ${result.rowCount}`);
+        const duration = Date.now() - queryStart;
+        console.log(`[DB OK] ${result.rowCount} rows (${duration}ms)`);
         return result;
     } catch (err) {
-        console.error('[DB ERROR] Query fallida:', err.message);
+        const duration = Date.now() - queryStart;
+        console.error(`[DB ERROR] ${err.message} (${duration}ms)`);
         throw err;
     }
 }
@@ -259,50 +267,68 @@ app.use((err, req, res, next) => {
 async function initDB() {
     try {
         console.log('🔄 Inicializando base de datos...');
-        await query(`
-            CREATE TABLE IF NOT EXISTS users (
-                id SERIAL PRIMARY KEY,
-                username TEXT UNIQUE NOT NULL,
-                password_hash TEXT NOT NULL,
-                is_authorized BOOLEAN DEFAULT FALSE,
-                is_admin BOOLEAN DEFAULT FALSE,
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        `);
         
-        // Migración: Asegurar que existan las nuevas columnas
-        try {
-            await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_authorized BOOLEAN DEFAULT FALSE`);
-            await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE`);
-        } catch(e) { console.log("Users migration info:", e.message); }
+        // Con timeout: si toma más de 15 segundos, loguear y continuar
+        const initPromise = (async () => {
+            await query(`
+                CREATE TABLE IF NOT EXISTS users (
+                    id SERIAL PRIMARY KEY,
+                    username TEXT UNIQUE NOT NULL,
+                    password_hash TEXT NOT NULL,
+                    is_authorized BOOLEAN DEFAULT FALSE,
+                    is_admin BOOLEAN DEFAULT FALSE,
+                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                )
+            `, [], 15000);
+            
+            // Migración: Asegurar que existan las nuevas columnas
+            try {
+                await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_authorized BOOLEAN DEFAULT FALSE`, [], 10000);
+                await query(`ALTER TABLE users ADD COLUMN IF NOT EXISTS is_admin BOOLEAN DEFAULT FALSE`, [], 10000);
+            } catch(e) { 
+                console.log("ℹ️  Users migration info:", e.message); 
+            }
 
-        await query(`
-            CREATE TABLE IF NOT EXISTS business_cards (
-                id TEXT PRIMARY KEY,
-                user_id INTEGER REFERENCES users(id),
-                "first-name" TEXT, "last-name" TEXT, name TEXT, title TEXT,
-                email TEXT, phone TEXT, website TEXT, address TEXT, company TEXT,
-                bio TEXT, facebook TEXT, instagram TEXT, linkedin TEXT, twitter TEXT,
-                whatsapp TEXT, github TEXT, behance TEXT, youtube TEXT, tiktok TEXT,
-                template_id TEXT, logo_path TEXT, profile_path TEXT, bg_image_path TEXT,
-                font_file_path TEXT, custom_css TEXT, custom_fonts TEXT,
-                bg_color TEXT, text_color TEXT, primary_color TEXT,
-                theme_selector TEXT, profile_position TEXT, font_family TEXT
-            )
-        `);
+            await query(`
+                CREATE TABLE IF NOT EXISTS business_cards (
+                    id TEXT PRIMARY KEY,
+                    user_id INTEGER REFERENCES users(id),
+                    "first-name" TEXT, "last-name" TEXT, name TEXT, title TEXT,
+                    email TEXT, phone TEXT, website TEXT, address TEXT, company TEXT,
+                    bio TEXT, facebook TEXT, instagram TEXT, linkedin TEXT, twitter TEXT,
+                    whatsapp TEXT, github TEXT, behance TEXT, youtube TEXT, tiktok TEXT,
+                    template_id TEXT, logo_path TEXT, profile_path TEXT, bg_image_path TEXT,
+                    font_file_path TEXT, custom_css TEXT, custom_fonts TEXT,
+                    bg_color TEXT, text_color TEXT, primary_color TEXT,
+                    theme_selector TEXT, profile_position TEXT, font_family TEXT
+                )
+            `, [], 15000);
+            
+            // Auto-migration for newly added columns
+            try {
+                await query(`ALTER TABLE business_cards ADD COLUMN IF NOT EXISTS theme_selector TEXT`, [], 10000);
+                await query(`ALTER TABLE business_cards ADD COLUMN IF NOT EXISTS profile_position TEXT`, [], 10000);
+                await query(`ALTER TABLE business_cards ADD COLUMN IF NOT EXISTS font_family TEXT`, [], 10000);
+            } catch(migrationErr) {
+                console.log("ℹ️  Business cards migration info:", migrationErr.message);
+            }
+
+            console.log('✅ Base de datos inicializada correctamente');
+        })();
         
-        // Auto-migration for newly added columns if the table already existed earlier
-        try {
-            await query(`ALTER TABLE business_cards ADD COLUMN IF NOT EXISTS theme_selector TEXT`);
-            await query(`ALTER TABLE business_cards ADD COLUMN IF NOT EXISTS profile_position TEXT`);
-            await query(`ALTER TABLE business_cards ADD COLUMN IF NOT EXISTS font_family TEXT`);
-        } catch(migrationErr) {
-            console.error('Migration info:', migrationErr.message);
-        }
-
-        console.log('✅ Base de datos lista');
+        // Esperar máximo 60 segundos antes de loguear advertencia
+        const timeoutPromise = new Promise((resolve) => {
+            setTimeout(() => {
+                console.warn('⚠️  [TIMEOUT] initDB está demorando más de lo esperado (>60s)');
+                resolve();
+            }, 60000);
+        });
+        
+        await Promise.race([initPromise, timeoutPromise]);
+        
     } catch (err) {
-        console.error('❌ Error inicializando DB (servidor sigue funcionando):', err.message);
+        console.error('❌ Error inicializando DB:', err.message);
+        console.error('ℹ️  El servidor continuará funcionando sin DB - solo servicios locales disponibles');
     }
 }
 
@@ -406,12 +432,27 @@ app.delete('/api/admin/users/:id', authenticateToken, isAdmin, async (req, res) 
 });
 
 // ===== START SERVER =====
-app.listen(PORT, '0.0.0.0', () => {
-    console.log(`===========================================`);
-    console.log(`🚀 SERVIDOR LISTO Y ESCUCHANDO`);
-    console.log(`📍 Puerto: ${PORT}`);
-    console.log(`🔗 URL: ecardsjm.pxxl.click`);
-    console.log(`===========================================`);
+const server = app.listen(PORT, '0.0.0.0', () => {
+    console.log(`\n${'='.repeat(60)}`);
+    console.log(`🎉 SERVIDOR INICIADO Y ESCUCHANDO`);
+    console.log(`${'='.repeat(60)}`);
+    console.log(`📍 Dirección:  0.0.0.0:${PORT}`);
+    console.log(`🔗 URL Pública: https://ecardsjm.pxxl.click`);
+    console.log(`✅ Health: http://localhost:${PORT}/health`);
+    console.log(`✅ Ping:   http://localhost:${PORT}/ping`);
+    console.log(`${'='.repeat(60)}\n`);
+    
     // Init DB en background, NO bloquea el servidor
-    initDB().catch(err => console.error('initDB failed:', err.message));
+    // El servidor ya está escuchando en este punto
+    initDB().catch(err => {
+        console.error('⚠️  [BACKGROUND] initDB error:', err.message);
+    });
+});
+
+// Manejo de servidor crashes
+server.on('error', (err) => {
+    console.error('❌ [SERVER ERROR]', err.message);
+    if (err.code === 'EADDRINUSE') {
+        console.error(`❌ Puerto ${PORT} está en uso. Usa un puerto diferente con: PORT=3001 node server.js`);
+    }
 });

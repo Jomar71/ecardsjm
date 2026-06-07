@@ -1,6 +1,7 @@
 const { Pool } = require('pg');
 
 let pool = null;
+let dbConnected = false;
 
 function getPool() {
     if (!pool) {
@@ -18,14 +19,17 @@ function getPool() {
                 sslmode: 'require',
                 ca: process.env.DB_SSL_CA || undefined
             } : false,
-            connectionTimeoutMillis: 30000,
-            idleTimeoutMillis: 60000,
-            max: 2
+            connectionTimeoutMillis: 10000,
+            idleTimeoutMillis: 30000,
+            max: 10,
+            min: 2,
+            statement_timeout: 30000
         });
         
         // Agregar listeners para eventos de conexión para diagnóstico
         pool.on('connect', (client) => {
             console.log('[DB] Cliente conectado a la base de datos');
+            dbConnected = true;
         });
         
         pool.on('acquire', (client) => {
@@ -37,12 +41,16 @@ function getPool() {
         });
         
         pool.on('error', (err) => {
-            console.error('Pool error (non-fatal):', err.message);
-            console.error('Detalles del error:', err);
-            pool = null; // resetear para reconectar después
+            console.error('[DB ERROR] Pool error (non-fatal):', err.message);
+            console.error('[DB ERROR] Detalles del error:', err.code);
+            dbConnected = false;
         });
     }
     return pool;
 }
 
-module.exports = { getPool };
+function isConnected() {
+    return dbConnected;
+}
+
+module.exports = { getPool, isConnected };
