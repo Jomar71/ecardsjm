@@ -275,6 +275,19 @@ app.get('/card/:id', async (req, res) => {
     }
 });
 
+// ===== SHOWCASE: TARJETAS PÚBLICAS PARA LA LANDING =====
+app.get('/api/showcase', async (req, res) => {
+    try {
+        const result = await query(
+            'SELECT id, name, title, email, bg_image_path FROM business_cards ORDER BY RANDOM() LIMIT 4'
+        );
+        res.json(result.rows);
+    } catch (err) {
+        console.error('Showcase error:', err.message);
+        res.json([]);
+    }
+});
+
 // ===== STATIC FILES =====
 app.use(express.static(path.join(__dirname, 'public'), { extensions: ['css', 'js', 'html', 'ico'], index: 'index.html' }));
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
