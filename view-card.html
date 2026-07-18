@@ -262,7 +262,8 @@
 
     <script>
         let cardId = new URLSearchParams(window.location.search).get('u') || 
-                     window.location.hash.split('/').pop();
+                     window.location.hash.split('/').pop() ||
+                     window.location.pathname.split('/').pop();
 
         const cardView = document.getElementById('card-view');
         const previewSplash = document.getElementById('preview-splash');
