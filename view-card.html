@@ -4,6 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Card | Compartida</title>
+    <meta name="description" content="Tarjeta digital - E-Cards JM">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="E-Card Compartida">
+    <meta property="og:description" content="Tarjeta digital - E-Cards JM">
+    <meta name="twitter:card" content="summary_large_image">
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -124,6 +129,89 @@
             }
         }
 
+        /* ===== PREVIEW SPLASH ===== */
+        .preview-splash {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: #0b1326;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .preview-splash.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .preview-thumb {
+            width: min(70vw, 280px);
+            aspect-ratio: 9 / 16;
+            border-radius: 18px;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            position: relative;
+            overflow: hidden;
+        }
+        .preview-thumb::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%);
+            border-radius: 18px;
+        }
+        .preview-thumb-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 24px 20px;
+            z-index: 1;
+        }
+        .preview-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 0 4px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+        .preview-msg {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.75);
+            margin: 0;
+        }
+        .preview-cta {
+            margin-top: 32px;
+            padding: 14px 40px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(79,70,229,0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .preview-cta:hover {
+            transform: scale(1.04);
+            box-shadow: 0 12px 40px rgba(79,70,229,0.55);
+        }
+        .preview-brand {
+            margin-top: 28px;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        @media (max-width: 480px) {
+            .preview-thumb { width: 65vw; }
+            .preview-name { font-size: 1.2rem; }
+        }
+
         /* Handle short screens */
         @media (max-height: 700px) and (max-width: 600px) {
             .vertical-icons {
@@ -143,6 +231,19 @@
     </style>
 </head>
 <body>
+    <!-- PREVIEW SPLASH: Se muestra antes de la tarjeta completa -->
+    <div class="preview-splash" id="preview-splash">
+        <div class="preview-thumb" id="preview-thumb">
+            <div class="preview-thumb-content">
+                <p class="preview-name" id="preview-name">Cargando...</p>
+                <p class="preview-msg">Te ha enviado una tarjeta digital</p>
+            </div>
+        </div>
+        <button class="preview-cta" id="preview-cta">Ver Tarjeta</button>
+        <div class="preview-brand">E-Cards JM</div>
+    </div>
+
+    <!-- TARJETA COMPLETA -->
     <div class="view-card-wrapper" id="card-view">
         <div class="card-overlay">
             <div class="vertical-icons" id="vert-icons">
@@ -160,14 +261,17 @@
     </div>
 
     <script>
-        // Get ID from URL or Hash
         let cardId = new URLSearchParams(window.location.search).get('u') || 
                      window.location.hash.split('/').pop();
 
         const cardView = document.getElementById('card-view');
+        const previewSplash = document.getElementById('preview-splash');
+        const previewThumb = document.getElementById('preview-thumb');
+        const previewName = document.getElementById('preview-name');
 
         async function initCard() {
             if (!cardId || cardId === "#") {
+                previewSplash.classList.add('hidden');
                 showError("No se especificó ninguna tarjeta.");
                 return;
             }
@@ -176,24 +280,26 @@
                 const response = await fetch(`/api/cards/${cardId}`);
                 if (response.ok) {
                     const card = await response.json();
-                    
-                    // Set Background
+
+                    // Populate preview splash
+                    if (card.name) previewName.textContent = card.name;
+                    if (card.bg_image_path) {
+                        const bg = card.bg_image_path;
+                        const bgUrl = bg.startsWith('url(') ? bg.slice(4, -1).replace(/["']/g, '') : bg;
+                        previewThumb.style.backgroundImage = `url('${bgUrl}')`;
+                    }
+
+                    // Set Background on full card
                     if (card.bg_image_path) {
                         const bg = card.bg_image_path;
                         cardView.style.backgroundImage = bg.startsWith('url(') ? bg : `url('${bg}')`;
                     }
 
-                    // Render Icons
                     renderVertical(card);
                     renderSocial(card);
 
-                    // Generate QR Code
-                    // QRCode.js usa width/height fijos para generar el <img>.
-                    // En móvil eso puede quedar mal si el contenedor es otro tamaño.
-                    // Por eso, generamos con el tamaño actual del contenedor.
                     const qrContainer = document.getElementById('qrcode');
                     const qrSize = Math.floor(qrContainer.getBoundingClientRect().width || 128);
-
                     new QRCode(qrContainer, {
                         text: window.location.href,
                         width: qrSize,
@@ -202,10 +308,6 @@
                         colorLight : "#ffffff",
                         correctLevel : QRCode.CorrectLevel.H
                     });
-
-                    
-                    // Ajustar tamaño del QR generado para que quepa en el contenedor
-                    // Asegurar que el QR se ajuste al contenedor (evita tamaños que “se quedan” al re-render)
                     const qrImg = document.querySelector('#qrcode img');
                     if (qrImg) {
                         qrImg.style.width = '100%';
@@ -214,8 +316,6 @@
                         qrImg.style.maxHeight = '100%';
                         qrImg.style.objectFit = 'contain';
                     }
-
-                    // Forzar recalculo al siguiente frame para que el contenedor ya tenga su tamaño final
                     requestAnimationFrame(() => {
                         const qrImg2 = document.querySelector('#qrcode img');
                         if (qrImg2) {
@@ -223,16 +323,20 @@
                             qrImg2.style.height = '100%';
                         }
                     });
-
-
                 } else {
+                    previewSplash.classList.add('hidden');
                     showError("Tarjeta no encontrada.");
                 }
             } catch (err) {
                 console.error("View card error:", err);
+                previewSplash.classList.add('hidden');
                 showError("Ocurrió un error al cargar los datos.");
             }
         }
+
+        document.getElementById('preview-cta').addEventListener('click', function() {
+            previewSplash.classList.add('hidden');
+        });
 
         function renderVertical(card) {
             const container = document.getElementById('vert-icons');

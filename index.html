@@ -165,9 +165,8 @@
 
             if (hash.startsWith('#/card/')) {
                 const cardId = hash.split('/').pop();
-                content.style.display = 'none';
-                viewer.style.display = 'block';
-                iframe.src = `view-card.html?u=${cardId}`;
+                window.location.replace(`/card/${cardId}`);
+                return;
             } else {
                 content.style.display = 'block';
                 viewer.style.display = 'none';

@@ -209,6 +209,72 @@ app.delete('/api/cards/:id', authenticateToken, async (req, res) => {
     }
 });
 
+// ===== ENDPOINT: IMAGEN DE TARJETA PARA OG:IMAGE =====
+app.get('/api/cards/:id/image', async (req, res) => {
+    try {
+        const result = await query('SELECT bg_image_path FROM business_cards WHERE id = $1', [req.params.id]);
+        if (result.rows.length === 0 || !result.rows[0].bg_image_path) {
+            return res.status(404).send('No image');
+        }
+        const raw = result.rows[0].bg_image_path;
+        const base64Match = raw.match(/^data:image\/(\w+);base64,(.+)$/);
+        if (!base64Match) return res.status(400).send('Invalid image format');
+        const ext = base64Match[1] === 'jpeg' ? 'jpeg' : base64Match[1];
+        const buf = Buffer.from(base64Match[2], 'base64');
+        res.set('Content-Type', `image/${ext}`);
+        res.set('Cache-Control', 'public, max-age=86400');
+        res.send(buf);
+    } catch (err) {
+        console.error('Image endpoint error:', err.message);
+        res.status(500).send('Error');
+    }
+});
+
+// ===== RUTA: PREVIEW DE TARJETA CON META TAGS OG (SSR) =====
+app.get('/card/:id', async (req, res) => {
+    try {
+        const result = await query('SELECT id, name, bio, bg_image_path FROM business_cards WHERE id = $1', [req.params.id]);
+        if (result.rows.length === 0) {
+            return res.status(404).send('Tarjeta no encontrada');
+        }
+        const card = result.rows[0];
+        const baseUrl = `${req.protocol}://${req.get('host')}`;
+        const cardUrl = `${baseUrl}/card/${card.id}`;
+        const imageUrl = `${baseUrl}/api/cards/${card.id}/image`;
+        const title = card.name ? `${card.name} - E-Card` : 'E-Card Compartida';
+        const description = card.bio || `Tarjeta digital de ${card.name || 'E-Cards JM'}`;
+        const hasImage = card.bg_image_path && card.bg_image_path.startsWith('data:image');
+
+        let html = fs.readFileSync(path.join(__dirname, 'view-card.html'), 'utf8');
+
+        const ogTags = `
+    <title>${title}</title>
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="${cardUrl}">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${description}">
+    <meta property="og:site_name" content="E-Cards JM">
+    ${hasImage ? `<meta property="og:image" content="${imageUrl}">
+    <meta property="og:image:width" content="600">
+    <meta property="og:image:height" content="1067">
+    <meta property="og:image:type" content="image/jpeg">` : ''}
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="${title}">
+    <meta name="twitter:description" content="${description}">
+    ${hasImage ? `<meta name="twitter:image" content="${imageUrl}">` : ''}
+    <meta name="description" content="${description}">`;
+
+        html = html.replace(/<title>.*?<\/title>/s, '').replace(/<meta (?:property="og:[^"]*"|name="(?:twitter|description)[^"]*")[^>]*>\s*/g, '');
+        html = html.replace('</head>', `${ogTags}\n</head>`);
+
+        res.set('Content-Type', 'text/html');
+        res.send(html);
+    } catch (err) {
+        console.error('Card preview route error:', err.message);
+        res.sendFile(path.join(__dirname, 'view-card.html'));
+    }
+});
+
 // ===== STATIC FILES =====
 // Esto debe ir ANTES de las rutas comodín (*) para que los archivos estáticos se sirvan correctamente
 app.use(express.static(path.join(__dirname), { extensions: ['css', 'js', 'html', 'ico'], index: false }));  
@@ -217,15 +283,7 @@ app.get('/script.js', (req, res) => res.type('application/javascript').sendFile(
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
 // ===== MANEJO DE RUTAS ESPECÍFICAS PARA TARJETAS PÚBLICAS =====
-app.get('/card/:id', async (req, res) => {
-    // Esta ruta redirige a index.html para que el cliente maneje la ruta
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
-
-app.get('/#/card/:id', async (req, res) => {
-    // Esta ruta maneja directamente la ruta hash
-    res.sendFile(path.join(__dirname, 'index.html'));
-});
+// La ruta /card/:id ya está definida arriba con SSR + OG meta tags
 
 // Manejo de todas las demás rutas (SPA - Single Page Application)
 app.get('*', (req, res) => {

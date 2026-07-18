@@ -400,7 +400,7 @@
             const qrContainer = document.getElementById('qr-preview');
             const nameInput = document.getElementById('in-name');
             const cardId = editingId || generateId(nameInput.value);
-            const shareUrl = window.location.origin + '/view-card.html?u=' + cardId;
+            const shareUrl = window.location.origin + '/card/' + cardId;
             
             qrContainer.innerHTML = "";
             new QRCode(qrContainer, {
@@ -506,7 +506,7 @@
             try {
                 const cardId = await saveCardData();
                 if (cardId) {
-                    const shareUrl = window.location.origin + '/view-card.html?u=' + cardId;
+            const shareUrl = window.location.origin + '/card/' + cardId;
                     
                     // Copy to clipboard
                     try {
