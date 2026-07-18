@@ -276,7 +276,7 @@ app.get('/card/:id', async (req, res) => {
 });
 
 // ===== STATIC FILES =====
-app.use(express.static(path.join(__dirname, 'public'), { extensions: ['css', 'js', 'html', 'ico'], index: true }));
+app.use(express.static(path.join(__dirname, 'public'), { extensions: ['css', 'js', 'html', 'ico'], index: 'index.html' }));
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
 // ===== MANEJO DE RUTAS ESPECÍFICAS PARA TARJETAS PÚBLICAS =====
