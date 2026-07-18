@@ -223,47 +223,51 @@
             </div>
             
             <nav class="sidebar-nav">
-                <a href="#" class="sidebar-link active">Dashboard</a>
-                <a href="#" class="sidebar-link">Mis Tarjetas</a>
-                <a href="#" class="sidebar-link">Contactos</a>
-                <a href="#" class="sidebar-link">Analíticas</a>
-                <a href="#" class="sidebar-link">Configuración</a>
+                <a href="#" class="sidebar-link active" data-section="dashboard" onclick="showSection('dashboard')">Dashboard</a>
+                <a href="#cards" class="sidebar-link" data-section="cards" onclick="showSection('cards')">Mis Tarjetas</a>
+                <a href="#" class="sidebar-link" onclick="alert('Próximamente')">Contactos</a>
+                <a href="#" class="sidebar-link" onclick="alert('Próximamente')">Analíticas</a>
+                <a href="#" class="sidebar-link" onclick="alert('Próximamente')">Configuración</a>
             </nav>
 
             <a href="index.html" class="sidebar-link" style="margin-top: auto; color: #ff6b6b;">Cerrar Sesión</a>
         </aside>
 
         <main class="main-content">
-            <header class="welcome-hero">
-                <h1>Hola, Juan</h1>
-                <p style="color: var(--on-surface-variant);">Aquí tienes un resumen de tu actividad digital.</p>
-            </header>
+            <section id="section-dashboard">
+                <header class="welcome-hero">
+                    <h1>Hola, Juan</h1>
+                    <p style="color: var(--on-surface-variant);">Aquí tienes un resumen de tu actividad digital.</p>
+                </header>
 
-            <div class="stats-grid">
-                <div class="stat-card glass">
-                    <h4>Vistas Totales</h4>
-                    <div class="value">1,248</div>
+                <div class="stats-grid">
+                    <div class="stat-card glass">
+                        <h4>Vistas Totales</h4>
+                        <div class="value">1,248</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <h4>Nuevos Contactos</h4>
+                        <div class="value">42</div>
+                    </div>
+                    <div class="stat-card glass">
+                        <h4>Escaneos Hoy</h4>
+                        <div class="value">15</div>
+                    </div>
                 </div>
-                <div class="stat-card glass">
-                    <h4>Nuevos Contactos</h4>
-                    <div class="value">42</div>
-                </div>
-                <div class="stat-card glass">
-                    <h4>Escaneos Hoy</h4>
-                    <div class="value">15</div>
-                </div>
-            </div>
+            </section>
 
-            <div class="cards-list">
-                <div class="cards-header">
-                    <h2>Mis Tarjetas</h2>
-                    <a href="create-card.html" class="btn-new">+ Nueva Tarjeta</a>
-                </div>
+            <section id="section-cards">
+                <div class="cards-list">
+                    <div class="cards-header">
+                        <h2>Mis Tarjetas</h2>
+                        <a href="create-card.html" class="btn-new">+ Nueva Tarjeta</a>
+                    </div>
 
-                <div class="card-grid" id="card-list">
-                    <!-- Cards will be populated here -->
+                    <div class="card-grid" id="card-list">
+                        <!-- Cards will be populated here -->
+                    </div>
                 </div>
-            </div>
+            </section>
         </main>
     </div>
 
@@ -384,6 +388,17 @@
         });
 
         window.onload = loadCards;
+
+        function showSection(name) {
+            document.querySelectorAll('.main-content > section').forEach(s => s.style.display = 'none');
+            const target = document.getElementById('section-' + name);
+            if (target) target.style.display = 'block';
+            document.querySelectorAll('.sidebar-link[data-section]').forEach(l => l.classList.remove('active'));
+            const link = document.querySelector(`.sidebar-link[data-section="${name}"]`);
+            if (link) link.classList.add('active');
+            if (window.innerWidth < 992) sidebar.classList.remove('active');
+        }
+        showSection('dashboard');
     </script>
 </body>
 </html>

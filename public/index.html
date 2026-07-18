@@ -80,24 +80,32 @@
 
         <footer>
             <div class="footer-content">
-                <div class="footer-logo">
-                    <div class="logo">
+                <div class="footer-col">
+                    <div class="logo" style="margin-bottom: 16px;">
                         <span>E-Cards</span> JM
                     </div>
-                    <p>La red profesional de tarjetas digitales más sofisticada para líderes empresariales contemporáneos.</p>
+                    <p style="color: var(--on-surface-variant); max-width: 280px; font-size: 0.9rem;">La plataforma de tarjetas digitales más sofisticada para profesionales que buscan impactar.</p>
                 </div>
-                <div class="nav-links nav-links-footer" style="display: flex; flex-direction: column; align-items: flex-end; gap: 12px;">
-                    <a href="#">Privacidad</a>
-                    <a href="#">Términos</a>
-                    <a href="#">Ayuda</a>
+                <div class="footer-col">
+                    <h4 style="color: #fff; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Producto</h4>
+                    <a href="#features" class="footer-link">Servicios</a>
+                    <a href="#tarjetas" class="footer-link">Ejemplos</a>
+                    <a href="login.html" class="footer-link">Dashboard</a>
                 </div>
-                <div class="footer-info">
-                    <p>Diseñado para los líderes de hoy.</p>
-                    <p style="margin-top: 8px;">soporte@ecardsjm.com</p>
+                <div class="footer-col">
+                    <h4 style="color: #fff; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Legal</h4>
+                    <a href="#" class="footer-link">Privacidad</a>
+                    <a href="#" class="footer-link">Términos</a>
+                    <a href="#" class="footer-link">Cookies</a>
+                </div>
+                <div class="footer-col">
+                    <h4 style="color: #fff; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Contacto</h4>
+                    <a href="mailto:soporte@ecardsjm.com" class="footer-link">soporte@ecardsjm.com</a>
+                    <a href="#contacto" class="footer-link">Formulario</a>
                 </div>
             </div>
-            <div class="copyright">
-                &copy; 2026 E-Cards JM. Todos los derechos reservados.
+            <div class="footer-bottom">
+                <p>&copy; 2026 E-Cards JM. Todos los derechos reservados.</p>
             </div>
         </footer>
     </div>
@@ -165,21 +173,21 @@
                 slider.innerHTML = '';
                 cards.forEach(card => {
                     const bg = card.bg_image_path;
-                    const bgStyle = bg
-                        ? `background-image: url('${bg.startsWith('url(') ? bg.slice(4,-1).replace(/["']/g,'') : bg}'); background-size: cover; background-position: center;`
+                    const bgUrl = bg
+                        ? (bg.startsWith('url(') ? bg.slice(4,-1).replace(/["']/g,'') : bg)
+                        : '';
+                    const bgStyle = bgUrl
+                        ? `background-image: url('${bgUrl}');`
                         : 'background: linear-gradient(135deg, rgba(79,70,229,0.4), var(--bg-deep));';
                     const el = document.createElement('a');
                     el.href = `/card/${card.id}`;
-                    el.style.textDecoration = 'none';
+                    el.className = 'mockup-card glass';
                     el.innerHTML = `
-                        <div class="mockup-card glass" style="cursor:pointer;">
-                            <div style="${bgStyle} height: 280px; padding: 40px; text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: flex-end;">
-                                <h4 style="color:#fff; margin:0;">${card.name || 'Sin nombre'}</h4>
-                                <p style="font-size:0.8rem; opacity:0.7; color:#fff; margin-top:4px;">${card.title || card.email || ''}</p>
-                            </div>
-                            <div style="padding: 24px; text-align: center;">
-                                <span style="font-size: 0.8rem; color: var(--primary);">Ver tarjeta &rarr;</span>
-                            </div>
+                        <div class="mockup-card-img" style="${bgStyle}"></div>
+                        <div class="mockup-card-body">
+                            <h4>${card.name || 'Sin nombre'}</h4>
+                            <p>${card.title || card.email || ''}</p>
+                            <span class="mockup-cta">Ver tarjeta &rarr;</span>
                         </div>`;
                     slider.appendChild(el);
                 });

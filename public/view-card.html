@@ -246,6 +246,9 @@
     <!-- TARJETA COMPLETA -->
     <div class="view-card-wrapper" id="card-view">
         <div class="card-overlay">
+            <div id="card-logo" style="position:absolute; top:clamp(20px,5vw,40px); left:50%; transform:translateX(-50%); width:clamp(60px,16vw,90px); height:clamp(60px,16vw,90px); border-radius:50%; overflow:hidden; border:3px solid rgba(255,255,255,0.3); display:none; background:rgba(0,0,0,0.3); box-shadow:0 4px 20px rgba(0,0,0,0.4);">
+                <img id="card-logo-img" src="" style="width:100%; height:100%; object-fit:cover;">
+            </div>
             <div class="vertical-icons" id="vert-icons">
                 <!-- Phone, Email, Loc -->
             </div>
@@ -294,6 +297,14 @@
                     if (card.bg_image_path) {
                         const bg = card.bg_image_path;
                         cardView.style.backgroundImage = bg.startsWith('url(') ? bg : `url('${bg}')`;
+                    }
+
+                    // Set Logo
+                    if (card.logo_path) {
+                        const logoContainer = document.getElementById('card-logo');
+                        const logoImg = document.getElementById('card-logo-img');
+                        logoImg.src = card.logo_path;
+                        logoContainer.style.display = 'block';
                     }
 
                     renderVertical(card);

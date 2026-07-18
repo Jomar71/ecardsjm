@@ -201,7 +201,14 @@
                 <div style="font-size: 0.85rem;">Subir imagen de fondo</div>
             </label>
 
-            <div class="section-title">2. Identificación</div>
+            <div class="section-title">2. Logo / Imagen de Perfil</div>
+            <label class="upload-area" id="logo-upload-label">
+                <input type="file" id="logo-upload" hidden accept="image/*">
+                <i class="fa-solid fa-user-circle" style="margin-bottom: 8px; font-size: 1.5rem;"></i>
+                <div style="font-size: 0.85rem;">Subir logo o foto</div>
+            </label>
+
+            <div class="section-title">3. Identificación</div>
             <div class="form-group">
                 <label>Nombre y Apellido</label>
                 <input type="text" id="in-name" placeholder="Juan Pérez" value="Juan Pérez">
@@ -268,6 +275,10 @@
             <div class="card-9-16" id="card-preview">
                 <!-- Background is set dynamic -->
                 <div class="card-overlay">
+                    <!-- Logo Preview -->
+                    <div id="logo-preview-container" style="position:absolute; top:40px; left:50%; transform:translateX(-50%); width:80px; height:80px; border-radius:50%; overflow:hidden; border:3px solid rgba(255,255,255,0.3); display:none; background:rgba(0,0,0,0.3);">
+                        <img id="logo-preview-img" src="" style="width:100%; height:100%; object-fit:cover;">
+                    </div>
                     <!-- Left Vertical Icons -->
                     <div class="vertical-icons">
                         <div class="icon-circle" id="view-phone" style="color: #2563eb;"><i class="fa-solid fa-phone"></i></div>
@@ -311,6 +322,7 @@
         // Background Upload Logic
         const bgUpload = document.getElementById('bg-upload');
         const cardPreview = document.getElementById('card-preview');
+        let logoBase64 = null;
         
         bgUpload.addEventListener('change', async function() {
             const file = this.files[0];
@@ -321,11 +333,35 @@
                     updatePreview();
                 } catch (err) {
                     console.error("Compression error:", err);
-                    // Fallback to original if compression fails
                     const reader = new FileReader();
                     reader.onload = function(e) {
                         cardPreview.style.backgroundImage = `url('${e.target.result}')`;
                         updatePreview();
+                    }
+                    reader.readAsDataURL(file);
+                }
+            }
+        });
+
+        // Logo Upload Logic
+        const logoUpload = document.getElementById('logo-upload');
+        const logoContainer = document.getElementById('logo-preview-container');
+        const logoImg = document.getElementById('logo-preview-img');
+        
+        logoUpload.addEventListener('change', async function() {
+            const file = this.files[0];
+            if (file) {
+                try {
+                    logoBase64 = await compressImage(file);
+                    logoImg.src = logoBase64;
+                    logoContainer.style.display = 'block';
+                } catch (err) {
+                    console.error("Logo compression error:", err);
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        logoBase64 = e.target.result;
+                        logoImg.src = logoBase64;
+                        logoContainer.style.display = 'block';
                     }
                     reader.readAsDataURL(file);
                 }
@@ -465,7 +501,8 @@
                 twitter: document.getElementById('in-tw').value,
                 youtube: document.getElementById('in-yt').value,
                 website: document.getElementById('in-web').value,
-                bg_image_path: bgPath
+                bg_image_path: bgPath,
+                logo_path: logoBase64 || null
             };
 
             try {
@@ -552,6 +589,11 @@
                         if (data.bg_image_path) {
                             const bg = data.bg_image_path;
                             cardPreview.style.backgroundImage = bg.startsWith('url(') ? bg : `url('${bg}')`;
+                        }
+                        if (data.logo_path) {
+                            logoBase64 = data.logo_path;
+                            logoImg.src = data.logo_path;
+                            logoContainer.style.display = 'block';
                         }
                         updatePreview();
                     }
