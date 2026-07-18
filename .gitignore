@@ -1,50 +1,33 @@
-# Archivos de dependencias de Node.js
+# Dependencies
 node_modules/
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
-# Archivos temporales
-*.tmp
-*.temp
-.DS_Store
-Thumbs.db
-
-# Carpeta de subidas (imágenes de perfiles/logos)
-uploads/
-
-# Variables de entorno
+# Environment variables
 .env
-.env.local
-.env.development.local
-.env.test.local
-.env.production.local
-.env.pxxl
-
-# Archivos de cache del navegador
-.cache
+.env.*
+!.env.example
 
 # Logs
 *.log
+npm-debug.log*
 
-# Archivos de dependencias de Python (por si acaso)
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+
+# Binary files
+*.msi
+*.zip
+bin/
+
+# Legacy (Python/SQLite)
 __pycache__/
 *.py[cod]
-*$py.class
-*.so
-.Python
-env/
-venv/
-.venv/
-
-# Archivos de desarrollo
-.vscode/
-.bin/
-gh.zip
-gh_installer.msi
-
-# Carpetas innecesarias
-.venv/
-bin/
 instance/
-__pycache__/
+uploads/
+
+# Temp files
+*.tmp
+.cache

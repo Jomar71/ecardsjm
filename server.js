@@ -245,7 +245,7 @@ app.get('/card/:id', async (req, res) => {
         const description = card.bio || `Tarjeta digital de ${card.name || 'E-Cards JM'}`;
         const hasImage = card.bg_image_path && card.bg_image_path.startsWith('data:image');
 
-        let html = fs.readFileSync(path.join(__dirname, 'view-card.html'), 'utf8');
+        let html = fs.readFileSync(path.join(__dirname, 'public', 'view-card.html'), 'utf8');
 
         const ogTags = `
     <title>${title}</title>
@@ -271,15 +271,12 @@ app.get('/card/:id', async (req, res) => {
         res.send(html);
     } catch (err) {
         console.error('Card preview route error:', err.message);
-        res.sendFile(path.join(__dirname, 'view-card.html'));
+        res.sendFile(path.join(__dirname, 'public', 'view-card.html'));
     }
 });
 
 // ===== STATIC FILES =====
-// Esto debe ir ANTES de las rutas comodín (*) para que los archivos estáticos se sirvan correctamente
-app.use(express.static(path.join(__dirname), { extensions: ['css', 'js', 'html', 'ico'], index: false }));  
-app.get('/styles.css', (req, res) => res.type('text/css').sendFile(path.join(__dirname, 'styles.css')));
-app.get('/script.js', (req, res) => res.type('application/javascript').sendFile(path.join(__dirname, 'script.js')));
+app.use(express.static(path.join(__dirname, 'public'), { extensions: ['css', 'js', 'html', 'ico'], index: true }));
 app.get('/favicon.ico', (req, res) => res.sendStatus(204));
 
 // ===== MANEJO DE RUTAS ESPECÍFICAS PARA TARJETAS PÚBLICAS =====
@@ -291,7 +288,7 @@ app.get('*', (req, res) => {
     if (req.url.startsWith('/api/') || req.url.startsWith('/health')) {
         return res.status(404).json({ error: 'Ruta no encontrada' });
     }
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 // ===== GLOBAL ERROR HANDLER (El último middleware) =====

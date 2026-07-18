@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard | E-Cards JM</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <style>
+        .dashboard-layout {
+            display: flex;
+            min-height: 100vh;
+            background: var(--bg-deep);
+        }
+
+        .sidebar {
+            width: 280px;
+            background: var(--bg-recessed);
+            border-right: 1px solid var(--glass-border);
+            padding: 40px 24px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-nav {
+            margin-top: 60px;
+            flex-grow: 1;
+        }
+
+        .sidebar-link {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            color: var(--on-surface-variant);
+            text-decoration: none;
+            border-radius: 12px;
+            transition: var(--transition);
+            margin-bottom: 8px;
+            font-weight: 500;
+        }
+
+        .sidebar-link:hover, .sidebar-link.active {
+            background: rgba(79, 70, 229, 0.1);
+            color: var(--primary);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 60px;
+            overflow-y: auto;
+        }
+
+        .welcome-hero {
+            margin-bottom: 48px;
+        }
+
+        .welcome-hero h1 {
+            font-size: 2.5rem;
+            margin-bottom: 8px;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 24px;
+            margin-bottom: 48px;
+        }
+
+        .stat-card {
+            padding: 24px;
+            border-radius: 20px;
+        }
+
+        .stat-card h4 {
+            font-size: 0.9rem;
+            color: var(--on-surface-variant);
+            margin-bottom: 4px;
+        }
+
+        .stat-card .value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .cards-list {
+            margin-top: 40px;
+        }
+
+        .cards-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .btn-new {
+            padding: 12px 24px;
+            background: var(--primary-container);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: var(--transition);
+        }
+
+        .btn-new:hover {
+            transform: scale(1.02);
+            box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .card-item {
+            padding: 24px;
+            border-radius: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .card-status {
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border-radius: 100px;
+            background: rgba(0, 220, 230, 0.1);
+            color: var(--tertiary);
+            align-self: flex-start;
+        }
+
+        /* Mobile Adjustments */
+        .mobile-header {
+            display: none;
+            padding: 16px 24px;
+            background: var(--bg-recessed);
+            border-bottom: 1px solid var(--glass-border);
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .menu-btn {
+            background: none;
+            border: none;
+            color: var(--on-surface);
+            font-size: 1.5rem;
+            cursor: pointer;
+        }
+
+        @media (max-width: 992px) {
+            .sidebar {
+                position: fixed;
+                left: -280px;
+                top: 0;
+                bottom: 0;
+                z-index: 1000;
+                transition: 0.3s;
+                box-shadow: 20px 0 50px rgba(0,0,0,0.5);
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
+            .mobile-header {
+                display: flex;
+            }
+
+            .main-content {
+                padding: 30px;
+            }
+        }
+
+        @media (max-width: 600px) {
+            .main-content {
+                padding: 24px 16px;
+            }
+
+            .welcome-hero h1 {
+                font-size: 1.8rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .cards-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 16px;
+            }
+
+            .btn-new {
+                width: 100%;
+                text-align: center;
+            }
+
+            .card-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="mobile-header">
+        <div class="logo">
+            <span>E-Cards</span> JM
+        </div>
+        <button class="menu-btn" id="menu-toggle">≡</button>
+    </div>
+    <div class="dashboard-layout">
+        <aside class="sidebar">
+            <div class="logo">
+                <span>E-Cards</span> JM
+            </div>
+            
+            <nav class="sidebar-nav">
+                <a href="#" class="sidebar-link active">Dashboard</a>
+                <a href="#" class="sidebar-link">Mis Tarjetas</a>
+                <a href="#" class="sidebar-link">Contactos</a>
+                <a href="#" class="sidebar-link">Analíticas</a>
+                <a href="#" class="sidebar-link">Configuración</a>
+            </nav>
+
+            <a href="index.html" class="sidebar-link" style="margin-top: auto; color: #ff6b6b;">Cerrar Sesión</a>
+        </aside>
+
+        <main class="main-content">
+            <header class="welcome-hero">
+                <h1>Hola, Juan</h1>
+                <p style="color: var(--on-surface-variant);">Aquí tienes un resumen de tu actividad digital.</p>
+            </header>
+
+            <div class="stats-grid">
+                <div class="stat-card glass">
+                    <h4>Vistas Totales</h4>
+                    <div class="value">1,248</div>
+                </div>
+                <div class="stat-card glass">
+                    <h4>Nuevos Contactos</h4>
+                    <div class="value">42</div>
+                </div>
+                <div class="stat-card glass">
+                    <h4>Escaneos Hoy</h4>
+                    <div class="value">15</div>
+                </div>
+            </div>
+
+            <div class="cards-list">
+                <div class="cards-header">
+                    <h2>Mis Tarjetas</h2>
+                    <a href="create-card.html" class="btn-new">+ Nueva Tarjeta</a>
+                </div>
+
+                <div class="card-grid" id="card-list">
+                    <!-- Cards will be populated here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Check Auth
+        const token = localStorage.getItem('ecards_token');
+        const userJson = localStorage.getItem('ecards_user');
+        
+        if (!token) window.location.href = 'login.html';
+        
+        const user = JSON.parse(userJson || '{}');
+        if (user.username) {
+            document.querySelector('.welcome-hero h1').innerText = `Hola, ${user.username}`;
+        }
+
+        async function loadCards() {
+            const list = document.getElementById('card-list');
+            list.innerHTML = `<p style="color: var(--on-surface-variant); grid-column: 1/-1; text-align: center; padding: 40px;">Cargando tus tarjetas...</p>`;
+            
+            try {
+                const response = await fetch('/api/cards', {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (!response.ok) throw new Error('Failed to load cards');
+                
+                const cards = await response.json();
+                list.innerHTML = "";
+
+                if (cards.length === 0) {
+                    list.innerHTML = `<p style="color: var(--on-surface-variant); grid-column: 1/-1; text-align: center; padding: 40px;">No tienes tarjetas creadas. ¡Empieza creando tu primera tarjeta!</p>`;
+                    return;
+                }
+
+                cards.forEach(card => {
+                    const cardEl = document.createElement('div');
+                    cardEl.className = 'card-item glass';
+                    const shareLink = `${window.location.origin}/card/${card.id}`;
+                    
+                    const bg = card.bg_image_path;
+                    const bgStyle = bg ? `background-image: url('${bg.startsWith('url(') ? bg.slice(4,-1).replace(/["']/g,"") : bg}');` : 'background-color: #333;';
+                    
+                    cardEl.innerHTML = `
+                        <div style="height: 100px; background-size: cover; background-position: center; ${bgStyle} border-radius: 12px; position:relative;">
+                        </div>
+                        <div>
+                            <h3 style="margin: 0; color: #fff;">${card.name}</h3>
+                            <p style="color: var(--on-surface-variant); font-size: 0.85rem; margin-top: 5px; cursor:pointer;" onclick="copyLink('${shareLink}')">
+                                <span style="opacity:0.7;">URL: </span> /card/${card.id}
+                                <span style="font-size:0.7rem; color:var(--primary); margin-left:8px;">Copiar</span>
+                            </p>
+                        </div>
+                        <div style="display: flex; gap: 10px; margin-top: auto;">
+                            <a href="create-card.html?edit=${card.id}" class="btn-new" style="padding: 10px; flex: 1; text-align: center; font-size: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);">Editar</a>
+                            <button onclick="deleteCard('${card.id}')" style="background: rgba(220, 38, 38, 0.1); color: #ef4444; border: 1px solid rgba(220, 38, 38, 0.2); padding: 10px; border-radius: 10px; cursor: pointer;">Borrar</button>
+                        </div>
+                    `;
+                    list.appendChild(cardEl);
+                });
+            } catch (err) {
+                console.error("Load cards error:", err);
+                list.innerHTML = `<p style="color: #ef4444; grid-column: 1/-1; text-align: center; padding: 40px;">Error al cargar las tarjetas. Por favor, intenta de nuevo.</p>`;
+            }
+        }
+
+        function copyLink(link) {
+            navigator.clipboard.writeText(link);
+            alert('¡Link copiado al portapapeles!');
+        }
+
+        async function deleteCard(id) {
+            if (confirm('¿Seguro que quieres borrar esta tarjeta?')) {
+                try {
+                    const response = await fetch(`/api/cards/${id}`, {
+                        method: 'DELETE',
+                        headers: { 'Authorization': `Bearer ${token}` }
+                    });
+
+                    if (response.ok) {
+                        loadCards();
+                    } else {
+                        alert('Error al borrar la tarjeta');
+                    }
+                } catch (err) {
+                    console.error("Delete error:", err);
+                    alert('Error de conexión al servidor');
+                }
+            }
+        }
+
+        function logout() {
+            localStorage.removeItem('ecards_token');
+            localStorage.removeItem('ecards_user');
+            window.location.href = 'index.html';
+        }
+
+        // Attach logout to the link
+        document.querySelector('a[href="index.html"]').onclick = (e) => {
+            e.preventDefault();
+            logout();
+        };
+
+        // Mobile Sidebar Toggle
+        const menuToggle = document.getElementById('menu-toggle');
+        const sidebar = document.querySelector('.sidebar');
+        
+        if (menuToggle) {
+            menuToggle.addEventListener('click', () => {
+                sidebar.classList.toggle('active');
+            });
+        }
+        
+        // Cierra el sidebar al clickear afuera en móvil
+        document.addEventListener('click', (e) => {
+            if (window.innerWidth < 992 && !sidebar.contains(e.target) && !menuToggle.contains(e.target) && sidebar.classList.contains('active')) {
+                sidebar.classList.remove('active');
+            }
+        });
+
+        window.onload = loadCards;
+    </script>
+</body>
+</html>

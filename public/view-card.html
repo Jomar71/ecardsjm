@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Card | Compartida</title>
+    <meta name="description" content="Tarjeta digital - E-Cards JM">
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="E-Card Compartida">
+    <meta property="og:description" content="Tarjeta digital - E-Cards JM">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+            overflow: auto;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .view-card-wrapper {
+            width: min(100vw, 500px);
+            height: auto;
+            aspect-ratio: 9 / 16;
+            background: #fff;
+            position: relative;
+            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            background-size: cover;
+            background-position: center;
+            border-radius: 0;
+        }
+
+        .card-overlay {
+            position: absolute;
+            inset: 0;
+            padding: clamp(16px, 3.5vw, 30px);
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%);
+        }
+
+        .vertical-icons {
+            position: absolute;
+            left: clamp(14px, 4vw, 25px);
+            bottom: clamp(90px, 18vh, 155px); /* Adjust for more social icons */
+            display: flex;
+            flex-direction: column;
+            gap: clamp(10px, 1.8vh, 15px);
+        }
+
+        .social-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: clamp(8px, 2.2vw, 14px);
+            margin-top: 20px;
+            padding-bottom: clamp(14px, 4vw, 30px);
+        }
+
+        .icon-circle {
+            width: clamp(28px, 6vw, 42px);
+            height: clamp(28px, 6vw, 42px);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid rgba(255,255,255,0.3);
+            cursor: pointer;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(8px);
+            transition: transform 0.2s;
+            color: #fff;
+            font-size: clamp(0.85rem, 3.5vw, 1.1rem);
+        }
+        
+        .icon-circle:hover {
+            transform: scale(1.1);
+            background: rgba(255,255,255,0.25);
+        }
+
+        .qr-placeholder {
+            position: absolute;
+            right: clamp(14px, 4vw, 25px);
+            bottom: clamp(18px, 5vh, 40px);
+            width: clamp(60px, 14vw, 90px);
+            height: clamp(60px, 14vw, 90px);
+            background: #fff;
+            padding: clamp(5px, 1.2vw, 8px);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+        }
+
+        @media (max-width: 600px) {
+            .view-card-wrapper {
+                width: 100vw;
+                border-radius: 0;
+            }
+
+            .card-overlay {
+                padding: clamp(14px, 6vw, 24px);
+            }
+
+            .vertical-icons {
+                left: clamp(14px, 4vw, 20px);
+                bottom: clamp(90px, 16vh, 140px);
+            }
+
+            .qr-placeholder {
+                right: clamp(14px, 4vw, 20px);
+                bottom: clamp(18px, 4vh, 30px);
+                width: clamp(56px, 18vw, 75px);
+                height: clamp(56px, 18vw, 75px);
+            }
+
+            .social-row {
+                gap: clamp(8px, 3vw, 10px);
+                padding-bottom: clamp(8px, 3vw, 10px);
+            }
+        }
+
+        /* ===== PREVIEW SPLASH ===== */
+        .preview-splash {
+            position: fixed;
+            inset: 0;
+            z-index: 10000;
+            background: #0b1326;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.5s ease, visibility 0.5s ease;
+        }
+        .preview-splash.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .preview-thumb {
+            width: min(70vw, 280px);
+            aspect-ratio: 9 / 16;
+            border-radius: 18px;
+            background-size: cover;
+            background-position: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
+            position: relative;
+            overflow: hidden;
+        }
+        .preview-thumb::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%);
+            border-radius: 18px;
+        }
+        .preview-thumb-content {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            padding: 24px 20px;
+            z-index: 1;
+        }
+        .preview-name {
+            font-size: 1.4rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0 0 4px;
+            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+        }
+        .preview-msg {
+            font-size: 0.85rem;
+            color: rgba(255,255,255,0.75);
+            margin: 0;
+        }
+        .preview-cta {
+            margin-top: 32px;
+            padding: 14px 40px;
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 8px 30px rgba(79,70,229,0.4);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .preview-cta:hover {
+            transform: scale(1.04);
+            box-shadow: 0 12px 40px rgba(79,70,229,0.55);
+        }
+        .preview-brand {
+            margin-top: 28px;
+            font-size: 0.7rem;
+            color: rgba(255,255,255,0.3);
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+        @media (max-width: 480px) {
+            .preview-thumb { width: 65vw; }
+            .preview-name { font-size: 1.2rem; }
+        }
+
+        /* Handle short screens */
+        @media (max-height: 700px) and (max-width: 600px) {
+            .vertical-icons {
+                bottom: clamp(70px, 14vh, 110px);
+                gap: clamp(10px, 2.5vh, 10px);
+            }
+            .icon-circle {
+                width: clamp(28px, 10vw, 36px);
+                height: clamp(28px, 10vw, 36px);
+            }
+            .qr-placeholder {
+                width: clamp(52px, 18vw, 60px);
+                height: clamp(52px, 18vw, 60px);
+                bottom: clamp(14px, 3vh, 20px);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- PREVIEW SPLASH: Se muestra antes de la tarjeta completa -->
+    <div class="preview-splash" id="preview-splash">
+        <div class="preview-thumb" id="preview-thumb">
+            <div class="preview-thumb-content">
+                <p class="preview-name" id="preview-name">Cargando...</p>
+                <p class="preview-msg">Te ha enviado una tarjeta digital</p>
+            </div>
+        </div>
+        <button class="preview-cta" id="preview-cta">Ver Tarjeta</button>
+        <div class="preview-brand">E-Cards JM</div>
+    </div>
+
+    <!-- TARJETA COMPLETA -->
+    <div class="view-card-wrapper" id="card-view">
+        <div class="card-overlay">
+            <div class="vertical-icons" id="vert-icons">
+                <!-- Phone, Email, Loc -->
+            </div>
+
+            <div class="social-row" id="soc-row">
+                <!-- WA, LI, IG, TT, TW, FB, WEB -->
+            </div>
+
+            <div class="qr-placeholder" id="qrcode">
+                <!-- QR Code will be rendered here -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let cardId = new URLSearchParams(window.location.search).get('u') || 
+                     window.location.hash.split('/').pop() ||
+                     window.location.pathname.split('/').pop();
+
+        const cardView = document.getElementById('card-view');
+        const previewSplash = document.getElementById('preview-splash');
+        const previewThumb = document.getElementById('preview-thumb');
+        const previewName = document.getElementById('preview-name');
+
+        async function initCard() {
+            if (!cardId || cardId === "#") {
+                previewSplash.classList.add('hidden');
+                showError("No se especificó ninguna tarjeta.");
+                return;
+            }
+
+            try {
+                const response = await fetch(`/api/cards/${cardId}`);
+                if (response.ok) {
+                    const card = await response.json();
+
+                    // Populate preview splash
+                    if (card.name) previewName.textContent = card.name;
+                    if (card.bg_image_path) {
+                        const bg = card.bg_image_path;
+                        const bgUrl = bg.startsWith('url(') ? bg.slice(4, -1).replace(/["']/g, '') : bg;
+                        previewThumb.style.backgroundImage = `url('${bgUrl}')`;
+                    }
+
+                    // Set Background on full card
+                    if (card.bg_image_path) {
+                        const bg = card.bg_image_path;
+                        cardView.style.backgroundImage = bg.startsWith('url(') ? bg : `url('${bg}')`;
+                    }
+
+                    renderVertical(card);
+                    renderSocial(card);
+
+                    const qrContainer = document.getElementById('qrcode');
+                    const qrSize = Math.floor(qrContainer.getBoundingClientRect().width || 128);
+                    new QRCode(qrContainer, {
+                        text: window.location.href,
+                        width: qrSize,
+                        height: qrSize,
+                        colorDark : "#000000",
+                        colorLight : "#ffffff",
+                        correctLevel : QRCode.CorrectLevel.H
+                    });
+                    const qrImg = document.querySelector('#qrcode img');
+                    if (qrImg) {
+                        qrImg.style.width = '100%';
+                        qrImg.style.height = '100%';
+                        qrImg.style.maxWidth = '100%';
+                        qrImg.style.maxHeight = '100%';
+                        qrImg.style.objectFit = 'contain';
+                    }
+                    requestAnimationFrame(() => {
+                        const qrImg2 = document.querySelector('#qrcode img');
+                        if (qrImg2) {
+                            qrImg2.style.width = '100%';
+                            qrImg2.style.height = '100%';
+                        }
+                    });
+                } else {
+                    previewSplash.classList.add('hidden');
+                    showError("Tarjeta no encontrada.");
+                }
+            } catch (err) {
+                console.error("View card error:", err);
+                previewSplash.classList.add('hidden');
+                showError("Ocurrió un error al cargar los datos.");
+            }
+        }
+
+        document.getElementById('preview-cta').addEventListener('click', function() {
+            previewSplash.classList.add('hidden');
+        });
+
+        function renderVertical(card) {
+            const container = document.getElementById('vert-icons');
+            const fields = [
+                { id: 'phone', val: card.phone, icon: 'fa-phone', color: '#2563eb', link: 'tel:' + card.phone },
+                { id: 'mail', val: card.email, icon: 'fa-envelope', color: '#64748b', link: 'mailto:' + card.email },
+                { id: 'loc', val: card.address, icon: 'fa-location-dot', color: '#f43f5e', link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(card.address)}` }
+            ];
+
+            fields.forEach(f => {
+                if (f.val && f.val.trim() !== "") {
+                    container.innerHTML += `<a href="${f.link}" target="_blank" class="icon-circle" style="color:${f.color}"><i class="fa-solid ${f.icon}"></i></a>`;
+                }
+            });
+        }
+
+        function renderSocial(card) {
+            const container = document.getElementById('soc-row');
+            const fields = [
+                { id: 'wa', val: card.whatsapp, icon: 'fa-brands fa-whatsapp', color: '#22c55e', link: `https://wa.me/${(card.whatsapp||'').replace(/\D/g,'')}` },
+                { id: 'li', val: card.linkedin, icon: 'fa-brands fa-linkedin-in', color: '#0077b5', link: card.linkedin },
+                { id: 'ig', val: card.instagram, icon: 'fa-brands fa-instagram', color: '#d946ef', link: card.instagram?.startsWith('http') ? card.instagram : `https://instagram.com/${(card.instagram||'').replace('@','')}` },
+                { id: 'tt', val: card.tiktok, icon: 'fa-brands fa-tiktok', color: '#000000', link: card.tiktok?.startsWith('http') ? card.tiktok : `https://tiktok.com/@${(card.tiktok||'').replace('@','')}` },
+                { id: 'tw', val: card.twitter, icon: 'fa-brands fa-x-twitter', color: '#000000', link: card.twitter?.startsWith('http') ? card.twitter : `https://x.com/${(card.twitter||'').replace('@','')}` },
+                { id: 'fb', val: card.facebook, icon: 'fa-brands fa-facebook-f', color: '#1d4ed8', link: card.facebook?.startsWith('http') ? card.facebook : `https://facebook.com/${card.facebook}` },
+                { id: 'yt', val: card.youtube, icon: 'fa-brands fa-youtube', color: '#ff0000', link: card.youtube?.startsWith('http') ? card.youtube : `https://youtube.com/${(card.youtube || '').replace('@', '')}` },
+                { id: 'web', val: card.website, icon: 'fa-solid fa-globe', color: '#0ea5e9', link: card.website?.startsWith('http') ? card.website : `https://${card.website}` }
+            ];
+
+            fields.forEach(f => {
+                if (f.val && f.val.trim() !== "") {
+                    let finalLink = f.link;
+                    if (f.id === 'li' && !finalLink.startsWith('http')) finalLink = `https://${finalLink}`;
+                    
+                    container.innerHTML += `<a href="${finalLink}" target="_blank" class="icon-circle" style="color:${f.color}"><i class="${f.icon}"></i></a>`;
+                }
+            });
+        }
+
+        function showError(msg) {
+            cardView.innerHTML = `<div style="color:#fff; text-align:center; padding:100px; font-family: sans-serif;">
+                <h1 style="font-size: 4rem; margin:0;">404</h1>
+                <p style="opacity:0.7;">${msg}</p>
+                <a href="/" style="color:var(--primary); text-decoration:none; margin-top:20px; display:inline-block;">Volver al Inicio</a>
+            </div>`;
+            cardView.style.background = "#111";
+            cardView.style.backgroundImage = "none";
+        }
+
+        initCard();
+    </script>
+</body>
+</html>

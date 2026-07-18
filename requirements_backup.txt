@@ -1,9 +1,0 @@
-flask
-flask-cors
-flask-sqlalchemy
-qrcode
-pillow
-colorthief
-sqlalchemy
-werkzeug
-gunicorn

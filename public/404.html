@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>ecardsJM - Redireccionando...</title>
+    <script>
+        // Capturar la URL actual
+        var location = window.location;
+        var path = location.pathname;
+        
+        // Si estamos en una subruta (como /card/ID), guardarla para el index.html
+        if (path.includes('/card/')) {
+            var cardId = path.split('/card/')[1];
+            sessionStorage.setItem('storedHash', '#card/' + cardId);
+        }
+        
+        // Redirigir siempre a la raíz del proyecto
+        // Para GitHub Pages en subcarpetas, esto asegura volver al index.html
+        window.location.replace(location.origin + path.split('/').slice(0, path.indexOf('/ecardsjm') === -1 ? 1 : 2).join('/') + '/');
+    </script>
+</head>
+<body>
+    <p>Redirigiendo...</p>
+</body>
+</html>
