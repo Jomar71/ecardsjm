@@ -82,23 +82,47 @@ app.get('/health', (req, res) => {
     });
 });
 
-// ===== HELPER: query con manejo de errores y timeout =====
+// ===== HELPER: query con manejo de errores, timeout y reintentos =====
+const MAX_QUERY_RETRIES = 3;
+
 async function query(text, params, timeout = 30000) {
     const pool = getPool();
     const queryStart = Date.now();
     const shortQuery = text.substring(0, 100).replace(/\n/g, ' ');
     console.log(`[DB QUERY] ${shortQuery}...`);
     
-    try {
-        const result = await pool.query(text, params);
-        const duration = Date.now() - queryStart;
-        console.log(`[DB OK] ${result.rowCount} rows (${duration}ms)`);
-        return result;
-    } catch (err) {
-        const duration = Date.now() - queryStart;
-        console.error(`[DB ERROR] ${err.message} (${duration}ms)`);
-        throw err;
+    for (let attempt = 1; attempt <= MAX_QUERY_RETRIES; attempt++) {
+        try {
+            const result = await pool.query(text, params);
+            const duration = Date.now() - queryStart;
+            console.log(`[DB OK] ${result.rowCount} rows (${duration}ms)`);
+            return result;
+        } catch (err) {
+            const duration = Date.now() - queryStart;
+            console.error(`[DB ERROR] ${err.message} (${duration}ms) - intento ${attempt}/${MAX_QUERY_RETRIES}`);
+            
+            // Solo reintentar errores transitorios (DNS/red/EOF), no errores de SQL
+            const transient = [
+                'EAI_AGAIN',    // fallo temporal de DNS
+                'ETIMEDOUT',    // timeout de red
+                'ECONNRESET',   // conexión reiniciada
+                'Connection terminated',
+                'Client has encountered a connection error',
+                'read ECONNRESET',
+                'socket hang up',
+                'timeout expired'
+            ];
+            const isRetriable = transient.some(t => err.message && err.message.includes(t));
+            
+            if (!isRetriable || attempt === MAX_QUERY_RETRIES) throw err;
+            
+            // Esperar antes de reintentar (backoff simple)
+            const waitMs = attempt * 1000;
+            console.log(`[DB RETRY] Reintentando en ${waitMs}ms...`);
+            await new Promise(resolve => setTimeout(resolve, waitMs));
+        }
     }
+    throw new Error('DB_QUERY_FAILED');
 }
 
 // ===== AUTH MIDDLEWARE =====

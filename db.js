@@ -1,4 +1,9 @@
 const { Pool } = require('pg');
+const dns = require('dns');
+
+// IMPORTANTE: Fuerza resolución IPv4 primero para evitar errores EAI_AGAIN
+// causados por fallos de DNS IPv6 en contenedores (Pxxl, Docker, etc.)
+dns.setDefaultResultOrder('ipv4first');
 
 let pool = null;
 let dbConnected = false;
@@ -13,13 +18,14 @@ function getPool() {
         
         pool = new Pool({
             connectionString,
+            family: 4, // Forzar IPv4 para evitar fallos de DNS IPv6
             ssl: useSSL ? { 
                 rejectUnauthorized: false,
                 // Agregar opciones específicas para Neon.tech
                 sslmode: 'require',
                 ca: process.env.DB_SSL_CA || undefined
             } : false,
-            connectionTimeoutMillis: 10000,
+            connectionTimeoutMillis: 15000,
             idleTimeoutMillis: 30000,
             max: 10,
             min: 2,
