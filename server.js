@@ -17,7 +17,7 @@ const express = require('express');
 const cors = require('cors');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { getPool, isConnected } = require('./db');
+const { getPool, isConnected, resetPool } = require('./db');
 
 // ===== CONFIG =====
 const PORT = process.env.PORT || 3000;
@@ -114,7 +114,11 @@ async function query(text, params, timeout = 30000) {
             ];
             const isRetriable = transient.some(t => err.message && err.message.includes(t));
             
-            if (!isRetriable || attempt === MAX_QUERY_RETRIES) throw err;
+            if (!isRetriable || attempt === MAX_QUERY_RETRIES) {
+                // Liberar el pool para forzar DNS resolution fresca en la próxima consulta
+                resetPool();
+                throw err;
+            }
             
             // Esperar antes de reintentar (backoff simple)
             const waitMs = attempt * 1000;
