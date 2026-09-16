@@ -86,7 +86,7 @@ app.get('/health', (req, res) => {
 const MAX_QUERY_RETRIES = 3;
 
 async function query(text, params, timeout = 30000) {
-    const pool = getPool();
+    const pool = await getPool();
     const queryStart = Date.now();
     const shortQuery = text.substring(0, 100).replace(/\n/g, ' ');
     console.log(`[DB QUERY] ${shortQuery}...`);

@@ -11,7 +11,7 @@ if (fs.existsSync(pxxlEnvPath)) {
 }
 
 async function createManualUser(username, password) {
-    const pool = getPool();
+    const pool = await getPool();
     const hash = await bcrypt.hash(password, 10);
     
     try {

@@ -1,9 +1,9 @@
-require('dotenv').config();
+﻿require('dotenv').config();
 const { getPool } = require('../db');
 const bcrypt = require('bcryptjs');
 
 async function listUsers() {
-    const pool = getPool();
+    const pool = await getPool();
     try {
         const result = await pool.query('SELECT id, username, is_authorized, is_admin, created_at FROM users ORDER BY created_at DESC');
         console.log('Usuarios encontrados:', result.rows.length);
@@ -16,17 +16,17 @@ async function listUsers() {
 }
 
 async function makeUserAdmin(userId) {
-    const pool = getPool();
+    const pool = await getPool();
     try {
         await pool.query('UPDATE users SET is_authorized = true, is_admin = true WHERE id = $1', [userId]);
-        console.log(`Usuario con ID ${userId} ahora es administrador y está autorizado.`);
+        console.log(`Usuario con ID ${userId} ahora es administrador y estÃ¡ autorizado.`);
     } catch (err) {
         console.error('Error al actualizar usuario:', err.message);
     }
 }
 
 async function deleteUser(userId) {
-    const pool = getPool();
+    const pool = await getPool();
     try {
         await pool.query('DELETE FROM users WHERE id = $1', [userId]);
         console.log(`Usuario con ID ${userId} eliminado.`);
@@ -36,7 +36,7 @@ async function deleteUser(userId) {
 }
 
 async function resetUsers() {
-    const pool = getPool();
+    const pool = await getPool();
     try {
         await pool.query('DELETE FROM users;');
         console.log('Todos los usuarios eliminados.');
@@ -46,7 +46,7 @@ async function resetUsers() {
 }
 
 async function createUser(username, password, isAdmin = false) {
-    const pool = getPool();
+    const pool = await getPool();
     const passwordHash = await bcrypt.hash(password, 10);
     
     try {
@@ -54,7 +54,7 @@ async function createUser(username, password, isAdmin = false) {
             'INSERT INTO users (username, password_hash, is_authorized, is_admin) VALUES ($1, $2, $3, $4) RETURNING id, username, is_authorized, is_admin',
             [username, passwordHash, true, isAdmin]
         );
-        console.log(`Usuario ${username} creado con éxito. ID: ${result.rows[0].id}, Admin: ${result.rows[0].is_admin}`);
+        console.log(`Usuario ${username} creado con Ã©xito. ID: ${result.rows[0].id}, Admin: ${result.rows[0].is_admin}`);
     } catch (err) {
         if (err.code === '23505') {
             console.log(`Usuario ${username} ya existe.`);

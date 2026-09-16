@@ -34,7 +34,7 @@ console.log('\n🔌 TEST DE CONEXIÓN A BASE DE DATOS:');
 
 const testDB = async () => {
     try {
-        const pool = getPool();
+        const pool = await getPool();
         console.log('  ⏳ Intentando conectar a BD...');
         
         const result = await pool.query('SELECT NOW()');
