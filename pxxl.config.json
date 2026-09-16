@@ -3,25 +3,10 @@
     "command": "npm install"
   },
   "run": {
-    "command": "npm start"
+    "command": "node server.js"
   },
   "env": [
     "DATABASE_URL",
-    "JWT_SECRET",
-    "PORT"
-  ],
-  "routes": [
-    {
-      "path": "/api/*",
-      "target": "${self.target}"
-    },
-    {
-      "path": "/health",
-      "target": "${self.target}"
-    },
-    {
-      "path": "/*",
-      "target": "${self.target}"
-    }
+    "JWT_SECRET"
   ]
 }
