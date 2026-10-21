@@ -3,109 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-Cards JM | Su Identidad Digital, Elevada</title>
-    <meta name="description" content="E-Cards JM - Cree tarjetas de presentación digitales profesionales en segundos. Impacte en cada encuentro con tecnología y elegancia.">
-    <link rel="stylesheet" href="css/styles.css">
+    <title>E-Cards JM | Tarjetas de presentación digitales</title>
+    <meta name="description" content="Cree una tarjeta de presentación digital con su foto, su cargo y sus contactos. Comparta un enlace o un QR que siempre muestra la versión actual.">
+    <link rel="stylesheet" href="/css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body>
-    <div id="app-content">
-        <nav id="navbar">
-            <div class="container glass">
-                <a href="/" class="logo">
-                    <span>E-Cards</span> JM
-                </a>
-                <button class="nav-toggle" id="nav-toggle" aria-label="Abrir Menú">
-                    <span></span>
-                    <span></span>
-                    <span></span>
-                </button>
-                <div class="nav-links" id="nav-menu">
-                    <a href="#hero" class="nav-item">Inicio</a>
-                    <a href="#features" class="nav-item">Servicios</a>
-                    <a href="#tarjetas" class="nav-item">Mis Tarjetas</a>
-                    <a href="#contacto" class="nav-item">Contacto</a>
-                    <a href="login.html" class="btn-login btn-login-mobile">Login</a>
-                </div>
-                <a href="login.html" class="btn-login" style="text-decoration: none;">Login</a>
-            </div>
-        </nav>
+    <header id="navbar">
+        <div class="nav-inner">
+            <a href="/" class="wordmark">E-Cards <em>JM</em></a>
 
+            <nav class="nav-links" id="nav-menu">
+                <a href="#features" class="nav-item">Cómo funciona</a>
+                <a href="#tarjetas" class="nav-item">Tarjetas</a>
+                <a href="#contacto" class="nav-item">Contacto</a>
+                <div class="nav-drawer-actions">
+                    <a href="/login.html" class="btn btn-brass">Crear mi tarjeta</a>
+                    <a href="/login.html" class="btn btn-ghost">Entrar</a>
+                </div>
+            </nav>
+
+            <div class="nav-actions">
+                <a href="/login.html" class="btn btn-ghost">Entrar</a>
+                <a href="/login.html" class="btn btn-brass">Crear mi tarjeta</a>
+            </div>
+
+            <button class="nav-toggle" id="nav-toggle" aria-label="Abrir menú" aria-expanded="false">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
+        </div>
+    </header>
+
+    <div id="app-content">
         <main>
             <section class="hero" id="hero">
-                <div class="hero-content">
-                    <h1>Su Identidad Digital, Elevada</h1>
-                    <p>Efectividad, profesionalismo y diseño. Cree su tarjeta de presentación digital en minutos e impacte en cada encuentro con tecnología de vanguardia.</p>
-                    <a href="login.html" class="btn-primary" style="text-decoration: none; display: inline-block;">Comenzar Ahora</a>
-                </div>
-                <div class="hero-visual">
-                    <img src="img/hero_preview.png" alt="E-Cards JM Mockup">
+                <div class="hero-inner">
+                    <div class="hero-copy">
+                        <p class="hero-eyebrow">Tarjetas de presentación digitales</p>
+                        <h1 class="display-xl">Una tarjeta que viaja con usted.</h1>
+                        <p class="lede">Cree una tarjeta vertical con su foto, su cargo y sus datos de contacto. Comparta el enlace o el QR: quien lo abre ve siempre la versión actual.</p>
+
+                        <div class="hero-actions">
+                            <a href="/login.html" class="btn btn-brass">Crear mi tarjeta</a>
+                            <a href="#tarjetas" class="arrow-link">
+                                Ver tarjetas de ejemplo
+                                <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                            </a>
+                        </div>
+
+                        <dl class="hero-specs">
+                            <div>
+                                <dt>Formato</dt>
+                                <dd>Vertical 9:16, pensada para el móvil.</dd>
+                            </div>
+                            <div>
+                                <dt>Compartir</dt>
+                                <dd>Un enlace y un QR que abren la tarjeta.</dd>
+                            </div>
+                            <div>
+                                <dt>Actualizar</dt>
+                                <dd>Cambia un dato y todos los enlaces se actualizan.</dd>
+                            </div>
+                        </dl>
+                    </div>
+
+                    <div class="hero-visual">
+                        <div class="hero-card" id="hero-card" hidden>
+                            <div class="hero-card-media" id="hero-card-media"></div>
+                            <div class="hero-card-inner">
+                                <div class="hero-card-logo" id="hero-card-logo" hidden>
+                                    <img id="hero-card-logo-img" src="" alt="">
+                                </div>
+                                <div class="hero-card-contact" id="hero-card-contact"></div>
+                                <div class="hero-card-foot">
+                                    <p class="hero-card-name" id="hero-card-name"></p>
+                                    <p class="hero-card-role" id="hero-card-role"></p>
+                                    <div class="hero-card-social" id="hero-card-social"></div>
+                                </div>
+                            </div>
+                            <div class="hero-card-qr" id="hero-card-qr"></div>
+                        </div>
+
+                        <img src="/img/hero_preview.png" id="hero-fallback" alt="Vista previa de una tarjeta de presentación de E-Cards JM">
+                    </div>
                 </div>
             </section>
 
-            <section class="section-spacing" id="features">
-                <div class="features-grid">
-                    <div class="feature-card glass">
-                        <div class="feature-icon">✨</div>
-                        <h3>Elegancia Digital</h3>
-                        <p>Diseños sofisticados que reflejan su autoridad profesional en cualquier dispositivo.</p>
+            <section class="section" id="features">
+                <div class="container">
+                    <div class="section-head">
+                        <h2 class="display-lg">Todo lo que la tarjeta necesita</h2>
+                        <p class="lede">Una sola página con su foto, su información de contacto y sus redes. Sin descargas, sin apps y sin registros.</p>
                     </div>
-                    <div class="feature-card glass">
-                        <div class="feature-icon">⚡</div>
-                        <h3>Sincronización Total</h3>
-                        <p>Actualice su información en tiempo real. Sus contactos siempre tendrán sus datos al día.</p>
-                    </div>
-                    <div class="feature-card glass">
-                        <div class="feature-icon">📊</div>
-                        <h3>Analítica de Impacto</h3>
-                        <p>Reciba estadísticas precisas sobre quién y cuándo escanean su tarjeta digital.</p>
-                    </div>
+
+                    <ul class="capabilities">
+                        <li>
+                            <h3>Su foto, en vertical</h3>
+                            <p>La tarjeta se compone en formato 9:16, el que ocupa toda la pantalla del móvil sin recortes ni barras.</p>
+                        </li>
+                        <li>
+                            <h3>Contacto en un toque</h3>
+                            <p>Teléfono, correo y ubicación con iconos que abren directamente la llamada, el correo o el mapa.</p>
+                        </li>
+                        <li>
+                            <h3>Sus redes, con nombre propio</h3>
+                            <p>WhatsApp, Instagram, LinkedIn, TikTok, X, Facebook, YouTube y su web, ordenados en una sola fila.</p>
+                        </li>
+                        <li>
+                            <h3>Un QR que no caduca</h3>
+                            <p>El código apunta a su enlace: si cambia un dato, el QR sigue siendo el mismo y muestra la versión actual.</p>
+                        </li>
+                    </ul>
                 </div>
             </section>
 
             <section class="showcase" id="tarjetas">
-                <div class="section-spacing">
-                    <h2 style="font-size: 2.5rem; margin-bottom: 40px; text-align: center;">Explore la Excelencia</h2>
-                    <div class="showcase-slider" id="showcase-slider">
-                        <!-- Tarjetas reales se cargan aquí dinámicamente -->
+                <div class="showcase-head">
+                    <div>
+                        <h2 class="display-lg">Tarjetas publicadas</h2>
+                        <p class="lede">Así se ven las tarjetas creadas con E-Cards JM. Toque cualquiera para abrirla.</p>
                     </div>
                 </div>
+                <div class="showcase-rail" id="showcase-slider"></div>
             </section>
 
-            <section class="section-spacing" id="contacto" style="text-align: center;">
-                <h2 style="font-size: 2.5rem; margin-bottom: 16px;">Contáctenos</h2>
-                <p style="color: var(--on-surface-variant); max-width: 500px; margin: 0 auto 40px;">¿Tiene preguntas? Estamos aquí para ayudarle a crear su tarjeta digital perfecta.</p>
-                <a href="mailto:soporte@ecardsjm.com" class="btn-primary" style="text-decoration: none;">soporte@ecardsjm.com</a>
+            <section class="contact" id="contacto">
+                <div class="container contact-inner">
+                    <div>
+                        <h2 class="display-lg">¿Necesita ayuda?</h2>
+                        <p class="lede">Escríbanos y le respondemos el mismo día. Si ya tiene una tarjeta, le ayudamos con cambios de contenido o de diseño.</p>
+                    </div>
+                    <a href="mailto:soporte@ecardsjm.com" class="btn btn-ghost">soporte@ecardsjm.com</a>
+                </div>
             </section>
         </main>
 
         <footer>
-            <div class="footer-content">
+            <div class="container footer-content">
                 <div class="footer-col">
-                    <div class="logo" style="margin-bottom: 16px;">
-                        <span>E-Cards</span> JM
-                    </div>
-                    <p style="color: var(--on-surface-variant); max-width: 280px; font-size: 0.9rem;">La plataforma de tarjetas digitales más sofisticada para profesionales que buscan impactar.</p>
+                    <a href="/" class="wordmark">E-Cards <em>JM</em></a>
+                    <p>Tarjetas de presentación digitales con enlace propio y QR. Se actualizan sin volver a imprimir nada.</p>
                 </div>
                 <div class="footer-col">
-                    <h4 style="color: #fff; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Producto</h4>
-                    <a href="#features" class="footer-link">Servicios</a>
-                    <a href="#tarjetas" class="footer-link">Ejemplos</a>
-                    <a href="login.html" class="footer-link">Dashboard</a>
+                    <h4>Producto</h4>
+                    <a href="#features" class="footer-link">Cómo funciona</a>
+                    <a href="#tarjetas" class="footer-link">Tarjetas</a>
+                    <a href="/login.html" class="footer-link">Crear mi tarjeta</a>
+                    <a href="/dashboard.html" class="footer-link">Mi panel</a>
                 </div>
                 <div class="footer-col">
-                    <h4 style="color: #fff; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Legal</h4>
+                    <h4>Legal</h4>
                     <a href="#" class="footer-link">Privacidad</a>
                     <a href="#" class="footer-link">Términos</a>
                     <a href="#" class="footer-link">Cookies</a>
                 </div>
                 <div class="footer-col">
-                    <h4 style="color: #fff; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 16px;">Contacto</h4>
+                    <h4>Contacto</h4>
                     <a href="mailto:soporte@ecardsjm.com" class="footer-link">soporte@ecardsjm.com</a>
-                    <a href="#contacto" class="footer-link">Formulario</a>
                 </div>
             </div>
-            <div class="footer-bottom">
-                <p>&copy; 2026 E-Cards JM. Todos los derechos reservados.</p>
+            <div class="container footer-bottom">
+                <span>© 2026 E-Cards JM. Todos los derechos reservados.</span>
+                <span class="mono">Tarjetas de presentación digitales</span>
             </div>
         </footer>
     </div>
@@ -117,27 +179,29 @@
     <script>
         window.onscroll = function() {
             var navbar = document.getElementById("navbar");
-            if (window.pageYOffset > 50) {
+            if (window.pageYOffset > 24) {
                 navbar.classList.add("scrolled");
             } else {
                 navbar.classList.remove("scrolled");
             }
         };
 
-        // Mobile Nav Logic
+        // Menú móvil
         const navToggle = document.getElementById('nav-toggle');
         const navMenu = document.getElementById('nav-menu');
         const navItems = document.querySelectorAll('.nav-item');
 
         navToggle.addEventListener('click', () => {
-            navMenu.classList.toggle('active');
-            navToggle.classList.toggle('active');
+            const open = navMenu.classList.toggle('active');
+            navToggle.classList.toggle('active', open);
+            navToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
         });
 
         navItems.forEach(item => {
             item.addEventListener('click', () => {
                 navMenu.classList.remove('active');
                 navToggle.classList.remove('active');
+                navToggle.setAttribute('aria-expanded', 'false');
             });
         });
 
@@ -161,16 +225,23 @@
         window.addEventListener('hashchange', handleRoute);
         window.addEventListener('load', handleRoute);
 
-        // Load showcase cards from API
+        // Tarjetas públicas para la landing
         async function loadShowcase() {
-            const slider = document.getElementById('showcase-slider');
-            if (!slider) return;
+            const rail = document.getElementById('showcase-slider');
+            if (!rail) return;
             try {
                 const res = await fetch('/api/showcase');
                 if (!res.ok) return;
                 const cards = await res.json();
                 if (!cards.length) return;
-                slider.innerHTML = '';
+
+                // Orden estable para que el hero no cambie entre recargas
+                cards.sort((a, b) => a.id.localeCompare(b.id));
+                // Para el hero se elige la tarjeta más completa, no la primera
+                const heroCard = cards.slice().sort((a, b) => completeness(b) - completeness(a))[0];
+                renderHeroCard(heroCard);
+
+                rail.innerHTML = '';
                 cards.forEach(card => {
                     const bg = card.bg_image_path;
                     const bgUrl = bg
@@ -178,24 +249,113 @@
                         : '';
                     const bgStyle = bgUrl
                         ? `background-image: url('${bgUrl}');`
-                        : 'background: linear-gradient(135deg, rgba(79,70,229,0.4), var(--bg-deep));';
+                        : 'background-color: #191d26;';
                     const el = document.createElement('a');
                     el.href = `/card/${card.id}`;
-                    el.className = 'mockup-card glass';
+                    el.className = 'mockup-card';
                     el.innerHTML = `
                         <div class="mockup-card-img" style="${bgStyle}"></div>
                         <div class="mockup-card-body">
                             <h4>${card.name || 'Sin nombre'}</h4>
                             <p>${card.title || card.email || ''}</p>
-                            <span class="mockup-cta">Ver tarjeta &rarr;</span>
+                            <span class="mockup-cta">Ver tarjeta
+                                <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+                            </span>
                         </div>`;
-                    slider.appendChild(el);
+                    rail.appendChild(el);
                 });
             } catch (e) {
                 console.warn('Showcase load error:', e);
             }
         }
         loadShowcase();
+
+        // La tarjeta del hero: el mismo objeto que ve el visitante al abrir un enlace
+        function completeness(card) {
+            let score = card.logo_path ? 3 : 0;
+            ['phone', 'email', 'address'].forEach(k => { if (card[k]) score++; });
+            ['whatsapp', 'instagram', 'linkedin', 'facebook', 'youtube', 'website'].forEach(k => { if (card[k]) score++; });
+            return score;
+        }
+
+        function renderHeroCard(card) {
+            const hero = document.getElementById('hero-card');
+            const fallback = document.getElementById('hero-fallback');
+            if (!hero || !card) return;
+
+            const bg = card.bg_image_path;
+            const bgUrl = bg
+                ? (bg.startsWith('url(') ? bg.slice(4,-1).replace(/["']/g,'') : bg)
+                : '';
+            if (bgUrl) {
+                document.getElementById('hero-card-media').style.backgroundImage = `url('${bgUrl}')`;
+            }
+
+            if (card.logo_path) {
+                document.getElementById('hero-card-logo-img').src = card.logo_path;
+                document.getElementById('hero-card-logo').hidden = false;
+            }
+
+            document.getElementById('hero-card-name').textContent = card.name || 'Sin nombre';
+            document.getElementById('hero-card-role').textContent = card.title || card.company || '';
+
+            const contact = document.getElementById('hero-card-contact');
+            const contactos = [
+                { val: card.phone, icon: 'fa-solid fa-phone', link: 'tel:' + card.phone },
+                { val: card.email, icon: 'fa-solid fa-envelope', link: 'mailto:' + card.email },
+                { val: card.address, icon: 'fa-solid fa-location-dot', link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(card.address)}` }
+            ];
+            contactos.forEach(c => {
+                if (!c.val || c.val.trim() === '') return;
+                const a = document.createElement('a');
+                a.href = c.link;
+                a.target = '_blank';
+                a.rel = 'noopener';
+                a.innerHTML = `<i class="${c.icon}"></i>`;
+                contact.appendChild(a);
+            });
+
+            const social = document.getElementById('hero-card-social');
+            const redes = [
+                { val: card.whatsapp, icon: 'fa-brands fa-whatsapp', link: `https://wa.me/${(card.whatsapp||'').replace(/\D/g,'')}` },
+                { val: card.instagram, icon: 'fa-brands fa-instagram', link: card.instagram?.startsWith('http') ? card.instagram : `https://instagram.com/${(card.instagram||'').replace('@','')}` },
+                { val: card.linkedin, icon: 'fa-brands fa-linkedin-in', link: card.linkedin?.startsWith('http') ? card.linkedin : `https://${card.linkedin}` },
+                { val: card.facebook, icon: 'fa-brands fa-facebook-f', link: card.facebook?.startsWith('http') ? card.facebook : `https://${card.facebook}` },
+                { val: card.youtube, icon: 'fa-brands fa-youtube', link: card.youtube?.startsWith('http') ? card.youtube : `https://${card.youtube}` },
+                { val: card.website, icon: 'fa-solid fa-globe', link: card.website?.startsWith('http') ? card.website : `https://${card.website}` }
+            ].filter(r => r.val && r.val.trim() !== '').slice(0, 5);
+
+            redes.forEach(r => {
+                const a = document.createElement('a');
+                a.href = r.link;
+                a.target = '_blank';
+                a.rel = 'noopener';
+                a.setAttribute('aria-label', r.icon.replace('fa-brands fa-', '').replace('fa-solid fa-', ''));
+                a.innerHTML = `<i class="${r.icon}"></i>`;
+                social.appendChild(a);
+            });
+
+            if (window.QRCode) {
+                const qr = document.getElementById('hero-card-qr');
+                qr.innerHTML = '';
+                new QRCode(qr, {
+                    text: `${window.location.origin}/card/${card.id}`,
+                    width: 44,
+                    height: 44,
+                    colorDark: '#000000',
+                    colorLight: '#ffffff',
+                    correctLevel: QRCode.CorrectLevel.H
+                });
+                const img = qr.querySelector('img');
+                if (img) {
+                    img.style.width = '100%';
+                    img.style.height = '100%';
+                }
+            }
+
+            hero.hidden = false;
+            fallback.style.display = 'none';
+        }
     </script>
 </body>
 </html>

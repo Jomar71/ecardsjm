@@ -9,262 +9,352 @@
     <meta property="og:title" content="E-Card Compartida">
     <meta property="og:description" content="Tarjeta digital - E-Cards JM">
     <meta name="twitter:card" content="summary_large_image">
-    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="/css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
-        body {
+        body.card-body {
             margin: 0;
-            padding: 0;
             min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            background: #000;
+            background: var(--ink-sunken);
             overflow: auto;
-            font-family: 'Inter', sans-serif;
         }
 
+        body.card-body::after {
+            opacity: 0.18;
+        }
+
+        /* ---------- La tarjeta ---------- */
         .view-card-wrapper {
-            width: min(100vw, 500px);
-            height: auto;
-            aspect-ratio: 9 / 16;
-            background: #fff;
             position: relative;
-            box-shadow: 0 0 50px rgba(0,0,0,0.5);
+            /* La tarjeta nunca debe exceder la altura de la pantalla */
+            width: min(100vw, 460px, calc((100vh - 40px) * 9 / 16));
+            aspect-ratio: 9 / 16;
+            background: var(--ink-raised);
             background-size: cover;
             background-position: center;
-            border-radius: 0;
+            overflow: hidden;
+            box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.95);
+        }
+
+        @supports (height: 100dvh) {
+            .view-card-wrapper {
+                width: min(100vw, 460px, calc((100dvh - 40px) * 9 / 16));
+            }
         }
 
         .card-overlay {
             position: absolute;
             inset: 0;
-            padding: clamp(16px, 3.5vw, 30px);
+            padding: clamp(18px, 4vw, 28px);
             display: flex;
             flex-direction: column;
-            justify-content: flex-end;
-            background: linear-gradient(to top, rgba(0,0,0,0.4) 0%, transparent 60%);
+            background:
+                linear-gradient(to top, rgba(0, 0, 0, 0.62) 0%, rgba(0, 0, 0, 0.08) 46%, transparent 72%),
+                linear-gradient(to bottom, rgba(0, 0, 0, 0.48) 0%, transparent 34%);
+        }
+
+        .card-head {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: clamp(8px, 2vw, 14px);
+            text-align: center;
+        }
+
+        .card-logo {
+            width: clamp(56px, 15vw, 88px);
+            height: clamp(56px, 15vw, 88px);
+            border-radius: 50%;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            background: rgba(12, 14, 20, 0.45);
+            display: none;
+            flex: 0 0 auto;
+        }
+
+        .card-logo img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .card-identity {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .card-name {
+            font-family: var(--font-display);
+            font-size: clamp(1.35rem, 5.2vw, 2rem);
+            font-weight: 600;
+            font-variation-settings: 'SOFT' 0, 'WONK' 0;
+            line-height: 1.08;
+            letter-spacing: -0.02em;
+            color: #fff;
+            text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+        }
+
+        .card-role {
+            font-size: clamp(0.72rem, 2.6vw, 0.84rem);
+            color: rgba(255, 255, 255, 0.82);
+            text-shadow: 0 1px 10px rgba(0, 0, 0, 0.55);
         }
 
         .vertical-icons {
             position: absolute;
-            left: clamp(14px, 4vw, 25px);
-            bottom: clamp(90px, 18vh, 155px); /* Adjust for more social icons */
+            left: clamp(14px, 4vw, 26px);
+            bottom: clamp(88px, 17vh, 150px);
             display: flex;
             flex-direction: column;
-            gap: clamp(10px, 1.8vh, 15px);
+            gap: clamp(9px, 1.8vh, 14px);
         }
 
         .social-row {
+            position: absolute;
+            left: clamp(14px, 4vw, 26px);
+            right: clamp(14px, 4vw, 26px);
+            bottom: clamp(14px, 4vh, 30px);
             display: flex;
             flex-wrap: wrap;
             justify-content: center;
-            gap: clamp(8px, 2.2vw, 14px);
-            margin-top: 20px;
-            padding-bottom: clamp(14px, 4vw, 30px);
+            gap: clamp(8px, 2.2vw, 13px);
+            padding-right: clamp(66px, 17vw, 96px);
         }
 
         .icon-circle {
-            width: clamp(28px, 6vw, 42px);
-            height: clamp(28px, 6vw, 42px);
+            width: clamp(28px, 6vw, 38px);
+            height: clamp(28px, 6vw, 38px);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            border: 1px solid rgba(255,255,255,0.3);
-            cursor: pointer;
-            background: rgba(255,255,255,0.15);
-            backdrop-filter: blur(8px);
-            transition: transform 0.2s;
+            font-size: clamp(0.8rem, 3.2vw, 1rem);
             color: #fff;
-            font-size: clamp(0.85rem, 3.5vw, 1.1rem);
+            text-decoration: none;
+            border: 1px solid rgba(255, 255, 255, 0.35);
+            background: rgba(12, 14, 20, 0.55);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            transition: transform var(--dur) var(--ease), background-color var(--dur) var(--ease);
         }
-        
+
         .icon-circle:hover {
-            transform: scale(1.1);
-            background: rgba(255,255,255,0.25);
+            transform: scale(1.08);
+            background: rgba(12, 14, 20, 0.75);
         }
 
         .qr-placeholder {
             position: absolute;
-            right: clamp(14px, 4vw, 25px);
-            bottom: clamp(18px, 5vh, 40px);
-            width: clamp(60px, 14vw, 90px);
-            height: clamp(60px, 14vw, 90px);
+            right: clamp(14px, 4vw, 26px);
+            bottom: clamp(14px, 4vh, 30px);
+            width: clamp(58px, 15vw, 86px);
+            height: clamp(58px, 15vw, 86px);
             background: #fff;
-            padding: clamp(5px, 1.2vw, 8px);
-            border-radius: 12px;
+            padding: clamp(5px, 1.2vw, 7px);
+            border-radius: 6px;
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 5px 25px rgba(0,0,0,0.3);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .qr-placeholder img,
+        .qr-placeholder canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        @media (min-width: 600px) {
+            .view-card-wrapper {
+                border-radius: var(--r-card);
+            }
         }
 
         @media (max-width: 600px) {
             .view-card-wrapper {
-                width: 100vw;
-                border-radius: 0;
-            }
-
-            .card-overlay {
-                padding: clamp(14px, 6vw, 24px);
-            }
-
-            .vertical-icons {
-                left: clamp(14px, 4vw, 20px);
-                bottom: clamp(90px, 16vh, 140px);
-            }
-
-            .qr-placeholder {
-                right: clamp(14px, 4vw, 20px);
-                bottom: clamp(18px, 4vh, 30px);
-                width: clamp(56px, 18vw, 75px);
-                height: clamp(56px, 18vw, 75px);
-            }
-
-            .social-row {
-                gap: clamp(8px, 3vw, 10px);
-                padding-bottom: clamp(8px, 3vw, 10px);
+                width: min(100vw, calc((100vh - 16px) * 9 / 16));
             }
         }
 
-        /* ===== PREVIEW SPLASH ===== */
+        @supports (height: 100dvh) {
+            @media (max-width: 600px) {
+                .view-card-wrapper {
+                    width: min(100vw, calc((100dvh - 16px) * 9 / 16));
+                }
+            }
+        }
+
+        /* ---------- Portada antes de abrir la tarjeta ---------- */
         .preview-splash {
             position: fixed;
             inset: 0;
             z-index: 10000;
-            background: #0b1326;
+            background: var(--ink-sunken);
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
-            transition: opacity 0.5s ease, visibility 0.5s ease;
+            gap: 30px;
+            padding: 32px;
+            transition: opacity 420ms var(--ease), visibility 420ms var(--ease);
         }
+
         .preview-splash.hidden {
             opacity: 0;
             visibility: hidden;
             pointer-events: none;
         }
+
         .preview-thumb {
-            width: min(70vw, 280px);
+            position: relative;
+            width: min(64vw, 250px, calc((100vh - 200px) * 9 / 16));
             aspect-ratio: 9 / 16;
-            border-radius: 18px;
+            border-radius: var(--r-card);
+            background: var(--ink-raised);
             background-size: cover;
             background-position: center;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.6);
-            position: relative;
             overflow: hidden;
+            transform: rotate(-2deg);
+            box-shadow:
+                0 1px 0 rgba(243, 238, 229, 0.1),
+                0 34px 64px -26px rgba(0, 0, 0, 0.95);
         }
+
+        @supports (height: 100dvh) {
+            .preview-thumb {
+                width: min(64vw, 250px, calc((100dvh - 200px) * 9 / 16));
+            }
+        }
+
         .preview-thumb::after {
             content: '';
             position: absolute;
             inset: 0;
-            background: linear-gradient(to top, rgba(0,0,0,0.55) 0%, transparent 55%);
-            border-radius: 18px;
+            background: linear-gradient(to top, rgba(0, 0, 0, 0.7) 0%, transparent 52%);
         }
+
         .preview-thumb-content {
             position: absolute;
             bottom: 0;
             left: 0;
             right: 0;
-            padding: 24px 20px;
+            padding: 20px 18px;
             z-index: 1;
         }
+
         .preview-name {
-            font-size: 1.4rem;
-            font-weight: 700;
+            font-family: var(--font-display);
+            font-size: 1.35rem;
+            font-weight: 600;
+            font-variation-settings: 'SOFT' 0, 'WONK' 0;
+            line-height: 1.1;
             color: #fff;
             margin: 0 0 4px;
-            text-shadow: 0 2px 8px rgba(0,0,0,0.5);
+            text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6);
         }
+
         .preview-msg {
-            font-size: 0.85rem;
-            color: rgba(255,255,255,0.75);
+            font-size: 0.8rem;
+            color: rgba(255, 255, 255, 0.72);
             margin: 0;
         }
+
         .preview-cta {
-            margin-top: 32px;
-            padding: 14px 40px;
-            background: linear-gradient(135deg, #6366f1, #4f46e5);
-            color: #fff;
-            border: none;
-            border-radius: 50px;
-            font-size: 1rem;
+            padding: 14px 34px;
+            font-family: var(--font-ui);
+            font-size: 0.94rem;
             font-weight: 600;
+            color: #16120b;
+            background: var(--brass);
+            border: none;
+            border-radius: var(--r-sm);
             cursor: pointer;
-            box-shadow: 0 8px 30px rgba(79,70,229,0.4);
-            transition: transform 0.2s, box-shadow 0.2s;
+            transition: background-color var(--dur) var(--ease), transform var(--dur) var(--ease);
         }
+
         .preview-cta:hover {
-            transform: scale(1.04);
-            box-shadow: 0 12px 40px rgba(79,70,229,0.55);
+            background: var(--brass-bright);
+            transform: translateY(-1px);
         }
+
         .preview-brand {
-            margin-top: 28px;
-            font-size: 0.7rem;
-            color: rgba(255,255,255,0.3);
-            letter-spacing: 1px;
-            text-transform: uppercase;
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--paper-faint);
         }
+
         @media (max-width: 480px) {
-            .preview-thumb { width: 65vw; }
+            .preview-thumb { width: 60vw; }
             .preview-name { font-size: 1.2rem; }
         }
 
-        /* Handle short screens */
+        /* ---------- Pantallas bajas ---------- */
         @media (max-height: 700px) and (max-width: 600px) {
             .vertical-icons {
-                bottom: clamp(70px, 14vh, 110px);
-                gap: clamp(10px, 2.5vh, 10px);
+                bottom: clamp(66px, 13vh, 104px);
+                gap: 9px;
             }
+
             .icon-circle {
-                width: clamp(28px, 10vw, 36px);
-                height: clamp(28px, 10vw, 36px);
+                width: clamp(26px, 9vw, 32px);
+                height: clamp(26px, 9vw, 32px);
             }
+
             .qr-placeholder {
-                width: clamp(52px, 18vw, 60px);
-                height: clamp(52px, 18vw, 60px);
-                bottom: clamp(14px, 3vh, 20px);
+                width: clamp(50px, 16vw, 58px);
+                height: clamp(50px, 16vw, 58px);
+                bottom: clamp(12px, 3vh, 18px);
             }
         }
     </style>
 </head>
-<body>
-    <!-- PREVIEW SPLASH: Se muestra antes de la tarjeta completa -->
+<body class="card-body">
+    <!-- Portada: se muestra antes de la tarjeta completa -->
     <div class="preview-splash" id="preview-splash">
         <div class="preview-thumb" id="preview-thumb">
             <div class="preview-thumb-content">
-                <p class="preview-name" id="preview-name">Cargando...</p>
-                <p class="preview-msg">Te ha enviado una tarjeta digital</p>
+                <p class="preview-name" id="preview-name">Cargando…</p>
+                <p class="preview-msg">Tarjeta de presentación digital</p>
             </div>
         </div>
-        <button class="preview-cta" id="preview-cta">Ver Tarjeta</button>
+        <button class="preview-cta" id="preview-cta">Ver tarjeta</button>
         <div class="preview-brand">E-Cards JM</div>
     </div>
 
-    <!-- TARJETA COMPLETA -->
+    <!-- Tarjeta completa -->
     <div class="view-card-wrapper" id="card-view">
         <div class="card-overlay">
-            <div id="card-logo" style="position:absolute; top:clamp(20px,5vw,40px); left:50%; transform:translateX(-50%); width:clamp(60px,16vw,90px); height:clamp(60px,16vw,90px); border-radius:50%; overflow:hidden; border:3px solid rgba(255,255,255,0.3); display:none; background:rgba(0,0,0,0.3); box-shadow:0 4px 20px rgba(0,0,0,0.4);">
-                <img id="card-logo-img" src="" style="width:100%; height:100%; object-fit:cover;">
+            <div class="card-head">
+                <div class="card-logo" id="card-logo">
+                    <img id="card-logo-img" src="" alt="">
+                </div>
+                <div class="card-identity">
+                    <p class="card-name" id="card-name"></p>
+                    <p class="card-role" id="card-role"></p>
+                </div>
             </div>
+
             <div class="vertical-icons" id="vert-icons">
-                <!-- Phone, Email, Loc -->
+                <!-- Teléfono, correo y ubicación -->
             </div>
 
             <div class="social-row" id="soc-row">
-                <!-- WA, LI, IG, TT, TW, FB, WEB -->
+                <!-- WhatsApp, LinkedIn, Instagram, TikTok, X, Facebook, YouTube, web -->
             </div>
 
             <div class="qr-placeholder" id="qrcode">
-                <!-- QR Code will be rendered here -->
+                <!-- El código QR se dibuja aquí -->
             </div>
         </div>
     </div>
 
     <script>
-        let cardId = new URLSearchParams(window.location.search).get('u') || 
+        let cardId = new URLSearchParams(window.location.search).get('u') ||
                      window.location.hash.split('/').pop() ||
                      window.location.pathname.split('/').pop();
 
@@ -285,7 +375,7 @@
                 if (response.ok) {
                     const card = await response.json();
 
-                    // Populate preview splash
+                    // Portada
                     if (card.name) previewName.textContent = card.name;
                     if (card.bg_image_path) {
                         const bg = card.bg_image_path;
@@ -293,13 +383,17 @@
                         previewThumb.style.backgroundImage = `url('${bgUrl}')`;
                     }
 
-                    // Set Background on full card
+                    // Fondo de la tarjeta
                     if (card.bg_image_path) {
                         const bg = card.bg_image_path;
                         cardView.style.backgroundImage = bg.startsWith('url(') ? bg : `url('${bg}')`;
                     }
 
-                    // Set Logo
+                    // Identificación
+                    document.getElementById('card-name').textContent = card.name || '';
+                    document.getElementById('card-role').textContent = card.title || card.company || '';
+
+                    // Logo
                     if (card.logo_path) {
                         const logoContainer = document.getElementById('card-logo');
                         const logoImg = document.getElementById('card-logo-img');
@@ -353,14 +447,14 @@
         function renderVertical(card) {
             const container = document.getElementById('vert-icons');
             const fields = [
-                { id: 'phone', val: card.phone, icon: 'fa-phone', color: '#2563eb', link: 'tel:' + card.phone },
-                { id: 'mail', val: card.email, icon: 'fa-envelope', color: '#64748b', link: 'mailto:' + card.email },
-                { id: 'loc', val: card.address, icon: 'fa-location-dot', color: '#f43f5e', link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(card.address)}` }
+                { val: card.phone, icon: 'fa-phone', color: '#93c5fd', link: 'tel:' + card.phone },
+                { val: card.email, icon: 'fa-envelope', color: '#e2e8f0', link: 'mailto:' + card.email },
+                { val: card.address, icon: 'fa-location-dot', color: '#fda4af', link: `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(card.address)}` }
             ];
 
             fields.forEach(f => {
                 if (f.val && f.val.trim() !== "") {
-                    container.innerHTML += `<a href="${f.link}" target="_blank" class="icon-circle" style="color:${f.color}"><i class="fa-solid ${f.icon}"></i></a>`;
+                    container.innerHTML += `<a href="${f.link}" title="${f.val}" target="_blank" class="icon-circle" style="color:${f.color}"><i class="fa-solid ${f.icon}"></i></a>`;
                 }
             });
         }
@@ -368,33 +462,33 @@
         function renderSocial(card) {
             const container = document.getElementById('soc-row');
             const fields = [
-                { id: 'wa', val: card.whatsapp, icon: 'fa-brands fa-whatsapp', color: '#22c55e', link: `https://wa.me/${(card.whatsapp||'').replace(/\D/g,'')}` },
-                { id: 'li', val: card.linkedin, icon: 'fa-brands fa-linkedin-in', color: '#0077b5', link: card.linkedin },
-                { id: 'ig', val: card.instagram, icon: 'fa-brands fa-instagram', color: '#d946ef', link: card.instagram?.startsWith('http') ? card.instagram : `https://instagram.com/${(card.instagram||'').replace('@','')}` },
-                { id: 'tt', val: card.tiktok, icon: 'fa-brands fa-tiktok', color: '#000000', link: card.tiktok?.startsWith('http') ? card.tiktok : `https://tiktok.com/@${(card.tiktok||'').replace('@','')}` },
-                { id: 'tw', val: card.twitter, icon: 'fa-brands fa-x-twitter', color: '#000000', link: card.twitter?.startsWith('http') ? card.twitter : `https://x.com/${(card.twitter||'').replace('@','')}` },
-                { id: 'fb', val: card.facebook, icon: 'fa-brands fa-facebook-f', color: '#1d4ed8', link: card.facebook?.startsWith('http') ? card.facebook : `https://facebook.com/${card.facebook}` },
-                { id: 'yt', val: card.youtube, icon: 'fa-brands fa-youtube', color: '#ff0000', link: card.youtube?.startsWith('http') ? card.youtube : `https://youtube.com/${(card.youtube || '').replace('@', '')}` },
-                { id: 'web', val: card.website, icon: 'fa-solid fa-globe', color: '#0ea5e9', link: card.website?.startsWith('http') ? card.website : `https://${card.website}` }
+                { id: 'wa', val: card.whatsapp, icon: 'fa-brands fa-whatsapp', link: `https://wa.me/${(card.whatsapp||'').replace(/\D/g,'')}` },
+                { id: 'li', val: card.linkedin, icon: 'fa-brands fa-linkedin-in', link: card.linkedin },
+                { id: 'ig', val: card.instagram, icon: 'fa-brands fa-instagram', link: card.instagram?.startsWith('http') ? card.instagram : `https://instagram.com/${(card.instagram||'').replace('@','')}` },
+                { id: 'tt', val: card.tiktok, icon: 'fa-brands fa-tiktok', link: card.tiktok?.startsWith('http') ? card.tiktok : `https://tiktok.com/@${(card.tiktok||'').replace('@','')}` },
+                { id: 'tw', val: card.twitter, icon: 'fa-brands fa-x-twitter', link: card.twitter?.startsWith('http') ? card.twitter : `https://x.com/${(card.twitter||'').replace('@','')}` },
+                { id: 'fb', val: card.facebook, icon: 'fa-brands fa-facebook-f', link: card.facebook?.startsWith('http') ? card.facebook : `https://facebook.com/${card.facebook}` },
+                { id: 'yt', val: card.youtube, icon: 'fa-brands fa-youtube', link: card.youtube?.startsWith('http') ? card.youtube : `https://youtube.com/${(card.youtube || '').replace('@', '')}` },
+                { id: 'web', val: card.website, icon: 'fa-solid fa-globe', link: card.website?.startsWith('http') ? card.website : `https://${card.website}` }
             ];
 
             fields.forEach(f => {
                 if (f.val && f.val.trim() !== "") {
                     let finalLink = f.link;
                     if (f.id === 'li' && !finalLink.startsWith('http')) finalLink = `https://${finalLink}`;
-                    
-                    container.innerHTML += `<a href="${finalLink}" target="_blank" class="icon-circle" style="color:${f.color}"><i class="${f.icon}"></i></a>`;
+
+                    container.innerHTML += `<a href="${finalLink}" target="_blank" class="icon-circle"><i class="${f.icon}"></i></a>`;
                 }
             });
         }
 
         function showError(msg) {
-            cardView.innerHTML = `<div style="color:#fff; text-align:center; padding:100px; font-family: sans-serif;">
-                <h1 style="font-size: 4rem; margin:0;">404</h1>
+            cardView.innerHTML = `<div style="color:#fff; text-align:center; padding:100px 30px; font-family: 'Archivo', system-ui, sans-serif;">
+                <h1 style="font-size: 3.5rem; margin:0; font-family: 'Fraunces', Georgia, serif;">404</h1>
                 <p style="opacity:0.7;">${msg}</p>
-                <a href="/" style="color:var(--primary); text-decoration:none; margin-top:20px; display:inline-block;">Volver al Inicio</a>
+                <a href="/" style="color:#c68b3c; text-decoration:none; margin-top:20px; display:inline-block;">Volver al inicio</a>
             </div>`;
-            cardView.style.background = "#111";
+            cardView.style.background = "#12151c";
             cardView.style.backgroundImage = "none";
         }
 

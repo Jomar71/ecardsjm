@@ -3,343 +3,516 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard | E-Cards JM</title>
-    <link rel="stylesheet" href="css/styles.css">
+    <title>Mi panel | E-Cards JM</title>
+    <link rel="stylesheet" href="/css/styles.css">
     <style>
+        body {
+            background: var(--ink);
+        }
+
         .dashboard-layout {
             display: flex;
             min-height: 100vh;
-            background: var(--bg-deep);
         }
 
+        /* ---------- Barra lateral ---------- */
         .sidebar {
-            width: 280px;
-            background: var(--bg-recessed);
-            border-right: 1px solid var(--glass-border);
-            padding: 40px 24px;
+            position: sticky;
+            top: 0;
+            width: 264px;
+            height: 100vh;
+            flex: 0 0 264px;
             display: flex;
             flex-direction: column;
+            padding: 34px 20px 24px;
+            background: var(--ink-sunken);
+            border-right: 1px solid var(--ink-line);
+        }
+
+        .sidebar .wordmark {
+            padding: 0 10px;
+            margin-bottom: 44px;
         }
 
         .sidebar-nav {
-            margin-top: 60px;
-            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
         }
 
         .sidebar-link {
             display: flex;
             align-items: center;
             gap: 12px;
-            padding: 14px 20px;
-            color: var(--on-surface-variant);
-            text-decoration: none;
-            border-radius: 12px;
-            transition: var(--transition);
-            margin-bottom: 8px;
+            padding: 11px 12px;
+            font-size: 0.92rem;
             font-weight: 500;
+            color: var(--paper-dim);
+            text-decoration: none;
+            border-left: 2px solid transparent;
+            padding-left: 10px;
+            transition: color var(--dur) var(--ease), border-color var(--dur) var(--ease), background-color var(--dur) var(--ease);
         }
 
-        .sidebar-link:hover, .sidebar-link.active {
-            background: rgba(79, 70, 229, 0.1);
-            color: var(--primary);
+        .sidebar-link:hover {
+            color: var(--paper);
+            background: rgba(243, 238, 229, 0.04);
         }
 
+        .sidebar-link.active {
+            color: var(--paper);
+            border-left-color: var(--brass);
+            background: rgba(243, 238, 229, 0.04);
+        }
+
+        .sidebar-link.is-disabled {
+            color: var(--paper-faint);
+            cursor: default;
+        }
+
+        .sidebar-link.is-disabled:hover {
+            background: none;
+            color: var(--paper-faint);
+        }
+
+        .tag-soon {
+            margin-left: auto;
+            font-family: var(--font-mono);
+            font-size: 0.68rem;
+            color: var(--paper-faint);
+            border: 1px solid var(--ink-line);
+            border-radius: var(--r-hair);
+            padding: 2px 6px;
+        }
+
+        .sidebar-foot {
+            margin-top: auto;
+            padding-top: 20px;
+            border-top: 1px solid var(--ink-line);
+        }
+
+        .user-chip {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            padding: 0 10px 16px;
+        }
+
+        .user-chip .name {
+            font-size: 0.92rem;
+            font-weight: 600;
+        }
+
+        .user-chip .role {
+            font-family: var(--font-mono);
+            font-size: 0.72rem;
+            color: var(--paper-faint);
+        }
+
+        .link-danger {
+            color: #e0705f;
+        }
+
+        .link-danger:hover {
+            color: #f0897a;
+        }
+
+        /* ---------- Contenido ---------- */
         .main-content {
-            flex-grow: 1;
-            padding: 60px;
-            overflow-y: auto;
+            flex: 1 1 auto;
+            min-width: 0;
+            padding: 56px 56px 80px;
+        }
+
+        .main-content > section {
+            max-width: 940px;
+            /* Para que el ancla no quede bajo la cabecera móvil */
+            scroll-margin-top: 84px;
         }
 
         .welcome-hero {
-            margin-bottom: 48px;
+            margin-bottom: 28px;
+            padding-bottom: 32px;
+            border-bottom: 1px solid var(--ink-line);
         }
 
         .welcome-hero h1 {
-            font-size: 2.5rem;
-            margin-bottom: 8px;
+            font-size: clamp(1.9rem, 3.4vw, 2.6rem);
+            margin-bottom: 10px;
         }
 
-        .stats-grid {
+        .welcome-hero p {
+            color: var(--paper-dim);
+            max-width: 52ch;
+        }
+
+        .stat-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
             gap: 24px;
-            margin-bottom: 48px;
+            margin-bottom: 12px;
         }
 
-        .stat-card {
-            padding: 24px;
-            border-radius: 20px;
+        .stat {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 22px 24px;
+            background: var(--ink-raised);
+            border: 1px solid var(--ink-line);
+            border-radius: var(--r-md);
         }
 
-        .stat-card h4 {
-            font-size: 0.9rem;
-            color: var(--on-surface-variant);
-            margin-bottom: 4px;
+        .stat-label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--paper-faint);
         }
 
-        .stat-card .value {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: #fff;
+        .stat-value {
+            font-family: var(--font-display);
+            font-size: 2rem;
+            font-weight: 600;
+            font-variation-settings: 'SOFT' 0, 'WONK' 0;
+            line-height: 1;
+            color: var(--paper);
         }
 
-        .cards-list {
-            margin-top: 40px;
+        .cards-section {
+            margin-top: 52px;
         }
 
         .cards-header {
             display: flex;
+            align-items: flex-end;
             justify-content: space-between;
-            align-items: center;
-            margin-bottom: 24px;
-        }
-
-        .btn-new {
-            padding: 12px 24px;
-            background: var(--primary-container);
-            color: #fff;
-            border: none;
-            border-radius: 12px;
-            font-weight: 600;
-            cursor: pointer;
-            text-decoration: none;
-            transition: var(--transition);
-        }
-
-        .btn-new:hover {
-            transform: scale(1.02);
-            box-shadow: 0 8px 16px rgba(79, 70, 229, 0.3);
-        }
-
-        .card-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 24px;
+            margin-bottom: 28px;
+        }
+
+        .cards-header h2 {
+            font-size: 1.5rem;
+        }
+
+        .cards-header p {
+            font-size: 0.9rem;
+            color: var(--paper-dim);
+            margin-top: 6px;
+        }
+
+        .card-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
 
         .card-item {
-            padding: 24px;
-            border-radius: 20px;
             display: flex;
-            flex-direction: column;
-            gap: 16px;
+            align-items: center;
+            gap: 20px;
+            padding: 14px 18px 14px 14px;
+            background: var(--ink-raised);
+            border: 1px solid var(--ink-line);
+            border-radius: var(--r-md);
+            transition: border-color var(--dur) var(--ease);
         }
 
-        .card-status {
-            font-size: 0.75rem;
-            padding: 4px 12px;
-            border-radius: 100px;
-            background: rgba(0, 220, 230, 0.1);
-            color: var(--tertiary);
-            align-self: flex-start;
+        .card-item:hover {
+            border-color: var(--ink-line-strong);
         }
 
-        /* Mobile Adjustments */
+        .card-thumb {
+            flex: 0 0 auto;
+            width: 62px;
+            height: 96px;
+            border-radius: var(--r-sm);
+            background-color: var(--ink-sunken);
+            background-size: cover;
+            background-position: center;
+            border: 1px solid var(--ink-line);
+        }
+
+        .card-info {
+            min-width: 0;
+            flex: 1 1 auto;
+        }
+
+        .card-info h3 {
+            font-size: 1.1rem;
+            margin-bottom: 2px;
+        }
+
+        .card-info .path {
+            font-family: var(--font-mono);
+            font-size: 0.78rem;
+            color: var(--brass);
+            background: none;
+            border: 0;
+            padding: 0;
+            cursor: pointer;
+            text-align: left;
+        }
+
+        .card-info .sub {
+            font-size: 0.86rem;
+            color: var(--paper-dim);
+            margin-top: 4px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .card-actions {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 0 0 auto;
+        }
+
+        .card-actions .btn-quiet {
+            font-size: 0.86rem;
+            padding: 8px 12px;
+        }
+
+        .empty-state {
+            padding: 48px 32px;
+            text-align: center;
+            border: 1px dashed var(--ink-line-strong);
+            border-radius: var(--r-md);
+            color: var(--paper-dim);
+        }
+
+        .empty-state h3 {
+            font-size: 1.2rem;
+            margin-bottom: 8px;
+        }
+
+        .empty-state p {
+            font-size: 0.92rem;
+            max-width: 42ch;
+            margin: 0 auto 22px;
+        }
+
+        /* ---------- Móvil ---------- */
         .mobile-header {
             display: none;
-            padding: 16px 24px;
-            background: var(--bg-recessed);
-            border-bottom: 1px solid var(--glass-border);
-            justify-content: space-between;
             align-items: center;
+            justify-content: space-between;
+            padding: 14px 20px;
+            background: var(--ink-sunken);
+            border-bottom: 1px solid var(--ink-line);
             position: sticky;
             top: 0;
             z-index: 100;
         }
 
         .menu-btn {
+            width: 40px;
+            height: 40px;
             background: none;
-            border: none;
-            color: var(--on-surface);
-            font-size: 1.5rem;
+            border: 1px solid var(--ink-line-strong);
+            border-radius: var(--r-sm);
+            color: var(--paper);
+            font-size: 1.1rem;
             cursor: pointer;
         }
 
         @media (max-width: 992px) {
-            .sidebar {
-                position: fixed;
-                left: -280px;
-                top: 0;
-                bottom: 0;
-                z-index: 1000;
-                transition: 0.3s;
-                box-shadow: 20px 0 50px rgba(0,0,0,0.5);
-            }
-
-            .sidebar.active {
-                left: 0;
+            .dashboard-layout {
+                flex-direction: column;
             }
 
             .mobile-header {
                 display: flex;
             }
 
+            .sidebar {
+                position: fixed;
+                left: -284px;
+                top: 0;
+                bottom: 0;
+                z-index: 1000;
+                transition: left 300ms var(--ease);
+                box-shadow: 20px 0 60px rgba(0, 0, 0, 0.6);
+            }
+
+            .sidebar.active {
+                left: 0;
+            }
+
             .main-content {
-                padding: 30px;
+                padding: 32px 20px 60px;
             }
         }
 
-        @media (max-width: 600px) {
-            .main-content {
-                padding: 24px 16px;
-            }
-
-            .welcome-hero h1 {
-                font-size: 1.8rem;
-            }
-
-            .stats-grid {
+        @media (max-width: 640px) {
+            .stat-row {
                 grid-template-columns: 1fr;
             }
 
             .cards-header {
                 flex-direction: column;
-                align-items: flex-start;
+                align-items: stretch;
                 gap: 16px;
             }
 
-            .btn-new {
-                width: 100%;
-                text-align: center;
+            .card-item {
+                flex-wrap: wrap;
             }
 
-            .card-grid {
-                grid-template-columns: 1fr;
+            .card-actions {
+                width: 100%;
+                justify-content: flex-end;
             }
         }
     </style>
 </head>
 <body>
     <div class="mobile-header">
-        <div class="logo">
-            <span>E-Cards</span> JM
-        </div>
-        <button class="menu-btn" id="menu-toggle">≡</button>
+        <div class="wordmark">E-Cards <em>JM</em></div>
+        <button class="menu-btn" id="menu-toggle" aria-label="Abrir menú">≡</button>
     </div>
+
     <div class="dashboard-layout">
         <aside class="sidebar">
-            <div class="logo">
-                <span>E-Cards</span> JM
-            </div>
-            
+            <div class="wordmark">E-Cards <em>JM</em></div>
+
             <nav class="sidebar-nav">
-                <a href="#" class="sidebar-link active" data-section="dashboard" onclick="showSection('dashboard')">Dashboard</a>
-                <a href="#cards" class="sidebar-link" data-section="cards" onclick="showSection('cards')">Mis Tarjetas</a>
-                <a href="#" class="sidebar-link" onclick="alert('Próximamente')">Contactos</a>
-                <a href="#" class="sidebar-link" onclick="alert('Próximamente')">Analíticas</a>
-                <a href="#" class="sidebar-link" onclick="alert('Próximamente')">Configuración</a>
+                <a href="#section-dashboard" class="sidebar-link active" data-section="dashboard" onclick="goToSection('dashboard'); return false;">Resumen</a>
+                <a href="#section-cards" class="sidebar-link" data-section="cards" onclick="goToSection('cards'); return false;">Mis tarjetas</a>
+                <span class="sidebar-link is-disabled">Contactos <span class="tag-soon">Pronto</span></span>
+                <span class="sidebar-link is-disabled">Analíticas <span class="tag-soon">Pronto</span></span>
+                <span class="sidebar-link is-disabled">Configuración <span class="tag-soon">Pronto</span></span>
             </nav>
 
-            <a href="index.html" class="sidebar-link" style="margin-top: auto; color: #ff6b6b;">Cerrar Sesión</a>
+            <div class="sidebar-foot">
+                <div class="user-chip">
+                    <span class="name" id="user-name">—</span>
+                    <span class="role" id="user-role">usuario</span>
+                </div>
+                <a href="/index.html" class="sidebar-link link-danger" id="logout-link">Cerrar sesión</a>
+            </div>
         </aside>
 
         <main class="main-content">
-            <section id="section-dashboard">
-                <header class="welcome-hero">
-                    <h1>Hola, Juan</h1>
-                    <p style="color: var(--on-surface-variant);">Aquí tienes un resumen de tu actividad digital.</p>
+            <section id="section-dashboard" class="welcome-hero">
+                <header>
+                    <h1 id="welcome-title">Hola</h1>
+                    <p>Aquí tiene el resumen de sus tarjetas y del enlace que comparte con sus contactos.</p>
                 </header>
 
-                <div class="stats-grid">
-                    <div class="stat-card glass">
-                        <h4>Vistas Totales</h4>
-                        <div class="value">1,248</div>
+                <div class="stat-row">
+                    <div class="stat">
+                        <span class="stat-label">Tarjetas creadas</span>
+                        <span class="stat-value" id="stat-total">—</span>
                     </div>
-                    <div class="stat-card glass">
-                        <h4>Nuevos Contactos</h4>
-                        <div class="value">42</div>
-                    </div>
-                    <div class="stat-card glass">
-                        <h4>Escaneos Hoy</h4>
-                        <div class="value">15</div>
+                    <div class="stat">
+                        <span class="stat-label">Con datos de contacto</span>
+                        <span class="stat-value" id="stat-contact">—</span>
                     </div>
                 </div>
             </section>
 
-            <section id="section-cards">
-                <div class="cards-list">
-                    <div class="cards-header">
-                        <h2>Mis Tarjetas</h2>
-                        <a href="create-card.html" class="btn-new">+ Nueva Tarjeta</a>
+            <section id="section-cards" class="cards-section">
+                <div class="cards-header">
+                    <div>
+                        <h2>Mis tarjetas</h2>
+                        <p>Cada tarjeta tiene su propio enlace y su propio QR.</p>
                     </div>
+                    <a href="/create-card.html" class="btn btn-brass">Nueva tarjeta</a>
+                </div>
 
-                    <div class="card-grid" id="card-list">
-                        <!-- Cards will be populated here -->
-                    </div>
+                <div class="card-list" id="card-list">
+                    <!-- Las tarjetas se cargan desde la API -->
                 </div>
             </section>
         </main>
     </div>
 
     <script>
-        // Check Auth
+        // Comprobación de sesión
         const token = localStorage.getItem('ecards_token');
         const userJson = localStorage.getItem('ecards_user');
-        
+
         if (!token) window.location.href = 'login.html';
-        
+
         const user = JSON.parse(userJson || '{}');
         if (user.username) {
-            document.querySelector('.welcome-hero h1').innerText = `Hola, ${user.username}`;
+            document.getElementById('welcome-title').innerText = `Hola, ${user.username}`;
+            document.getElementById('user-name').innerText = user.username;
+        }
+        if (user.is_admin) {
+            document.getElementById('user-role').innerText = 'administrador';
         }
 
         async function loadCards() {
             const list = document.getElementById('card-list');
-            list.innerHTML = `<p style="color: var(--on-surface-variant); grid-column: 1/-1; text-align: center; padding: 40px;">Cargando tus tarjetas...</p>`;
-            
+            list.innerHTML = `<p class="text-dim">Cargando sus tarjetas…</p>`;
+
             try {
                 const response = await fetch('/api/cards', {
                     headers: { 'Authorization': `Bearer ${token}` }
                 });
 
                 if (!response.ok) throw new Error('Failed to load cards');
-                
+
                 const cards = await response.json();
                 list.innerHTML = "";
 
+                // Resumen honesto: los datos vienen de las tarjetas, no de cifras fijas
+                document.getElementById('stat-total').innerText = cards.length;
+                document.getElementById('stat-contact').innerText =
+                    cards.filter(c => c.phone || c.email).length;
+
                 if (cards.length === 0) {
-                    list.innerHTML = `<p style="color: var(--on-surface-variant); grid-column: 1/-1; text-align: center; padding: 40px;">No tienes tarjetas creadas. ¡Empieza creando tu primera tarjeta!</p>`;
+                    list.innerHTML = `
+                        <div class="empty-state">
+                            <h3>Todavía no hay tarjetas</h3>
+                            <p>Cree su primera tarjeta: añada su foto, su cargo y sus datos de contacto, y comparta el enlace.</p>
+                            <a href="/create-card.html" class="btn btn-brass">Crear mi primera tarjeta</a>
+                        </div>`;
                     return;
                 }
 
                 cards.forEach(card => {
-                    const cardEl = document.createElement('div');
-                    cardEl.className = 'card-item glass';
-                    const shareLink = `${window.location.origin}/card/${card.id}`;
-                    
+                    const cardEl = document.createElement('article');
+                    cardEl.className = 'card-item';
+
                     const bg = card.bg_image_path;
-                    const bgStyle = bg ? `background-image: url('${bg.startsWith('url(') ? bg.slice(4,-1).replace(/["']/g,"") : bg}');` : 'background-color: #333;';
-                    
+                    const bgStyle = bg
+                        ? `background-image: url('${bg.startsWith('url(') ? bg.slice(4,-1).replace(/["']/g,"") : bg}');`
+                        : 'background-color: #0b0d13;';
+
                     cardEl.innerHTML = `
-                        <div style="height: 100px; background-size: cover; background-position: center; ${bgStyle} border-radius: 12px; position:relative;">
+                        <a class="card-thumb" href="/card/${card.id}" style="${bgStyle}" title="Abrir la tarjeta pública"></a>
+                        <div class="card-info">
+                            <h3>${card.name || 'Sin nombre'}</h3>
+                            <button class="path" onclick="copyLink(this, '/card/${card.id}')">/card/${card.id}</button>
+                            <p class="sub">${card.title || card.company || card.email || 'Sin datos de contacto'}</p>
                         </div>
-                        <div>
-                            <h3 style="margin: 0; color: #fff;">${card.name}</h3>
-                            <p style="color: var(--on-surface-variant); font-size: 0.85rem; margin-top: 5px; cursor:pointer;" onclick="copyLink('${shareLink}')">
-                                <span style="opacity:0.7;">URL: </span> /card/${card.id}
-                                <span style="font-size:0.7rem; color:var(--primary); margin-left:8px;">Copiar</span>
-                            </p>
-                        </div>
-                        <div style="display: flex; gap: 10px; margin-top: auto;">
-                            <a href="create-card.html?edit=${card.id}" class="btn-new" style="padding: 10px; flex: 1; text-align: center; font-size: 0.8rem; background: rgba(255,255,255,0.05); border: 1px solid var(--glass-border);">Editar</a>
-                            <button onclick="deleteCard('${card.id}')" style="background: rgba(220, 38, 38, 0.1); color: #ef4444; border: 1px solid rgba(220, 38, 38, 0.2); padding: 10px; border-radius: 10px; cursor: pointer;">Borrar</button>
+                        <div class="card-actions">
+                            <a class="btn btn-quiet" href="/create-card.html?edit=${card.id}">Editar</a>
+                            <button class="btn btn-quiet link-danger" onclick="deleteCard('${card.id}')">Borrar</button>
                         </div>
                     `;
                     list.appendChild(cardEl);
                 });
             } catch (err) {
                 console.error("Load cards error:", err);
-                list.innerHTML = `<p style="color: #ef4444; grid-column: 1/-1; text-align: center; padding: 40px;">Error al cargar las tarjetas. Por favor, intenta de nuevo.</p>`;
+                list.innerHTML = `<p class="text-dim">No pudimos cargar sus tarjetas. Recargue la página para intentarlo de nuevo.</p>`;
             }
         }
 
-        function copyLink(link) {
-            navigator.clipboard.writeText(link);
-            alert('¡Link copiado al portapapeles!');
+        function copyLink(el, path) {
+            const url = window.location.origin + path;
+            navigator.clipboard.writeText(url);
+            const previous = el.innerText;
+            el.innerText = 'Enlace copiado';
+            setTimeout(() => { el.innerText = previous; }, 1600);
         }
 
         async function deleteCard(id) {
-            if (confirm('¿Seguro que quieres borrar esta tarjeta?')) {
+            if (confirm('¿Seguro que quiere borrar esta tarjeta?')) {
                 try {
                     const response = await fetch(`/api/cards/${id}`, {
                         method: 'DELETE',
@@ -349,11 +522,11 @@
                     if (response.ok) {
                         loadCards();
                     } else {
-                        alert('Error al borrar la tarjeta');
+                        alert('No se pudo borrar la tarjeta.');
                     }
                 } catch (err) {
                     console.error("Delete error:", err);
-                    alert('Error de conexión al servidor');
+                    alert('No pudimos conectar con el servidor.');
                 }
             }
         }
@@ -364,41 +537,42 @@
             window.location.href = 'index.html';
         }
 
-        // Attach logout to the link
-        document.querySelector('a[href="index.html"]').onclick = (e) => {
+        document.getElementById('logout-link').onclick = (e) => {
             e.preventDefault();
             logout();
         };
 
-        // Mobile Sidebar Toggle
+        // Menú lateral en móvil
         const menuToggle = document.getElementById('menu-toggle');
         const sidebar = document.querySelector('.sidebar');
-        
+
         if (menuToggle) {
             menuToggle.addEventListener('click', () => {
                 sidebar.classList.toggle('active');
             });
         }
-        
-        // Cierra el sidebar al clickear afuera en móvil
+
+        // Cierra la barra lateral al hacer clic afuera en móvil
         document.addEventListener('click', (e) => {
-            if (window.innerWidth < 992 && !sidebar.contains(e.target) && !menuToggle.contains(e.target) && sidebar.classList.contains('active')) {
+            if (window.innerWidth < 992 && sidebar.contains(e.target)) return;
+            if (window.innerWidth < 992 && !menuToggle.contains(e.target) && sidebar.classList.contains('active')) {
                 sidebar.classList.remove('active');
             }
         });
 
         window.onload = loadCards;
 
-        function showSection(name) {
-            document.querySelectorAll('.main-content > section').forEach(s => s.style.display = 'none');
+        function goToSection(name, scroll) {
             const target = document.getElementById('section-' + name);
-            if (target) target.style.display = 'block';
+            if (target && scroll !== false) {
+                target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
             document.querySelectorAll('.sidebar-link[data-section]').forEach(l => l.classList.remove('active'));
             const link = document.querySelector(`.sidebar-link[data-section="${name}"]`);
             if (link) link.classList.add('active');
             if (window.innerWidth < 992) sidebar.classList.remove('active');
         }
-        showSection('dashboard');
+        goToSection('dashboard', false);
     </script>
 </body>
 </html>

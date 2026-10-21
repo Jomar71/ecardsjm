@@ -307,7 +307,9 @@ app.get('/card/:id', async (req, res) => {
 app.get('/api/showcase', async (req, res) => {
     try {
         const result = await query(
-            'SELECT id, name, title, email, bg_image_path FROM business_cards ORDER BY RANDOM() LIMIT 4'
+            `SELECT id, name, title, email, phone, address, bg_image_path, logo_path,
+                    whatsapp, instagram, linkedin, facebook, youtube, website
+             FROM business_cards ORDER BY RANDOM() LIMIT 4`
         );
         res.json(result.rows);
     } catch (err) {
